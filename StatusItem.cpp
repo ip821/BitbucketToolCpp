@@ -20,9 +20,6 @@
 #include "wx/msgdlg.h"
 #include "wx/taskbar.h"
 
-extern "C" void InitStatusImage();
-extern "C" WXImage* GetStatusImage();
-
 enum
 {
     MENU_ITEM_PREFERENCES_ID = 10001,
@@ -56,7 +53,7 @@ StatusItem::StatusItem() : wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM)
     {
         wxMessageBox("Could not load status image");
     }
-    SetIcon("status32@2x");
+    SetIcon(m_bitmapBundle);
 #endif
 }
 

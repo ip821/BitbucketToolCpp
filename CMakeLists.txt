@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(wxWidgetsPlayground LANGUAGES CXX OBJCXX)
+project(wxWidgetsPlayground LANGUAGES CXX)
 
 include(FetchContent)
 
@@ -7,12 +7,18 @@ set(wxBUILD_SHARED OFF)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(APPLE)
+    set(WX_WIDGETS_PATCH_COMMAND, git apply "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets.patch")
+else ()
+    set(WX_WIDGETS_PATCH_COMMAND, "")
+endif ()
+
 FetchContent_Declare(
         wxWidgets
         GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
         GIT_TAG v3.3.1
         GIT_SHALLOW ON
-        PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets.patch"
+        PATCH_COMMAND ${WX_WIDGETS_PATCH_COMMAND}
         UPDATE_DISCONNECTED 1
 )
 
@@ -25,7 +31,6 @@ add_executable(wxWidgetsPlayground MACOSX_BUNDLE
         preferences/MyDialog.h
         StatusItem.cpp
         StatusItem.h
-        wx-helpers/wxSizerBuilder.h
 )
 target_link_libraries(wxWidgetsPlayground PRIVATE wxcore wxnet)
 

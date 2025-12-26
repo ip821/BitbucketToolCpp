@@ -27,7 +27,7 @@ private:
     MyDialog* m_pDialog;
     void ShowPreferencesDialog();
 
-#ifndef __WXMSW__
+#ifndef __WXOSX__
     wxBitmapBundle m_bitmapBundle = wxBitmapBundle::FromResources("status32@2x");
 #endif
 };
