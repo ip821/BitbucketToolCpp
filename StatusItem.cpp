@@ -76,6 +76,7 @@ void StatusItem::OnMenuPreferences(wxCommandEvent&)
 void StatusItem::OnMenuExit(wxCommandEvent&)
 {
     m_pDialog->Close(true);
+    m_pDialog->Destroy();
 }
 
 void StatusItem::OnMenuUpdate(wxCommandEvent&)
