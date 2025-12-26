@@ -44,6 +44,10 @@ StatusItem::StatusItem() : wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM)
 {
     m_pDialog = new MyDialog("Preferences");
 
+#ifdef WXDEBUG
+    m_pDialog->Show(true);
+#endif
+
 #if defined(__WXOSX__)
     SetIcon("status32@2x");
     SetTitle("1/2");
@@ -56,9 +60,17 @@ StatusItem::StatusItem() : wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM)
 #endif
 }
 
+void StatusItem::ShowPreferencesDialog()
+{
+    if (!m_pDialog->IsVisible())
+        m_pDialog->Show(true);
+
+    m_pDialog->Raise();
+}
+
 void StatusItem::OnMenuPreferences(wxCommandEvent&)
 {
-    m_pDialog->Show(true);
+    ShowPreferencesDialog();
 }
 
 void StatusItem::OnMenuExit(wxCommandEvent&)
@@ -88,5 +100,5 @@ wxMenu* StatusItem::CreatePopupMenu()
 
 void StatusItem::OnLeftButtonDClick(wxTaskBarIconEvent&)
 {
-    m_pDialog->Show(true);
+    ShowPreferencesDialog();
 }

@@ -4,7 +4,7 @@
 
 #ifndef WXWIDGETSPLAYGROUND_MYAPP_H
 #define WXWIDGETSPLAYGROUND_MYAPP_H
-#include "MyDialog.h"
+#include "preferences/MyDialog.h"
 #include "StatusItem.h"
 #include "wx/app.h"
 

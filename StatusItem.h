@@ -4,7 +4,7 @@
 
 #ifndef WXWIDGETSPLAYGROUND_MYTASKBARICON_H
 #define WXWIDGETSPLAYGROUND_MYTASKBARICON_H
-#include "MyDialog.h"
+#include "preferences/MyDialog.h"
 #include "wx/taskbar.h"
 #include "wx/bmpbndl.h"
 
@@ -24,10 +24,12 @@ public:
     wxDECLARE_EVENT_TABLE();
 
 private:
+    MyDialog* m_pDialog;
+    void ShowPreferencesDialog();
+
 #ifndef __WXMSW__
     wxBitmapBundle m_bitmapBundle = wxBitmapBundle::FromResources("status32@2x");
 #endif
-    MyDialog* m_pDialog;
 };
 
 

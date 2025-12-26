@@ -21,10 +21,11 @@ FetchContent_MakeAvailable(wxWidgets)
 add_executable(wxWidgetsPlayground MACOSX_BUNDLE
         MyApp.cpp
         MyApp.h
-        MyDialog.cpp
-        MyDialog.h
+        preferences/MyDialog.cpp
+        preferences/MyDialog.h
         StatusItem.cpp
         StatusItem.h
+        wx-helpers/wxSizerBuilder.h
 )
 target_link_libraries(wxWidgetsPlayground PRIVATE wxcore wxnet)
 
