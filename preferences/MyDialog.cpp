@@ -88,14 +88,7 @@ void MyDialog::OnAbout(wxCommandEvent& WXUNUSED(event))
         "(C) 1997 Julian Smart\n"
         "(C) 2007 Vadim Zeitlin";
 
-#if defined(__WXMSW__) && wxUSE_TASKBARICON_BALLOONS
-    m_taskBarIcon->ShowBalloon(title, message, 15000,
-                               wxICON_INFORMATION,
-                               wxBitmapBundle::FromSVGFile("info.svg", wxSize(64, 64))
-    );
-#else // !__WXMSW__
     wxMessageBox(message, title, wxICON_INFORMATION | wxOK, this);
-#endif // __WXMSW__/!__WXMSW__
 }
 
 void MyDialog::OnOK(wxCommandEvent& WXUNUSED(event))

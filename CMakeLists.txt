@@ -7,7 +7,7 @@ set(wxBUILD_SHARED OFF)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(APPLE)
+if (APPLE)
     set(WX_WIDGETS_PATCH_COMMAND, git apply "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets.patch")
 else ()
     set(WX_WIDGETS_PATCH_COMMAND, "")
@@ -31,6 +31,8 @@ add_executable(wxWidgetsPlayground MACOSX_BUNDLE
         preferences/MyDialog.h
         StatusItem.cpp
         StatusItem.h
+        windows/app.rc
+        windows/app.manifest
 )
 target_link_libraries(wxWidgetsPlayground PRIVATE wxcore wxnet)
 
@@ -76,4 +78,11 @@ if (APPLE)
             macos/macos_activation.mm
     )
     target_link_libraries(wxWidgetsPlayground PRIVATE "-framework Cocoa")
+endif ()
+
+if (WIN32)
+    target_sources(wxWidgetsPlayground PRIVATE
+            windows/app.rc
+    )
+    set_source_files_properties(windows/app.rc PROPERTIES LANGUAGE RC)
 endif ()
