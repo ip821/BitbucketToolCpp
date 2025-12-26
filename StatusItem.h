@@ -15,18 +15,18 @@ public:
     explicit StatusItem();
 
     void OnLeftButtonDClick(wxTaskBarIconEvent&);
-    void OnMenuRestore(wxCommandEvent&);
+    void OnMenuPreferences(wxCommandEvent&);
     void OnMenuExit(wxCommandEvent&);
-    void OnMenuSetNewIcon(wxCommandEvent&);
-    void OnMenuCheckmark(wxCommandEvent&);
-    void OnMenuUICheckmark(wxUpdateUIEvent&);
-    void OnMenuSub(wxCommandEvent&);
+    void OnMenuUpdate(wxCommandEvent&);
+    void OnMenuCreatePr(wxCommandEvent&);
     virtual wxMenu* CreatePopupMenu() wxOVERRIDE;
 
     wxDECLARE_EVENT_TABLE();
 
 private:
-    wxBitmapBundle m_bitmapBundle = wxBitmapBundle::FromResources("status32");
+#ifndef __WXMSW__
+    wxBitmapBundle m_bitmapBundle = wxBitmapBundle::FromResources("status32@2x");
+#endif
     MyDialog* m_pDialog;
 };
 

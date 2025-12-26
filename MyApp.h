@@ -12,7 +12,7 @@ class MyApp : public wxApp
 {
 public:
     explicit MyApp();
-    virtual bool OnInit() wxOVERRIDE;
+    bool OnInit() override;
 
 private:
     std::shared_ptr<StatusItem> m_statusItem;

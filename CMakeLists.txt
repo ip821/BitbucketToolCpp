@@ -10,8 +10,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 FetchContent_Declare(
         wxWidgets
         GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
+        GIT_TAG v3.3.1
         GIT_SHALLOW ON
+        PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets.patch"
+        UPDATE_DISCONNECTED 1
 )
+
 FetchContent_MakeAvailable(wxWidgets)
 
 add_executable(wxWidgetsPlayground MACOSX_BUNDLE
@@ -21,8 +25,6 @@ add_executable(wxWidgetsPlayground MACOSX_BUNDLE
         MyDialog.h
         StatusItem.cpp
         StatusItem.h
-        swift/file.swift
-        swift/file.h
 )
 target_link_libraries(wxWidgetsPlayground PRIVATE wxcore wxnet)
 
@@ -37,41 +39,6 @@ set(STATUS_IMAGE_16
 )
 
 if (APPLE)
-    # --- Swift library ---
-    set(SWIFT_SRC ${CMAKE_SOURCE_DIR}/swift/file.swift)
-    set(SWIFT_OUT_DIR ${CMAKE_BINARY_DIR}/swift)
-    set(SWIFT_LIB ${SWIFT_OUT_DIR}/libswift_svc.dylib)
-
-    file(MAKE_DIRECTORY ${SWIFT_OUT_DIR})
-
-    add_custom_command(
-            OUTPUT ${SWIFT_LIB}
-            COMMAND xcrun swiftc
-            -emit-library
-            -o ${SWIFT_LIB}
-            ${SWIFT_SRC}
-            DEPENDS ${SWIFT_SRC}
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            VERBATIM
-    )
-
-    add_custom_target(swift_svc ALL DEPENDS ${SWIFT_LIB})
-    add_dependencies(wxWidgetsPlayground swift_svc)
-    target_include_directories(wxWidgetsPlayground PRIVATE ${CMAKE_SOURCE_DIR}/swift)
-    target_link_libraries(wxWidgetsPlayground PRIVATE ${SWIFT_LIB})
-    # Let the app find the dylib at runtime
-    set_target_properties(wxWidgetsPlayground PROPERTIES
-            BUILD_RPATH "@executable_path"
-            INSTALL_RPATH "@executable_path"
-    )
-
-    # Copy dylib next to the app binary after build
-    add_custom_command(TARGET wxWidgetsPlayground POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${SWIFT_LIB}
-            $<TARGET_FILE_DIR:wxWidgetsPlayground>
-    )
-
     set(APP_ICON "${CMAKE_SOURCE_DIR}/macos/AppIcon.icns")
     set_source_files_properties(${APP_ICON}
             PROPERTIES

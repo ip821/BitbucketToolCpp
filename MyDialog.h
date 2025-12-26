@@ -5,7 +5,6 @@
 #ifndef WXWIDGETSPLAYGROUND_MYDIALOG_H
 #define WXWIDGETSPLAYGROUND_MYDIALOG_H
 
-#include "wx/taskbar.h"
 #include "wx/string.h"
 #include "wx/dialog.h"
 

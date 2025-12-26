@@ -3,8 +3,6 @@
 //
 
 #include "MyDialog.h"
-#include "StatusItem.h"
-#include "../../../../Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Headers/Debugging.h"
 
 #include "wx/taskbar.h"
 #include "wx/artprov.h"
