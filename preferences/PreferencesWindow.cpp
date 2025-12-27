@@ -24,6 +24,8 @@ PreferencesWindow::PreferencesWindow(const wxString& title)
     wxMenuBar *menuBar = new wxMenuBar();
     SetMenuBar(menuBar);
 
+    const auto pPanel = this; //new wxPanel(this);
+
     const auto pRootSizer = new wxBoxSizer(wxVERTICAL);
     pRootSizer->SetMinSize(300, 200);
 
@@ -34,43 +36,44 @@ PreferencesWindow::PreferencesWindow(const wxString& title)
     pGridSizer->AddGrowableCol(1);
 
     pGridSizer->Add(
-        new wxStaticText(this, wxID_ANY, wxT("Workspace:")),
+        new wxStaticText(pPanel, wxID_ANY, wxT("Workspace:")),
         wxSizerFlags().Expand().Left()
     );
 
     pGridSizer->Add(
-        new wxStaticText(this, wxID_ANY, wxT("mbsolutionsgroup")),
+        new wxStaticText(pPanel, wxID_ANY, wxT("mbsolutionsgroup")),
         wxSizerFlags().Right()
     );
 
     pGridSizer->Add(
-        new wxStaticText(this, wxID_ANY, wxT("Repository:")),
+        new wxStaticText(pPanel, wxID_ANY, wxT("Repository:")),
         wxSizerFlags().Expand().Left()
     );
 
     pGridSizer->Add(
-        new wxStaticText(this, wxID_ANY, wxT("cr")),
+        new wxStaticText(pPanel, wxID_ANY, wxT("cr")),
         wxSizerFlags().Right()
     );
 
     pMainSizer->Add(pGridSizer, wxSizerFlags().Expand().Top().Border(wxALL, 10));
 
     const auto pHelp = new wxStaticText(
-        this, wxID_ANY,
+        pPanel, wxID_ANY,
         wxT("Use Setup butoon to enter credentials and to\nchoose Workspace and Repository to follow")
     );
     pHelp->SetFont(pHelp->GetFont().Scale(0.8));
     pHelp->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     pMainSizer->Add(pHelp, wxSizerFlags().Center().Border(wxALL, 10));
 
-    const auto pSetupButton = new wxButton(this, wxID_ANY, wxT("Setup..."), wxDefaultPosition);
+    const auto pSetupButton = new wxButton(pPanel, wxID_ANY, wxT("Setup..."), wxDefaultPosition);
     pSetupButton->Bind(wxEVT_BUTTON, &PreferencesWindow::OnSetupClicked, this);
     pMainSizer->Add(pSetupButton, wxSizerFlags().Center().Border(wxALL, 10));
 
-    const auto pLaunchAtLoginCheckbox = new wxCheckBox(this, wxID_ANY, wxT("Launch at login"));
+    const auto pLaunchAtLoginCheckbox = new wxCheckBox(pPanel, wxID_ANY, wxT("Launch at login"));
     pMainSizer->Add(pLaunchAtLoginCheckbox, wxSizerFlags().Left().Border(wxALL, 10));
 
-    SetSizerAndFit(pRootSizer);
+    pPanel->SetSizer(pRootSizer);
+    Fit();
     Centre();
 }
 
