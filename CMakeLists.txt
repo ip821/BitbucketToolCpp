@@ -7,32 +7,48 @@ set(wxBUILD_SHARED OFF)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if (APPLE)
-    set(WX_WIDGETS_PATCH_COMMAND, git apply "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets.patch")
-else ()
-    set(WX_WIDGETS_PATCH_COMMAND, "")
-endif ()
+set(WX_WIDGETS_VERSION v3.3.1)
 
-FetchContent_Declare(
-        wxWidgets
-        GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
-        GIT_TAG v3.3.1
-        GIT_SHALLOW ON
-        PATCH_COMMAND ${WX_WIDGETS_PATCH_COMMAND}
-        UPDATE_DISCONNECTED 1
-)
+if(APPLE)
+    FetchContent_Declare(
+            wxWidgets
+            GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
+            GIT_TAG ${WX_WIDGETS_VERSION}
+            GIT_SHALLOW ON
+            PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets.patch"
+            UPDATE_DISCONNECTED 1
+    )
+else ()
+    FetchContent_Declare(
+            wxWidgets
+            GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
+            GIT_TAG ${WX_WIDGETS_VERSION}
+            GIT_SHALLOW ON
+    )
+endif ()
 
 FetchContent_MakeAvailable(wxWidgets)
 
 add_executable(wxWidgetsPlayground MACOSX_BUNDLE
         MyApp.cpp
         MyApp.h
-        preferences/MyDialog.cpp
-        preferences/MyDialog.h
+        preferences/PreferencesWindow.cpp
+        preferences/PreferencesWindow.h
         StatusItem.cpp
         StatusItem.h
         windows/app.rc
         windows/app.manifest
+        preferences/wizard/SetupWizard.cpp
+        preferences/wizard/SetupWizard.h
+        stdafx.h
+        stdafx.h
+        preferences/wizard/LoginPage.cpp
+        preferences/wizard/LoginPage.h
+        preferences/wizard/WorkspacePage.cpp
+        preferences/wizard/WorkspacePage.cpp
+        preferences/wizard/WorkspacePage.h
+        preferences/wizard/RepositoryPage.cpp
+        preferences/wizard/RepositoryPage.h
 )
 target_link_libraries(wxWidgetsPlayground PRIVATE wxcore wxnet)
 
@@ -47,6 +63,7 @@ set(STATUS_IMAGE_16
 )
 
 if (APPLE)
+    project(wxWidgetsPlayground LANGUAGES CXX OBJCXX)
     set(APP_ICON "${CMAKE_SOURCE_DIR}/macos/AppIcon.icns")
     set_source_files_properties(${APP_ICON}
             PROPERTIES

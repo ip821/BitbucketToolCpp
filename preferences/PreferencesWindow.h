@@ -5,14 +5,11 @@
 #ifndef WXWIDGETSPLAYGROUND_MYDIALOG_H
 #define WXWIDGETSPLAYGROUND_MYDIALOG_H
 
-#include "wx/string.h"
-#include "wx/dialog.h"
+#include "../stdafx.h"
 
-class MyDialog : public wxDialog {
+class PreferencesWindow : public wxFrame {
 public:
-    explicit MyDialog(const wxString &title);
-
-    ~MyDialog() override;
+    explicit PreferencesWindow(const wxString &title);
 
 protected:
     void OnAbout(wxCommandEvent &event);
@@ -20,6 +17,7 @@ protected:
     void OnExit(wxCommandEvent &event);
     void OnShowWindow(wxShowEvent &event);
     void OnCloseWindow(wxCloseEvent &event);
+    void OnSetupClicked(wxCommandEvent &event);
 
     wxDECLARE_EVENT_TABLE();
 };

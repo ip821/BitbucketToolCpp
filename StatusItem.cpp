@@ -1,24 +1,4 @@
-//
-// Created by Igor Palkin on 19.12.2025.
-//
-
-#include "wx/wxprec.h"
-
-
-#ifndef WX_PRECOMP
-#include "wx/wx.h"
-#endif
-
 #include "StatusItem.h"
-
-#include "smile.xpm"
-#include "smile2.xpm"
-#include "wx/bmpbndl.h"
-#include "wx/menu.h"
-#include "wx/artprov.h"
-
-#include "wx/msgdlg.h"
-#include "wx/taskbar.h"
 
 enum
 {
@@ -39,7 +19,7 @@ wxEND_EVENT_TABLE()
 
 StatusItem::StatusItem() : wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM)
 {
-    m_pDialog = new MyDialog("Preferences");
+    m_pDialog = new PreferencesWindow("Preferences");
 
 #ifdef WXDEBUG
     m_pDialog->Show(true);

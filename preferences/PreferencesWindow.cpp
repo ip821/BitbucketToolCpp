@@ -2,30 +2,28 @@
 // Created by Igor Palkin on 19.12.2025.
 //
 
-#include "../preferences/MyDialog.h"
+#include "../preferences/PreferencesWindow.h"
 
-#include "wx/wx.h"
-#include "wx/log.h"
-#include "wx/msgdlg.h"
-#include "wx/sizer.h"
-#include "wx/stattext.h"
-#include "wx/button.h"
+#include "wizard/SetupWizard.h"
 
 extern "C" void ShowDockIcon();
 extern "C" void HideDockIcon();
 
-wxBEGIN_EVENT_TABLE(MyDialog, wxDialog)
-    EVT_BUTTON(wxID_ABOUT, MyDialog::OnAbout)
-    EVT_BUTTON(wxID_OK, MyDialog::OnOK)
-    EVT_BUTTON(wxID_EXIT, MyDialog::OnExit)
-    EVT_SHOW(MyDialog::OnShowWindow)
-    EVT_CLOSE(MyDialog::OnCloseWindow)
+wxBEGIN_EVENT_TABLE(PreferencesWindow, wxFrame)
+    EVT_BUTTON(wxID_ABOUT, PreferencesWindow::OnAbout)
+    EVT_BUTTON(wxID_OK, PreferencesWindow::OnOK)
+    EVT_BUTTON(wxID_EXIT, PreferencesWindow::OnExit)
+    EVT_SHOW(PreferencesWindow::OnShowWindow)
+    EVT_CLOSE(PreferencesWindow::OnCloseWindow)
 wxEND_EVENT_TABLE()
 
 
-MyDialog::MyDialog(const wxString& title)
-    : wxDialog(NULL, wxID_ANY, title)
+PreferencesWindow::PreferencesWindow(const wxString& title)
+    : wxFrame(NULL, wxID_ANY, title)
 {
+    wxMenuBar *menuBar = new wxMenuBar();
+    SetMenuBar(menuBar);
+
     const auto pRootSizer = new wxBoxSizer(wxVERTICAL);
     pRootSizer->SetMinSize(300, 200);
 
@@ -66,6 +64,7 @@ MyDialog::MyDialog(const wxString& title)
     pMainSizer->Add(pHelp, wxSizerFlags().Center().Border(wxALL, 10));
 
     const auto pSetupButton = new wxButton(this, wxID_ANY, wxT("Setup..."), wxDefaultPosition);
+    pSetupButton->Bind(wxEVT_BUTTON, &PreferencesWindow::OnSetupClicked, this);
     pMainSizer->Add(pSetupButton, wxSizerFlags().Center().Border(wxALL, 10));
 
     const auto pLaunchAtLoginCheckbox = new wxCheckBox(this, wxID_ANY, wxT("Launch at login"));
@@ -75,11 +74,13 @@ MyDialog::MyDialog(const wxString& title)
     Centre();
 }
 
-MyDialog::~MyDialog()
+void PreferencesWindow::OnSetupClicked(wxCommandEvent& WXUNUSED(event))
 {
+    SetupWizard setupWizard(this);
+    setupWizard.Run();
 }
 
-void MyDialog::OnAbout(wxCommandEvent& WXUNUSED(event))
+void PreferencesWindow::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
     static const char* const title = "About wxWidgets Taskbar Sample";
     static const char* const message
@@ -91,18 +92,18 @@ void MyDialog::OnAbout(wxCommandEvent& WXUNUSED(event))
     wxMessageBox(message, title, wxICON_INFORMATION | wxOK, this);
 }
 
-void MyDialog::OnOK(wxCommandEvent& WXUNUSED(event))
+void PreferencesWindow::OnOK(wxCommandEvent& WXUNUSED(event))
 {
     Show(false);
 }
 
-void MyDialog::OnExit(wxCommandEvent& WXUNUSED(event))
+void PreferencesWindow::OnExit(wxCommandEvent& WXUNUSED(event))
 {
     Close(true);
     Destroy();
 }
 
-void MyDialog::OnShowWindow(wxShowEvent& event)
+void PreferencesWindow::OnShowWindow(wxShowEvent& event)
 {
 #if defined(__WXOSX__)
     if (event.IsShown())
@@ -116,7 +117,7 @@ void MyDialog::OnShowWindow(wxShowEvent& event)
 #endif
 }
 
-void MyDialog::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
+void PreferencesWindow::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 {
     Show(false);
 }

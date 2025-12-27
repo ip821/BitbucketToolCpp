@@ -4,9 +4,10 @@
 
 #ifndef WXWIDGETSPLAYGROUND_MYAPP_H
 #define WXWIDGETSPLAYGROUND_MYAPP_H
-#include "preferences/MyDialog.h"
-#include "StatusItem.h"
-#include "wx/app.h"
+
+#include "stdafx.h"
+
+class StatusItem;
 
 class MyApp : public wxApp
 {

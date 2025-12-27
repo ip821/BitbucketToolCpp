@@ -4,10 +4,10 @@
 
 #ifndef WXWIDGETSPLAYGROUND_MYTASKBARICON_H
 #define WXWIDGETSPLAYGROUND_MYTASKBARICON_H
-#include "preferences/MyDialog.h"
-#include "wx/taskbar.h"
-#include "wx/bmpbndl.h"
 
+#include "stdafx.h"
+
+class PreferencesWindow;
 
 class StatusItem : public wxTaskBarIcon
 {
@@ -24,7 +24,7 @@ public:
     wxDECLARE_EVENT_TABLE();
 
 private:
-    MyDialog* m_pDialog;
+    PreferencesWindow* m_pDialog;
     void ShowPreferencesDialog();
 
 #ifndef __WXOSX__
