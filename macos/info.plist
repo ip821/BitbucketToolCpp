@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleName</key>
-  <string>wxWidgetsPlayground</string>
+  <string>PRToolForBitbucket2</string>
 
   <key>CFBundleIdentifier</key>
-  <string>ip.wxWidgetsPlayground</string>
+  <string>ip.PRToolForBitbucket2</string>
 
   <key>CFBundleExecutable</key>
-  <string>wxWidgetsPlayground</string>
+  <string>PRToolForBitbucket2</string>
 
   <key>CFBundlePackageType</key>
   <string>APPL</string>
@@ -32,7 +32,5 @@
   <key>LSUIElement</key>
   <string>1</string>
 
-  <!-- If you use microphone/camera/etc, add usage strings here -->
-  <!-- <key>NSCameraUsageDescription</key><string>Needed for ...</string> -->
 </dict>
 </plist>

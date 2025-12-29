@@ -1,9 +1,9 @@
 diff --git forkSrcPrefix/include/wx/osx/taskbarosx.h forkDstPrefix/include/wx/osx/taskbarosx.h
-index bce68c55515c27c4e0690fa2fb31d40ba7ae8f7f..86e04f6972e8d6a642cf3155235cfbde18660792 100644
+index 5062a7ce77184aa50c66280b60deed259e567958..03cb1ff49c5e0919c890cac6b5ad949396dbc4d1 100644
 --- forkSrcPrefix/include/wx/osx/taskbarosx.h
 +++ forkDstPrefix/include/wx/osx/taskbarosx.h
-@@ -22,6 +22,8 @@ public:
-
+@@ -23,6 +23,8 @@ public:
+ 
      // returns true if the taskbaricon is in the global menubar
  #if wxOSX_USE_COCOA
 +    void SetTitle(const wxString& title);
@@ -12,36 +12,51 @@ index bce68c55515c27c4e0690fa2fb31d40ba7ae8f7f..86e04f6972e8d6a642cf3155235cfbde
  #else
      bool OSXIsStatusItem() { return false; }
 diff --git forkSrcPrefix/src/osx/cocoa/taskbar.mm forkDstPrefix/src/osx/cocoa/taskbar.mm
-index 7941a783c5c4b398587a6a8878583ad25f9ea0dd..9adb6c93f8a140dc7bc43e88d7612e7cebadeb9c 100644
+index 32faabdb1575b65dbee1fc24cbb7242d017cff90..46d5b672eb5ad971dcd03ec4d9deeded75812393 100644
 --- forkSrcPrefix/src/osx/cocoa/taskbar.mm
 +++ forkDstPrefix/src/osx/cocoa/taskbar.mm
 @@ -61,6 +61,8 @@ public:
-
+     
      virtual bool IsStatusItem() const { return false; }
-
+ 
 +    virtual void SetTitle(const wxString& title) = 0;
 +    virtual void SetIcon(const wxString& nsImageName) = 0;
      virtual bool SetIcon(const wxBitmapBundle& icon, const wxString& tooltip = wxEmptyString) = 0;
      virtual bool RemoveIcon() = 0;
-
-@@ -93,6 +95,8 @@ class wxTaskBarIconDockImpl: public wxTaskBarIconImpl
+     
+@@ -93,9 +95,11 @@ class wxTaskBarIconDockImpl: public wxTaskBarIconImpl
  public:
      wxTaskBarIconDockImpl(wxTaskBarIcon *taskBarIcon);
      virtual ~wxTaskBarIconDockImpl();
+-    virtual bool SetIcon(const wxBitmapBundle& icon, const wxString& tooltip = wxEmptyString) wxOVERRIDE;
+-    virtual bool RemoveIcon() wxOVERRIDE;
+-    virtual bool PopupMenu(wxMenu *menu) wxOVERRIDE;
 +    virtual void SetTitle(const wxString& title) override;
 +    virtual void SetIcon(const wxString& nsImageName) override;
-     virtual bool SetIcon(const wxBitmapBundle& icon, const wxString& tooltip = wxEmptyString) override;
-     virtual bool RemoveIcon() override;
-     virtual bool PopupMenu(wxMenu *menu) override;
-@@ -128,6 +132,8 @@ public:
-
-     virtual bool IsStatusItem() const override { return true; }
-
++    virtual bool SetIcon(const wxBitmapBundle& icon, const wxString& tooltip = wxEmptyString) override;
++    virtual bool RemoveIcon() override;
++    virtual bool PopupMenu(wxMenu *menu) override;
+ 
+     static WX_NSMenu OSXGetDockHMenu();
+ protected:
+@@ -126,11 +130,13 @@ public:
+     wxTaskBarIconCustomStatusItemImpl(wxTaskBarIcon *taskBarIcon);
+     virtual ~wxTaskBarIconCustomStatusItemImpl();
+     
+-    virtual bool IsStatusItem() const wxOVERRIDE { return true; }
++    virtual bool IsStatusItem() const override { return true; }
+ 
+-    virtual bool SetIcon(const wxBitmapBundle& icon, const wxString& tooltip = wxEmptyString) wxOVERRIDE;
+-    virtual bool RemoveIcon() wxOVERRIDE;
+-    virtual bool PopupMenu(wxMenu *menu) wxOVERRIDE;
 +    virtual void SetTitle(const wxString& title) override;
 +    virtual void SetIcon(const wxString& nsImageName) override;
-     virtual bool SetIcon(const wxBitmapBundle& icon, const wxString& tooltip = wxEmptyString) override;
-     virtual bool RemoveIcon() override;
-     virtual bool PopupMenu(wxMenu *menu) override;
++    virtual bool SetIcon(const wxBitmapBundle& icon, const wxString& tooltip = wxEmptyString) override;
++    virtual bool RemoveIcon() override;
++    virtual bool PopupMenu(wxMenu *menu) override;
+ protected:
+     NSStatusItem *m_statusItem;
+     wxOSXStatusItemTarget *m_target;
 @@ -184,6 +190,18 @@ wxTaskBarIcon::~wxTaskBarIcon()
      }
  }
