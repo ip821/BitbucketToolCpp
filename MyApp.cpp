@@ -11,7 +11,13 @@ extern void InitXmlResource();
 
 wxIMPLEMENT_APP(MyApp);
 
-MyApp::MyApp() {}
+MyApp::MyApp()
+{
+  // Enable legacy systray icons support
+#ifdef __WXGTK__
+  wxSetEnv("GDK_BACKEND", "x11");
+#endif
+}
 
 bool MyApp::OnInit()
 {
