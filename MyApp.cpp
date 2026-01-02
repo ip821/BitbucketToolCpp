@@ -27,7 +27,9 @@ bool MyApp::OnInit()
   wxFileSystem::AddHandler(new wxMemoryFSHandler);
   wxInitAllImageHandlers();
   wxXmlResource::Get()->InitAllHandlers();
+#ifndef __WXOSX__
   InitXmlResource();
+#endif
 
   m_statusItem = std::make_shared<StatusItem>();
   return true;
