@@ -31,7 +31,7 @@ private:
   wxBitmapBundle m_bitmapBundle = wxBitmapBundle::FromResources("status32@2x");
 #endif
 
-#ifdef __WXGTK__
+#ifndef __WXOSX__
   wxBitmap m_statusBitmap;
   wxBitmapBundle m_bitmapBundle;
 #endif

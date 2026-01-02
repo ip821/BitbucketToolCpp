@@ -24,9 +24,9 @@ PreferencesWindow::PreferencesWindow(const wxString& title)
     wxMenuBar *menuBar = new wxMenuBar();
     SetMenuBar(menuBar);
 
-    const auto pPanel = this; //new wxPanel(this);
-
+    const auto pPanel = new wxPanel(this);
     const auto pRootSizer = new wxBoxSizer(wxVERTICAL);
+
 #ifdef __WXGTK__
   pRootSizer->SetMinSize(400, 350);
 #else
@@ -76,7 +76,7 @@ PreferencesWindow::PreferencesWindow(const wxString& title)
     const auto pLaunchAtLoginCheckbox = new wxCheckBox(pPanel, wxID_ANY, wxT("Launch at login"));
     pMainSizer->Add(pLaunchAtLoginCheckbox, wxSizerFlags().Left().Border(wxALL, 10));
 
-    pPanel->SetSizer(pRootSizer);
+    pPanel->SetSizerAndFit(pRootSizer);
     Fit();
     Centre();
 }
