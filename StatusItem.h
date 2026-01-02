@@ -12,25 +12,29 @@ class PreferencesWindow;
 class StatusItem : public wxTaskBarIcon
 {
 public:
-    explicit StatusItem();
+  explicit StatusItem();
 
-    void OnLeftButtonDClick(wxTaskBarIconEvent&);
-    void OnMenuPreferences(wxCommandEvent&);
-    void OnMenuExit(wxCommandEvent&);
-    void OnMenuUpdate(wxCommandEvent&);
-    void OnMenuCreatePr(wxCommandEvent&);
-    virtual wxMenu* CreatePopupMenu() wxOVERRIDE;
+  void OnLeftButtonDClick(wxTaskBarIconEvent &);
+  void OnMenuPreferences(wxCommandEvent &);
+  void OnMenuExit(wxCommandEvent &);
+  void OnMenuUpdate(wxCommandEvent &);
+  void OnMenuCreatePr(wxCommandEvent &);
+  virtual wxMenu *CreatePopupMenu() wxOVERRIDE;
 
-    wxDECLARE_EVENT_TABLE();
+  wxDECLARE_EVENT_TABLE();
 
 private:
-    PreferencesWindow* m_pDialog;
-    void ShowPreferencesDialog();
+  PreferencesWindow *m_pDialog;
+  void ShowPreferencesDialog();
 
-#ifndef __WXOSX__
-    wxBitmapBundle m_bitmapBundle = wxBitmapBundle::FromResources("status32@2x");
+#ifdef __WXOSX__
+  wxBitmapBundle m_bitmapBundle = wxBitmapBundle::FromResources("status32@2x");
+#endif
+
+#ifdef __WXGTK__
+  wxBitmap m_statusBitmap;
+  wxBitmapBundle m_bitmapBundle;
 #endif
 };
 
-
-#endif //WXWIDGETSPLAYGROUND_MYTASKBARICON_H
+#endif // WXWIDGETSPLAYGROUND_MYTASKBARICON_H

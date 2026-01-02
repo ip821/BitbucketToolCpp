@@ -5,6 +5,8 @@
 #ifndef WXWIDGETSPLAYGROUND_STDAFX_H
 #define WXWIDGETSPLAYGROUND_STDAFX_H
 
+#include <memory>
+
 #include "wx/wxprec.h"
 #include "wx/wizard.h"
 #include "wx/wx.h"

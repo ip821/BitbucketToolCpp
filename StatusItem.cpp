@@ -1,5 +1,7 @@
 #include "StatusItem.h"
 
+#include "wx/xrc/xmlres.h"
+
 enum
 {
     MENU_ITEM_PREFERENCES_ID = 10001,
@@ -29,11 +31,21 @@ StatusItem::StatusItem() : wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM)
     SetIcon("status32@2x");
     SetTitle("1/2");
 #else
+    m_statusBitmap = wxXmlResource::Get()->LoadBitmap("status32");
+    if (!m_statusBitmap.IsOk())
+    {
+      wxMessageBox("Bitmap was loaded incorrectly");
+    }
+    m_bitmapBundle = wxBitmapBundle::FromBitmap(m_statusBitmap);
     if (!m_bitmapBundle.IsOk())
     {
-        wxMessageBox("Could not load status image");
+      wxMessageBox("Could not load status image");
     }
-    SetIcon(m_bitmapBundle);
+    if (!IsAvailable())
+    {
+      wxMessageBox("System icon is not available");
+    }
+    SetIcon(m_bitmapBundle, "Tooltip");
 #endif
 }
 

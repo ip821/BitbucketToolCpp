@@ -27,7 +27,11 @@ PreferencesWindow::PreferencesWindow(const wxString& title)
     const auto pPanel = this; //new wxPanel(this);
 
     const auto pRootSizer = new wxBoxSizer(wxVERTICAL);
+#ifdef __WXGTK__
+  pRootSizer->SetMinSize(400, 350);
+#else
     pRootSizer->SetMinSize(300, 200);
+#endif
 
     const auto pMainSizer = new wxBoxSizer(wxVERTICAL);
     pRootSizer->Add(pMainSizer, wxSizerFlags().Expand().Border(wxALL, 10));

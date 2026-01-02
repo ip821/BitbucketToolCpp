@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(WX_WIDGETS_VERSION v3.2.9)
 
-if(APPLE)
+if (APPLE)
     FetchContent_Declare(
             wxWidgets
             GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
@@ -36,8 +36,6 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         preferences/PreferencesWindow.h
         StatusItem.cpp
         StatusItem.h
-        windows/app.rc
-        windows/app.manifest
         preferences/wizard/SetupWizard.cpp
         preferences/wizard/SetupWizard.h
         stdafx.h
@@ -50,7 +48,24 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         preferences/wizard/RepositoryPage.cpp
         preferences/wizard/RepositoryPage.h
 )
-target_link_libraries(PRToolForBitbucket2 PRIVATE wxcore wxnet)
+target_link_libraries(PRToolForBitbucket2 PRIVATE wx::core wx::net wx::xrc)
+
+if (NOT APPLE)
+    # Resources
+    set(xrc_files ${CMAKE_CURRENT_SOURCE_DIR}/images/resources.xrc)
+    set(resource_cpp ${CMAKE_CURRENT_BINARY_DIR}/resources.cpp)
+    set(wxrc $<TARGET_FILE:wxrc>)
+
+    add_custom_command(
+            OUTPUT ${resource_cpp}
+            COMMAND ${wxrc} -c -o ${resource_cpp} ${xrc_files}
+            DEPENDS ${xrc_files}
+            DEPENDS wxrc                        # Not needed with the installed version.
+            COMMENT "Compiling XRC resources"
+    )
+    target_sources(PRToolForBitbucket2 PRIVATE ${resource_cpp})
+    # END Resources
+endif ()
 
 set(STATUS_IMAGE_32_2x
         macos/status32@2x.png
@@ -100,6 +115,7 @@ endif ()
 if (WIN32)
     target_sources(PRToolForBitbucket2 PRIVATE
             windows/app.rc
+            windows/app.manifest
     )
     set_source_files_properties(windows/app.rc PROPERTIES LANGUAGE RC)
 endif ()
