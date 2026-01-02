@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<resource xmlns="http://www.wxwidgets.org/wxxrc">
+    <object class="wxBitmap" name="status32">status32.png</object>
+    <object class="wxBitmap" name="status16">status16.png</object>
+</resource>
