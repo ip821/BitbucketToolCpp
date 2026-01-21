@@ -1,4 +1,8 @@
 #include "../../stdafx.h"
+#include "SetupWizard.h"
+#include "LoginPage.h"
+#include "RepositoryPage.h"
+#include "WorkspacePage.h"
 
 SetupWizard::SetupWizard(wxWindow* pWindow)
 {

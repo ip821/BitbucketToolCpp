@@ -7,6 +7,8 @@
 
 #include "../../stdafx.h"
 
+class SetupWizard;
+
 class RepositoryPage : public wxWizardPageSimple
 {
 public:

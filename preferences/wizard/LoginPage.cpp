@@ -3,6 +3,7 @@
 //
 
 #include "../../stdafx.h"
+#include "LoginPage.h"
 
 LoginPage::LoginPage(wxWizard* pWindow)
 {

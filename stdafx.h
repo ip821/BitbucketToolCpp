@@ -18,13 +18,7 @@
 #include "wx/app.h"
 #include "wx/taskbar.h"
 #include "wx/bmpbndl.h"
-
-#include "MyApp.h"
-#include "StatusItem.h"
-#include "preferences/PreferencesWindow.h"
-#include "preferences/wizard/SetupWizard.h"
-#include "preferences/wizard/LoginPage.h"
-#include "preferences/wizard/WorkspacePage.h"
-#include "preferences/wizard/RepositoryPage.h"
+#include "wx/fs_mem.h"
+#include "wx/xrc/xmlres.h"
 
 #endif //WXWIDGETSPLAYGROUND_STDAFX_H

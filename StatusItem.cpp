@@ -1,6 +1,5 @@
 #include "StatusItem.h"
-
-#include "wx/xrc/xmlres.h"
+#include "preferences/PreferencesWindow.h"
 
 enum
 {
@@ -9,7 +8,6 @@ enum
     MENU_ITEM_UPDATE_ID,
     MENU_ITEM_CREATE_PULL_REQUEST_ID,
 };
-
 
 wxBEGIN_EVENT_TABLE(StatusItem, wxTaskBarIcon)
     EVT_MENU(MENU_ITEM_PREFERENCES_ID, StatusItem::OnMenuPreferences)

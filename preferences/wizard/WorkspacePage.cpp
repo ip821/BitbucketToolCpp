@@ -3,6 +3,7 @@
 //
 
 #include "../../stdafx.h"
+#include "WorkspacePage.h"
 
 WorkspacePage::WorkspacePage(SetupWizard* pWizard)
 {

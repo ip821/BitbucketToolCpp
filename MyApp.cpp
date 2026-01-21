@@ -1,11 +1,6 @@
-#ifndef WX_PRECOMP
-#include "wx/wx.h"
-#endif
-
+#include "stdafx.h"
 #include "MyApp.h"
-
-#include "wx/fs_mem.h"
-#include "wx/xrc/xmlres.h"
+#include "StatusItem.h"
 
 extern void InitXmlResource();
 
@@ -27,7 +22,8 @@ bool MyApp::OnInit()
   wxFileSystem::AddHandler(new wxMemoryFSHandler);
   wxInitAllImageHandlers();
   wxXmlResource::Get()->InitAllHandlers();
-#ifndef __WXOSX__
+
+  #ifndef __WXOSX__
   InitXmlResource();
 #endif
 
