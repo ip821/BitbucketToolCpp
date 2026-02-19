@@ -9,10 +9,10 @@
 
 class StatusItem;
 
-class MyApp : public wxApp
+class App : public wxApp
 {
 public:
-    explicit MyApp();
+    explicit App();
     bool OnInit() override;
 
 private:

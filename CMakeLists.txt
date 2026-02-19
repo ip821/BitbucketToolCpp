@@ -30,8 +30,8 @@ endif ()
 FetchContent_MakeAvailable(wxWidgets)
 
 add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
-        MyApp.cpp
-        MyApp.h
+        App.cpp
+        App.h
         preferences/PreferencesWindow.cpp
         preferences/PreferencesWindow.h
         StatusItem.cpp
@@ -47,6 +47,8 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         preferences/wizard/WorkspacePage.h
         preferences/wizard/RepositoryPage.cpp
         preferences/wizard/RepositoryPage.h
+        preferences/wizard/LoginThread.cpp
+        preferences/wizard/LoginThread.h
 )
 target_link_libraries(PRToolForBitbucket2 PRIVATE wx::core wx::net wx::xrc)
 

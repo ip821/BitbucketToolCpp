@@ -21,4 +21,6 @@
 #include "wx/fs_mem.h"
 #include "wx/xrc/xmlres.h"
 
+#define wxID_LOGIN_THREAD_COMPLETED wxID_HIGHEST + 1
+
 #endif //WXWIDGETSPLAYGROUND_STDAFX_H

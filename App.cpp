@@ -1,12 +1,12 @@
 #include "stdafx.h"
-#include "MyApp.h"
+#include "App.h"
 #include "StatusItem.h"
 
 extern void InitXmlResource();
 
-wxIMPLEMENT_APP(MyApp);
+wxIMPLEMENT_APP(App);
 
-MyApp::MyApp()
+App::App()
 {
   // Enable legacy systray icons support
 #ifdef __WXGTK__
@@ -14,7 +14,7 @@ MyApp::MyApp()
 #endif
 }
 
-bool MyApp::OnInit()
+bool App::OnInit()
 {
   if (!wxApp::OnInit())
     return false;
@@ -23,7 +23,7 @@ bool MyApp::OnInit()
   wxInitAllImageHandlers();
   wxXmlResource::Get()->InitAllHandlers();
 
-  #ifndef __WXOSX__
+#ifndef __WXOSX__
   InitXmlResource();
 #endif
 

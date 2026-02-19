@@ -7,6 +7,8 @@
 
 #include "../../stdafx.h"
 
+class LoginPage;
+
 class SetupWizard : public wxWizard
 {
 public:
@@ -14,7 +16,11 @@ public:
     void Run();
 
 private:
-    wxWizardPageSimple* m_pLoginPage;
+    LoginPage* m_pLoginPage;
+
+    void OnLoginCompleted(wxThreadEvent& event);
+
+    wxDECLARE_EVENT_TABLE();
 };
 
 
