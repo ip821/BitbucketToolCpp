@@ -18,7 +18,7 @@ LoginPage::LoginPage(wxWizard* pWindow)
     const auto pMainSizer = new wxBoxSizer(wxVERTICAL);
 
     const auto pStaticBox = new wxStaticBox(this, wxID_ANY, wxT(""));
-    const auto pLoader = new wxActivityIndicator(pStaticBox);
+    const auto pLoader = CreateActivityIndicator(pStaticBox);
     pLoader->Hide();
     m_pLoader = pLoader;
 
@@ -59,6 +59,15 @@ LoginPage::LoginPage(wxWizard* pWindow)
         m_pLoginThread = new LoginThread(GetParent());
         m_pLoginThread->Run();
     });
+}
+
+wxActivityIndicator* LoginPage::CreateActivityIndicator(wxStaticBox* pStaticBox)
+{
+    const auto pLoader = new wxActivityIndicator(pStaticBox);
+#ifdef __WXMSW__
+    pLoader->SetDoubleBuffered(true);
+#endif
+    return pLoader;
 }
 
 void LoginPage::OnLoginCompleted(wxThreadEvent& event)

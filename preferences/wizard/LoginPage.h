@@ -13,12 +13,13 @@ class wxActivityIndicator;
 class LoginPage : public wxWizardPageSimple
 {
     friend class SetupWizard;
-private:
     bool m_loginCompleted = false;
-    LoginThread* m_pLoginThread;
-    wxActivityIndicator* m_pLoader;
+    LoginThread* m_pLoginThread = nullptr;
+    wxActivityIndicator* m_pLoader = nullptr;
 
+    static wxActivityIndicator* CreateActivityIndicator(wxStaticBox *pStaticBox);
     void OnLoginCompleted(wxThreadEvent& event);
+
 public:
     explicit LoginPage(wxWizard* pWindow);
 };
