@@ -9,11 +9,11 @@
 #include "wx/event.h"
 #include "wx/utils.h"
 
-LoginThread::LoginThread(wxWindow* pWindow) : wxThread(wxTHREAD_DETACHED)
+LoginThread::LoginThread(wxWindow* pWindow) :
+    wxThread(wxTHREAD_DETACHED),
+    m_window(*pWindow)
 {
-    m_pWindow = pWindow;
 }
-
 
 wxThread::ExitCode LoginThread::Entry()
 {
@@ -21,7 +21,7 @@ wxThread::ExitCode LoginThread::Entry()
     wxMilliSleep(1500);
 
     wxThreadEvent event(wxEVT_THREAD, wxID_LOGIN_THREAD_COMPLETED);
-    wxQueueEvent(m_pWindow, event.Clone());
+    wxQueueEvent(&m_window, event.Clone());
 
     return nullptr;
 }

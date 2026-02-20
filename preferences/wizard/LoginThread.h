@@ -14,12 +14,11 @@ class LoginPage;
 
 class LoginThread : public wxThread
 {
+    ExitCode Entry() override;
+    wxWindow& m_window;
+
 public:
     explicit LoginThread(wxWindow* pSetupWizard);
-
-protected:
-    ExitCode Entry() override;
-    wxWindow* m_pWindow;
 };
 
 

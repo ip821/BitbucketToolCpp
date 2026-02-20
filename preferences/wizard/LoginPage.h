@@ -15,7 +15,9 @@ class LoginPage : public wxWizardPageSimple
     friend class SetupWizard;
     bool m_loginCompleted = false;
     LoginThread* m_pLoginThread = nullptr;
-    wxActivityIndicator* m_pLoader = nullptr;
+
+    wxStaticBox& m_staticBox;
+    wxActivityIndicator& m_activityIndicator;
 
     static wxActivityIndicator* CreateActivityIndicator(wxStaticBox *pStaticBox);
     void OnLoginCompleted(wxThreadEvent& event);
