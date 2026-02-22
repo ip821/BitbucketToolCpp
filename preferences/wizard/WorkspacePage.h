@@ -10,8 +10,12 @@
 
 class WorkspacePage : public wxWizardPageSimple
 {
+    SetupWizardContext& m_context;
+
+    wxStaticBox& m_staticBox;
+
 public:
-    explicit WorkspacePage(SetupWizard* pWizard);
+    explicit WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context);
 };
 
 

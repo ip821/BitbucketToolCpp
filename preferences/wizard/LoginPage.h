@@ -7,12 +7,17 @@
 
 #include "../../stdafx.h"
 
+struct SetupWizardContext;
 class wxWebRequestEvent;
 class wxActivityIndicator;
 
 class LoginPage : public wxWizardPageSimple
 {
     friend class SetupWizard;
+
+    wxWizard* m_pWizard;
+    SetupWizardContext& m_context;
+
     bool m_loginInProgress = false;
     bool m_loginCompleted = false;
 
@@ -32,7 +37,7 @@ class LoginPage : public wxWizardPageSimple
     void StopBusyAnimation();
 
 public:
-    explicit LoginPage(wxWizard* pWindow);
+    explicit LoginPage(wxWizard* pWindow, SetupWizardContext& context);
 };
 
 

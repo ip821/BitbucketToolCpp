@@ -5,6 +5,7 @@
 #ifndef WXWIDGETSPLAYGROUND_MYWIZARD_H
 #define WXWIDGETSPLAYGROUND_MYWIZARD_H
 
+#include "SetupWizardContext.h"
 #include "../../stdafx.h"
 
 class LoginPage;
@@ -17,6 +18,7 @@ public:
 
 private:
     LoginPage* m_pLoginPage;
+    SetupWizardContext m_context;
 
     wxDECLARE_EVENT_TABLE();
 };

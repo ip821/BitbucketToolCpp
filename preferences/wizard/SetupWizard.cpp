@@ -11,8 +11,8 @@ SetupWizard::SetupWizard(wxWindow* pWindow)
 {
     Create(pWindow);
 
-    m_pLoginPage = new LoginPage(this);
-    m_pLoginPage->Chain(new WorkspacePage(this)).Chain(new RepositoryPage(this));
+    m_pLoginPage = new LoginPage(this, m_context);
+    m_pLoginPage->Chain(new WorkspacePage(this, m_context)).Chain(new RepositoryPage(this));
 
     const auto sizer = GetPageAreaSizer();
     sizer->SetMinSize(300, 200);

@@ -10,10 +10,14 @@
 #include "wx/base64.h"
 #include <nlohmann/json.hpp>
 
+#include "SetupWizardContext.h"
+
 const auto AppName = wxString("PRToolForBitbucketCpp");
 
-LoginPage::LoginPage(wxWizard* pWindow) :
+LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
     wxWizardPageSimple(pWindow),
+    m_pWizard(pWindow),
+    m_context(context),
     m_staticBox(*new wxStaticBox(this, wxID_ANY, wxT(""))),
     m_errorText(*new wxStaticText(&m_staticBox, wxID_ANY, wxT(""))),
     m_activityIndicator(*CreateActivityIndicator(&m_staticBox)),
@@ -56,10 +60,15 @@ LoginPage::LoginPage(wxWizard* pWindow) :
     Bind(wxEVT_WIZARD_PAGE_CHANGING, [this](wxWizardEvent& event)
     {
         if (!event.GetDirection()
-            || m_loginCompleted
             || m_loginInProgress
         )
             return;
+
+        if (m_loginCompleted)
+        {
+            m_loginCompleted = false;
+            return;
+        }
 
         auto store = wxSecretStore::GetDefault();
         if (store.IsOk())
@@ -186,20 +195,21 @@ void LoginPage::OnGetWorkspacesCompleted(wxWebRequestEvent& event)
     const auto buffer = strBody.ToUTF8();
     constexpr auto pParserCallback = nullptr;
     constexpr auto allowExceptions = false;
-    const auto jObject = nlohmann::json::parse(buffer.data(), buffer.data() + buffer.length(), pParserCallback, allowExceptions);
+    const auto jObject = nlohmann::json::parse(buffer.data(), buffer.data() + buffer.length(), pParserCallback,
+                                               allowExceptions);
 
     if (response.GetStatus() == 200)
     {
+        m_context.workspaces.clear();
+
         wxString workspaceNames;
         auto jWorkspaces = jObject["values"];
         for (const auto& jWorkspace : jWorkspaces)
         {
-            auto jName = jWorkspace["name"];
-            workspaceNames += jName.get<std::string>();
-            workspaceNames += "\n";
+            m_context.workspaces.push_back(jWorkspace["name"].get<std::string>());
         }
-        wxLogMessage("Workspaces JSON:\n%s", workspaceNames);
         m_loginCompleted = true;
+        m_pWizard->ShowPage(GetNext());
     }
     else
     {
