@@ -5,22 +5,31 @@
 #ifndef WXWIDGETSPLAYGROUND_LOGINPAGE_H
 #define WXWIDGETSPLAYGROUND_LOGINPAGE_H
 
-#include "LoginThread.h"
 #include "../../stdafx.h"
 
+class wxWebRequestEvent;
 class wxActivityIndicator;
 
 class LoginPage : public wxWizardPageSimple
 {
     friend class SetupWizard;
+    bool m_loginInProgress = false;
     bool m_loginCompleted = false;
-    LoginThread* m_pLoginThread = nullptr;
 
     wxStaticBox& m_staticBox;
+    wxStaticText& m_errorText;
     wxActivityIndicator& m_activityIndicator;
+    wxTextCtrl& m_loginText;
+    wxTextCtrl& m_passwordText;
 
     static wxActivityIndicator* CreateActivityIndicator(wxStaticBox *pStaticBox);
-    void OnLoginCompleted(wxThreadEvent& event);
+    void OnGetWorkspacesCompleted(wxWebRequestEvent& event);
+    void StartGetWorkspaces();
+
+    void HideErrorMessage();
+    void ShowErrorMessage(const wxString& str);
+    void StartBusyAnimation();
+    void StopBusyAnimation();
 
 public:
     explicit LoginPage(wxWizard* pWindow);

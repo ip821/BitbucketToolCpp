@@ -29,6 +29,15 @@ endif ()
 
 FetchContent_MakeAvailable(wxWidgets)
 
+FetchContent_Declare(
+        json
+        GIT_REPOSITORY https://github.com/nlohmann/json.git
+        GIT_TAG v3.12.0
+)
+
+FetchContent_MakeAvailable(json)
+
+
 add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         App.cpp
         App.h
@@ -47,10 +56,11 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         preferences/wizard/WorkspacePage.h
         preferences/wizard/RepositoryPage.cpp
         preferences/wizard/RepositoryPage.h
-        preferences/wizard/LoginThread.cpp
-        preferences/wizard/LoginThread.h
 )
-target_link_libraries(PRToolForBitbucket2 PRIVATE wx::core wx::net wx::xrc)
+target_compile_options(PRToolForBitbucket2 PRIVATE
+        -Wall -Wextra -Wpedantic -Werror
+)
+target_link_libraries(PRToolForBitbucket2 PRIVATE wx::core wx::net wx::xrc nlohmann_json::nlohmann_json)
 
 if (NOT APPLE)
     # Resources

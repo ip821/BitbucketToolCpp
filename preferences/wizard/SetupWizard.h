@@ -18,8 +18,6 @@ public:
 private:
     LoginPage* m_pLoginPage;
 
-    void OnLoginCompleted(wxThreadEvent& event);
-
     wxDECLARE_EVENT_TABLE();
 };
 
