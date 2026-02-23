@@ -124,6 +124,8 @@ void PreferencesWindow::OnShowWindow(wxShowEvent& event)
     {
         HideDockIcon();
     }
+#else
+  wxUnusedVar(event);
 #endif
 }
 

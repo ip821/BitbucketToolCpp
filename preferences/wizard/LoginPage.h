@@ -31,7 +31,7 @@ class LoginPage : public wxWizardPageSimple
     wxTextCtrl& m_passwordText;
 
     static wxActivityIndicator* CreateActivityIndicator(wxStaticBox *pStaticBox);
-    void OnGetWorkspacesCompleted(wxWebRequestEvent& event);
+    void OnGetWorkspacesRequestStateChanged(wxWebRequestEvent& event);
     void StartGetWorkspaces();
 
     void HideErrorMessage();

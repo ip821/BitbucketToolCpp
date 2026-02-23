@@ -1,14 +1,15 @@
-#include <wx/wx.h>
-#include <wx/wizard.h>
-#include <wx/secretstore.h>
-#include <wx/base64.h>
-#include <wx/webrequest.h>
-#include <wx/activityindicator.h>
-#include <ranges>
+#include <format>
 #include <nlohmann/json.hpp>
+#include <ranges>
+#include <wx/activityindicator.h>
+#include <wx/base64.h>
+#include <wx/secretstore.h>
+#include <wx/webrequest.h>
+#include <wx/wizard.h>
+#include <wx/wx.h>
 
-#include "WorkspacePage.h"
 #include "../../Constants.h"
+#include "WorkspacePage.h"
 
 WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) :
     wxWizardPageSimple(pWizard),
@@ -165,6 +166,7 @@ wxActivityIndicator* WorkspacePage::CreateActivityIndicator(wxStaticBox* pStatic
 
 void WorkspacePage::StartBusyAnimation()
 {
+    Disable();
     m_activityIndicator.Show();
     m_activityIndicator.Start();
     Layout();
@@ -172,6 +174,7 @@ void WorkspacePage::StartBusyAnimation()
 
 void WorkspacePage::StopBusyAnimation()
 {
+    Enable();
     m_activityIndicator.Stop();
     m_activityIndicator.Hide();
     Layout();

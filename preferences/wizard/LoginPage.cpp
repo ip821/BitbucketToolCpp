@@ -46,15 +46,15 @@ LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
     pGridSizer->Add(&m_passwordText,
                     wxSizerFlags().Left().Expand());
 
-    pStaticBoxSizer->Add(pGridSizer, wxSizerFlags().Expand().Border(wxALL, 15));
+    pStaticBoxSizer->Add(pGridSizer, wxSizerFlags(1).Expand().Border(wxALL, 15));
+    pStaticBoxSizer->Add(&m_errorText, wxSizerFlags().Expand().Border(wxALL, 15));
     pStaticBoxSizer->Add(&m_activityIndicator, wxSizerFlags().Center().Border(wxBOTTOM, 15));
-    pStaticBoxSizer->Add(&m_errorText, wxSizerFlags(1).Expand().Border(wxALL, 15));
     pMainSizer->Add(pStaticBoxSizer, wxSizerFlags().Expand().Proportion(1).Border(wxALL, 10));
 
     SetSizerAndFit(pMainSizer);
     Fit();
 
-    Bind(wxEVT_WEBREQUEST_STATE, &LoginPage::OnGetWorkspacesCompleted, this);
+    Bind(wxEVT_WEBREQUEST_STATE, &LoginPage::OnGetWorkspacesRequestStateChanged, this);
 
     Bind(wxEVT_WIZARD_PAGE_CHANGING, [this](wxWizardEvent& event)
     {
@@ -69,6 +69,8 @@ LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
             return;
         }
 
+        StartBusyAnimation();
+
         auto store = wxSecretStore::GetDefault();
         if (store.IsOk())
         {
@@ -76,9 +78,9 @@ LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
             store.Save(SecretStoreAppName, m_loginText.GetValue(), password);
         }
 
-        event.Veto();
-        StartBusyAnimation();
         StartGetWorkspaces();
+
+        event.Veto();
     });
 
     Bind(wxEVT_WIZARD_PAGE_SHOWN, [this](wxWizardEvent&)
@@ -108,6 +110,7 @@ wxActivityIndicator* LoginPage::CreateActivityIndicator(wxStaticBox* pStaticBox)
 
 void LoginPage::StartBusyAnimation()
 {
+    Disable();
     m_activityIndicator.Show();
     m_activityIndicator.Start();
     Layout();
@@ -115,6 +118,7 @@ void LoginPage::StartBusyAnimation()
 
 void LoginPage::StopBusyAnimation()
 {
+    Enable();
     m_activityIndicator.Stop();
     m_activityIndicator.Hide();
     Layout();
@@ -165,11 +169,8 @@ void LoginPage::StartGetWorkspaces()
     request.Start();
 }
 
-void LoginPage::OnGetWorkspacesCompleted(wxWebRequestEvent& event)
+void LoginPage::OnGetWorkspacesRequestStateChanged(wxWebRequestEvent& event)
 {
-    StopBusyAnimation();
-    m_loginInProgress = false;
-
     switch (event.GetState())
     {
     case wxWebRequest::State_Completed:
@@ -188,6 +189,9 @@ void LoginPage::OnGetWorkspacesCompleted(wxWebRequestEvent& event)
     case wxWebRequest::State_Active:
         return;
     }
+
+    StopBusyAnimation();
+    m_loginInProgress = false;
 
     const wxWebResponse& response = event.GetResponse();
 
