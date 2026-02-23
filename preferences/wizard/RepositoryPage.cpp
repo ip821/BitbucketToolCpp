@@ -30,4 +30,17 @@ RepositoryPage::RepositoryPage(SetupWizard* pWizard, SetupWizardContext& context
             pListBox->Append(ws.m_name);
         }
     });
+
+    Bind(wxEVT_WIZARD_PAGE_CHANGING, [pListBox](wxWizardEvent& event)
+    {
+        if (!event.GetDirection())
+            return;
+
+        wxArrayInt checkedItemIndexes;
+        if (const auto checkedCount = pListBox->GetCheckedItems(checkedItemIndexes);
+            !checkedCount)
+        {
+            event.Veto();
+        }
+    });
 }
