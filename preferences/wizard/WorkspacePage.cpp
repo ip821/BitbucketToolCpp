@@ -30,8 +30,11 @@ WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) 
     SetSizerAndFit(pMainSizer);
     Fit();
 
-    Bind(wxEVT_WIZARD_PAGE_SHOWN, [this, pListBox](wxWizardEvent&)
+    Bind(wxEVT_WIZARD_PAGE_SHOWN, [this, pListBox](wxWizardEvent& event)
     {
+        if (!event.GetDirection())
+            return;
+
         pListBox->Clear();
 
         for (const auto& ws : m_context.m_workspaces)
