@@ -3,6 +3,7 @@
 #include <wx/secretstore.h>
 #include <wx/base64.h>
 #include <wx/webrequest.h>
+#include <wx/activityindicator.h>
 #include <ranges>
 #include <nlohmann/json.hpp>
 
@@ -13,14 +14,16 @@ WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) 
     wxWizardPageSimple(pWizard),
     m_wizard(*pWizard),
     m_context(context),
-    m_staticBox(*new wxStaticBox(this, wxID_ANY, wxT("")))
+    m_staticBox(*new wxStaticBox(this, wxID_ANY, wxT(""))),
+    m_activityIndicator(*CreateActivityIndicator(&m_staticBox))
 {
     const auto pMainSizer = new wxBoxSizer(wxVERTICAL);
     const auto pStaticBoxSizer = new wxStaticBoxSizer(&m_staticBox, wxVERTICAL);
-
-    const auto pListBox = new wxCheckListBox(this, wxID_ANY);
+    const auto pListBox = new wxCheckListBox(&m_staticBox, wxID_ANY);
+    m_activityIndicator.Hide();
 
     pStaticBoxSizer->Add(pListBox, wxSizerFlags().Expand().Proportion(1).Border(wxALL, 5));
+    pStaticBoxSizer->Add(&m_activityIndicator, wxSizerFlags().Center().Border(wxBOTTOM, 5));
     pMainSizer->Add(pStaticBoxSizer, wxSizerFlags().Expand().Proportion(1).Border(wxALL, 10));
 
     SetSizerAndFit(pMainSizer);
@@ -39,13 +42,13 @@ WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) 
     Bind(wxEVT_WIZARD_PAGE_CHANGING, [pListBox, this](wxWizardEvent& event)
     {
         if (!event.GetDirection())
+            return;
+
+        if (m_repositoriesFetched)
         {
             m_repositoriesFetched = false;
             return;
         }
-
-        if (m_repositoriesFetched)
-            return;
 
         if (!m_workspaces.empty())
         {
@@ -65,43 +68,58 @@ WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) 
         {
             const auto& workspace = m_context.m_workspaces.at(index);
             m_workspaces.push_back({workspace});
-            StartRepositoriesRequest(workspace, m_workspaces.size() - 1);
         }
+
+        m_context.m_repositories.clear();
+
+        auto index = 0;
+        for (const auto& workspace : m_workspaces)
+        {
+            StartRepositoriesRequest(workspace.m_workspace, index);
+            index++;
+        }
+
+        StartBusyAnimation();
 
         event.Veto();
     });
 
     Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent& event)
     {
-        const auto& request = event.GetRequest();
-        const auto& index = request.GetId();
-        m_workspaces[index].m_isProcessed = true;
-        if (std::ranges::all_of(m_workspaces, [](const auto& item) { return item.m_isProcessed; }))
-        {
-            const wxWebResponse& response = event.GetResponse();
+        if (event.GetState() != wxWebRequest::State_Completed)
+            return;
 
+        const wxWebResponse& response = event.GetResponse();
+
+        if (response.GetStatus() == 200)
+        {
             const auto strBody = response.AsString();
             const auto buffer = strBody.ToUTF8();
             constexpr auto pParserCallback = nullptr;
             constexpr auto allowExceptions = false;
-            const auto jObject = nlohmann::json::parse(buffer.data(), buffer.data() + buffer.length(), pParserCallback,
+            const auto jObject = nlohmann::json::parse(buffer.data(), buffer.data() + buffer.length(),
+                                                       pParserCallback,
                                                        allowExceptions);
 
-            if (response.GetStatus() == 200)
+            wxString repositoryNames;
+            const auto jRepositories = jObject["values"];
+            for (const auto& jRepository : jRepositories)
             {
-                m_context.m_repositories.clear();
+                const Repository& repository = {
+                    jRepository["full_name"].get<std::string>(),
+                    jRepository["slug"].get<std::string>()
+                };
+                m_context.m_repositories.push_back(repository);
+            }
 
-                wxString repositoryNames;
-                const auto jRepositories = jObject["values"];
-                for (const auto& jRepository : jRepositories)
-                {
-                    const Repository& repository = {
-                        jRepository["full_name"].get<std::string>(),
-                        jRepository["slug"].get<std::string>()
-                    };
-                    m_context.m_repositories.push_back(repository);
-                }
+            const auto& request = event.GetRequest();
+            const auto& index = request.GetId();
 
+            m_workspaces[index].m_isProcessed = true;
+            if (std::ranges::all_of(m_workspaces, [](const auto& item) { return item.m_isProcessed; }))
+            {
+                m_workspaces.clear();
+                StopBusyAnimation();
                 m_repositoriesFetched = true;
                 m_wizard.ShowPage(GetNext());
             }
@@ -134,4 +152,27 @@ void WorkspacePage::StartRepositoriesRequest(const Workspace& workspace, std::si
     request.SetHeader("Accept", "application/json");
 
     request.Start();
+}
+
+wxActivityIndicator* WorkspacePage::CreateActivityIndicator(wxStaticBox* pStaticBox)
+{
+    const auto pLoader = new wxActivityIndicator(pStaticBox);
+#ifdef __WXMSW__
+    pLoader->SetDoubleBuffered(true);
+#endif
+    return pLoader;
+}
+
+void WorkspacePage::StartBusyAnimation()
+{
+    m_activityIndicator.Show();
+    m_activityIndicator.Start();
+    Layout();
+}
+
+void WorkspacePage::StopBusyAnimation()
+{
+    m_activityIndicator.Stop();
+    m_activityIndicator.Hide();
+    Layout();
 }

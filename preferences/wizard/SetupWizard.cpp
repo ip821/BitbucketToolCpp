@@ -8,10 +8,9 @@
 wxBEGIN_EVENT_TABLE(SetupWizard, wxWizard)
 wxEND_EVENT_TABLE()
 
-SetupWizard::SetupWizard(wxWindow* pWindow)
+SetupWizard::SetupWizard(wxWindow* pWindow) :
+    wxWizard(pWindow, wxID_ANY, wxT("Setup"))
 {
-    Create(pWindow);
-
     m_pLoginPage = new LoginPage(this, m_context);
     m_pLoginPage->Chain(new WorkspacePage(this, m_context)).Chain(new RepositoryPage(this, m_context));
 
