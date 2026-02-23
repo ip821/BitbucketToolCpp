@@ -25,14 +25,21 @@ class LoginPage : public wxWizardPageSimple
     bool m_loginCompleted = false;
 
     wxStaticBox& m_staticBox;
-    wxStaticText& m_errorText;
+    wxStaticText& m_errorStaticText;
     wxActivityIndicator& m_activityIndicator;
-    wxTextCtrl& m_loginText;
-    wxTextCtrl& m_passwordText;
+    wxTextCtrl& m_loginTextCtrl;
+    wxTextCtrl& m_passwordTextCtrl;
+
+    wxString m_email;
+    wxString m_password;
 
     static wxActivityIndicator* CreateActivityIndicator(wxStaticBox *pStaticBox);
+
     void OnGetWorkspacesRequestStateChanged(wxWebRequestEvent& event);
-    void StartGetWorkspaces();
+    void OnPageChanging(wxWizardEvent& event);
+    void OnPageShown(wxWizardEvent& event);
+
+    void StartGetWorkspacesRequest();
 
     void HideErrorMessage();
     void ShowErrorMessage(const wxString& str);

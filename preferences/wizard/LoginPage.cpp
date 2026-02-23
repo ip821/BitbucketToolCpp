@@ -18,14 +18,16 @@ LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
     m_wizard(*pWindow),
     m_context(context),
     m_staticBox(*new wxStaticBox(this, wxID_ANY, wxT(""))),
-    m_errorText(*new wxStaticText(&m_staticBox, wxID_ANY, wxT(""))),
+    m_errorStaticText(*new wxStaticText(&m_staticBox, wxID_ANY, wxT(""))),
     m_activityIndicator(*CreateActivityIndicator(&m_staticBox)),
-    m_loginText(*new wxTextCtrl(&m_staticBox, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBORDER_THEME)),
-    m_passwordText(*new wxTextCtrl(&m_staticBox, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD))
+    m_loginTextCtrl(*new wxTextCtrl(&m_staticBox, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBORDER_THEME,
+                                    wxTextValidator(wxFILTER_NONE, &m_email))),
+    m_passwordTextCtrl(*new wxTextCtrl(&m_staticBox, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD,
+                                       wxTextValidator(wxFILTER_NONE, &m_password)))
 {
-    m_errorText.SetWindowStyleFlag(wxALIGN_CENTER_HORIZONTAL);
-    m_errorText.SetForegroundColour(wxColour(255, 0, 0));
-    m_errorText.Hide();
+    m_errorStaticText.SetWindowStyleFlag(wxALIGN_CENTER_HORIZONTAL);
+    m_errorStaticText.SetForegroundColour(wxColour(255, 0, 0));
+    m_errorStaticText.Hide();
 
     const auto pMainSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -39,15 +41,15 @@ LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
 
     pGridSizer->Add(new wxStaticText(pStaticBox, wxID_ANY, wxT("Login")),
                     wxSizerFlags().Left().CenterVertical());
-    pGridSizer->Add(&m_loginText,
+    pGridSizer->Add(&m_loginTextCtrl,
                     wxSizerFlags().Left().Expand());
     pGridSizer->Add(new wxStaticText(pStaticBox, wxID_ANY, wxT("Password")),
                     wxSizerFlags().Left().CenterVertical());
-    pGridSizer->Add(&m_passwordText,
+    pGridSizer->Add(&m_passwordTextCtrl,
                     wxSizerFlags().Left().Expand());
 
     pStaticBoxSizer->Add(pGridSizer, wxSizerFlags(1).Expand().Border(wxALL, 15));
-    pStaticBoxSizer->Add(&m_errorText, wxSizerFlags().Expand().Border(wxALL, 15));
+    pStaticBoxSizer->Add(&m_errorStaticText, wxSizerFlags().Expand().Border(wxALL, 15));
     pStaticBoxSizer->Add(&m_activityIndicator, wxSizerFlags().Center().Border(wxBOTTOM, 15));
     pMainSizer->Add(pStaticBoxSizer, wxSizerFlags().Expand().Proportion(1).Border(wxALL, 10));
 
@@ -55,48 +57,51 @@ LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
     Fit();
 
     Bind(wxEVT_WEBREQUEST_STATE, &LoginPage::OnGetWorkspacesRequestStateChanged, this);
+    Bind(wxEVT_WIZARD_PAGE_CHANGING, &LoginPage::OnPageChanging, this);
+    Bind(wxEVT_WIZARD_PAGE_SHOWN, &LoginPage::OnPageShown, this);
+}
 
-    Bind(wxEVT_WIZARD_PAGE_CHANGING, [this](wxWizardEvent& event)
+void LoginPage::OnPageShown(wxWizardEvent&)
+{
+    const auto store = wxSecretStore::GetDefault();
+    if (store.IsOk())
     {
-        if (!event.GetDirection()
-            || m_loginInProgress
-        )
-            return;
-
-        if (m_loginCompleted)
+        wxString strUsername;
+        wxSecretValue strPassword;
+        if (store.Load(SecretStoreAppName, strUsername, strPassword))
         {
-            m_loginCompleted = false;
-            return;
+            m_email = strUsername;
+            m_password = strPassword.GetAsString();
         }
+    }
+    TransferDataToWindow();
+}
 
-        StartBusyAnimation();
+void LoginPage::OnPageChanging(wxWizardEvent& event)
+{
+    if (!event.GetDirection()
+        || m_loginInProgress
+    )
+        return;
 
-        auto store = wxSecretStore::GetDefault();
-        if (store.IsOk())
-        {
-            wxSecretValue password(m_passwordText.GetValue());
-            store.Save(SecretStoreAppName, m_loginText.GetValue(), password);
-        }
-
-        StartGetWorkspaces();
-
-        event.Veto();
-    });
-
-    Bind(wxEVT_WIZARD_PAGE_SHOWN, [this](wxWizardEvent&)
+    if (m_loginCompleted)
     {
-        const auto store = wxSecretStore::GetDefault();
-        if (store.IsOk())
-        {
-            wxString strUsername;
-            wxSecretValue strPassword;
-            if (store.Load(SecretStoreAppName, strUsername, strPassword))
-            {
-                m_loginText.SetValue(strUsername);
-                m_passwordText.SetValue(strPassword.GetAsString());
-            }
-        }
-    });
+        m_loginCompleted = false;
+        return;
+    }
+
+    StartBusyAnimation();
+
+    auto store = wxSecretStore::GetDefault();
+    if (store.IsOk())
+    {
+        wxSecretValue password(m_passwordTextCtrl.GetValue());
+        store.Save(SecretStoreAppName, m_loginTextCtrl.GetValue(), password);
+    }
+
+    StartGetWorkspacesRequest();
+
+    event.Veto();
 }
 
 wxActivityIndicator* LoginPage::CreateActivityIndicator(wxStaticBox* pStaticBox)
@@ -126,8 +131,8 @@ void LoginPage::StopBusyAnimation()
 
 void LoginPage::HideErrorMessage()
 {
-    m_errorText.SetLabelText("");
-    m_errorText.Hide();
+    m_errorStaticText.SetLabelText("");
+    m_errorStaticText.Hide();
     Layout();
 }
 
@@ -136,12 +141,12 @@ void LoginPage::ShowErrorMessage(const wxString& str)
     if (str.IsEmpty())
         return;
 
-    m_errorText.SetLabelText(str);
-    m_errorText.Show();
+    m_errorStaticText.SetLabelText(str);
+    m_errorStaticText.Show();
     Layout();
 }
 
-void LoginPage::StartGetWorkspaces()
+void LoginPage::StartGetWorkspacesRequest()
 {
     if (m_loginInProgress)
         return;
@@ -150,8 +155,11 @@ void LoginPage::StartGetWorkspaces()
 
     m_loginInProgress = true;
 
-    const wxString email = m_loginText.GetValue();
-    const wxString appPassword = m_passwordText.GetValue();
+    if (!TransferDataFromWindow())
+        return;
+
+    const wxString email = m_email;
+    const wxString appPassword = m_password;
 
     const wxString auth = email + ":" + appPassword;
     const wxCharBuffer utf8 = auth.ToUTF8();
@@ -171,19 +179,20 @@ void LoginPage::StartGetWorkspaces()
 
 void LoginPage::OnGetWorkspacesRequestStateChanged(wxWebRequestEvent& event)
 {
-    switch (event.GetState())
+    auto state = event.GetState();
+    switch (state)
     {
     case wxWebRequest::State_Completed:
         break;
     case wxWebRequest::State_Unauthorized:
         ShowErrorMessage(wxT("Authorization failed"));
-        return;
+        break;
     case wxWebRequest::State_Failed:
         ShowErrorMessage(event.GetErrorDescription());
         break;
     case wxWebRequest::State_Cancelled:
         ShowErrorMessage(wxT("Request cancelled"));
-        return;
+        break;
     case wxWebRequest::State_Idle:
         return;
     case wxWebRequest::State_Active:
@@ -192,6 +201,9 @@ void LoginPage::OnGetWorkspacesRequestStateChanged(wxWebRequestEvent& event)
 
     StopBusyAnimation();
     m_loginInProgress = false;
+
+    if (state != wxWebRequest::State_Completed)
+        return;
 
     const wxWebResponse& response = event.GetResponse();
 
