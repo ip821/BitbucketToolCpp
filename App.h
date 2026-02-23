@@ -5,8 +5,6 @@
 #ifndef WXWIDGETSPLAYGROUND_MYAPP_H
 #define WXWIDGETSPLAYGROUND_MYAPP_H
 
-#include "stdafx.h"
-
 class StatusItem;
 
 class App : public wxApp

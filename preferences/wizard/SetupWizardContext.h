@@ -8,9 +8,23 @@
 
 class wxString;
 
+struct Workspace
+{
+    wxString m_name;
+    wxString m_slug;
+};
+
+struct Repository
+{
+    wxString m_name;
+    wxString m_slug;
+};
+
 struct SetupWizardContext
 {
-    std::vector<wxString> workspaces;
+    std::vector<Workspace> m_workspaces;
+    std::vector<Workspace> m_selectedWorkspaces;
+    std::vector<Repository> m_repositories;
 };
 
 

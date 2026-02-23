@@ -5,7 +5,8 @@
 #ifndef WXWIDGETSPLAYGROUND_MYTASKBARICON_H
 #define WXWIDGETSPLAYGROUND_MYTASKBARICON_H
 
-#include "stdafx.h"
+#include <wx/taskbar.h>
+#include <wx/bmpbndl.h>
 
 class PreferencesWindow;
 

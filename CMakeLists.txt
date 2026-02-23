@@ -47,8 +47,6 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         StatusItem.h
         preferences/wizard/SetupWizard.cpp
         preferences/wizard/SetupWizard.h
-        stdafx.h
-        stdafx.h
         preferences/wizard/LoginPage.cpp
         preferences/wizard/LoginPage.h
         preferences/wizard/WorkspacePage.cpp
@@ -57,6 +55,7 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         preferences/wizard/RepositoryPage.cpp
         preferences/wizard/RepositoryPage.h
         preferences/wizard/SetupWizardContext.h
+        Constants.h
 )
 target_compile_options(PRToolForBitbucket2 PRIVATE
         -Wall -Wextra -Wpedantic -Werror
@@ -121,6 +120,9 @@ if (APPLE)
             ${STATUS_IMAGE_32}
             ${STATUS_IMAGE_16}
             macos/macos_activation.mm
+    )
+    target_compile_options(PRToolForBitbucket2 PRIVATE
+            -fno-builtin-std-forward_like
     )
     target_link_libraries(PRToolForBitbucket2 PRIVATE "-framework Cocoa")
 endif ()

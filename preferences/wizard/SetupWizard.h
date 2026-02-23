@@ -5,8 +5,8 @@
 #ifndef WXWIDGETSPLAYGROUND_MYWIZARD_H
 #define WXWIDGETSPLAYGROUND_MYWIZARD_H
 
+#include <wx/wizard.h>
 #include "SetupWizardContext.h"
-#include "../../stdafx.h"
 
 class LoginPage;
 

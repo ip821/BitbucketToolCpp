@@ -1,3 +1,4 @@
+#include <wx/wx.h>
 #include "StatusItem.h"
 #include "preferences/PreferencesWindow.h"
 

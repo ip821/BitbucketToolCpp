@@ -2,6 +2,9 @@
 // Created by Igor Palkin on 19.12.2025.
 //
 
+#include <wx/wizard.h>
+#include <wx/wx.h>
+
 #include "../preferences/PreferencesWindow.h"
 
 #include "wizard/SetupWizard.h"

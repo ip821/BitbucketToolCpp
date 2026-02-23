@@ -5,7 +5,10 @@
 #ifndef WXWIDGETSPLAYGROUND_MYDIALOG_H
 #define WXWIDGETSPLAYGROUND_MYDIALOG_H
 
-#include "../stdafx.h"
+#include <wx/frame.h>
+#include <wx/event.h>
+
+class wxString;
 
 class PreferencesWindow : public wxFrame {
 public:

@@ -2,21 +2,20 @@
 // Created by Igor Palkin on 27.12.2025.
 //
 
-#include "../../stdafx.h"
-#include "LoginPage.h"
+#include <wx/wx.h>
 #include <wx/activityindicator.h>
-#include <wx/wizard.h>
+#include <wx/secretstore.h>
+#include <wx/base64.h>
 #include <wx/webrequest.h>
-#include "wx/base64.h"
 #include <nlohmann/json.hpp>
 
+#include "LoginPage.h"
 #include "SetupWizardContext.h"
-
-const auto AppName = wxString("PRToolForBitbucketCpp");
+#include "../../Constants.h"
 
 LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
     wxWizardPageSimple(pWindow),
-    m_pWizard(pWindow),
+    m_wizard(*pWindow),
     m_context(context),
     m_staticBox(*new wxStaticBox(this, wxID_ANY, wxT(""))),
     m_errorText(*new wxStaticText(&m_staticBox, wxID_ANY, wxT(""))),
@@ -74,7 +73,7 @@ LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
         if (store.IsOk())
         {
             wxSecretValue password(m_passwordText.GetValue());
-            store.Save(AppName, m_loginText.GetValue(), password);
+            store.Save(SecretStoreAppName, m_loginText.GetValue(), password);
         }
 
         event.Veto();
@@ -89,7 +88,7 @@ LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
         {
             wxString strUsername;
             wxSecretValue strPassword;
-            if (store.Load(AppName, strUsername, strPassword))
+            if (store.Load(SecretStoreAppName, strUsername, strPassword))
             {
                 m_loginText.SetValue(strUsername);
                 m_passwordText.SetValue(strPassword.GetAsString());
@@ -144,6 +143,7 @@ void LoginPage::StartGetWorkspaces()
         return;
 
     HideErrorMessage();
+
     m_loginInProgress = true;
 
     const wxString email = m_loginText.GetValue();
@@ -200,16 +200,20 @@ void LoginPage::OnGetWorkspacesCompleted(wxWebRequestEvent& event)
 
     if (response.GetStatus() == 200)
     {
-        m_context.workspaces.clear();
+        m_context.m_workspaces.clear();
 
         wxString workspaceNames;
         auto jWorkspaces = jObject["values"];
         for (const auto& jWorkspace : jWorkspaces)
         {
-            m_context.workspaces.push_back(jWorkspace["name"].get<std::string>());
+            const Workspace& workspace = {
+                jWorkspace["name"].get<std::string>(),
+                jWorkspace["slug"].get<std::string>()
+            };
+            m_context.m_workspaces.push_back(workspace);
         }
         m_loginCompleted = true;
-        m_pWizard->ShowPage(GetNext());
+        m_wizard.ShowPage(GetNext());
     }
     else
     {

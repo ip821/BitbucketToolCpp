@@ -5,8 +5,11 @@
 #ifndef WXWIDGETSPLAYGROUND_LOGINPAGE_H
 #define WXWIDGETSPLAYGROUND_LOGINPAGE_H
 
-#include "../../stdafx.h"
+#include <wx/wizard.h>
 
+class wxTextCtrl;
+class wxStaticText;
+class wxStaticBox;
 struct SetupWizardContext;
 class wxWebRequestEvent;
 class wxActivityIndicator;
@@ -15,7 +18,7 @@ class LoginPage : public wxWizardPageSimple
 {
     friend class SetupWizard;
 
-    wxWizard* m_pWizard;
+    wxWizard& m_wizard;
     SetupWizardContext& m_context;
 
     bool m_loginInProgress = false;
