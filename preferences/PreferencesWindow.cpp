@@ -24,6 +24,10 @@ PreferencesWindow::PreferencesWindow(const wxString& title)
     wxMenuBar* menuBar = new wxMenuBar();
     SetMenuBar(menuBar);
 
+    const auto pWorkspaceStaticText = new wxStaticText(this, wxID_ANY, wxT("mbsolutionsgroup"));
+
+    const auto pRepositoryStaticText = new wxStaticText(this, wxID_ANY, wxT("cr"));
+
     const auto pHelp = new wxStaticText(
         this,
         wxID_ANY,
@@ -40,9 +44,9 @@ PreferencesWindow::PreferencesWindow(const wxString& title)
     const auto pGridSizer = new wxFlexGridSizer(0, 2, 14, 22);
     pGridSizer->AddGrowableCol(1);
     pGridSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Workspace:")), wxSizerFlags().Expand().Left());
-    pGridSizer->Add(new wxStaticText(this, wxID_ANY, wxT("mbsolutionsgroup")), wxSizerFlags().Right());
+    pGridSizer->Add(pWorkspaceStaticText, wxSizerFlags().Right());
     pGridSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Repository:")), wxSizerFlags().Expand().Left());
-    pGridSizer->Add(new wxStaticText(this, wxID_ANY, wxT("cr")), wxSizerFlags().Right());
+    pGridSizer->Add(pRepositoryStaticText, wxSizerFlags().Right());
 
     const auto pSizer = new wxBoxSizer(wxVERTICAL);
     pSizer->Add(pHelp, wxSizerFlags().Center().Border(wxALL, 10));
