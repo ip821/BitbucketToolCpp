@@ -15,8 +15,6 @@ public:
     explicit PreferencesWindow(const wxString &title);
 
 protected:
-    void OnAbout(wxCommandEvent &event);
-    void OnOK(wxCommandEvent &event);
     void OnExit(wxCommandEvent &event);
     void OnShowWindow(wxShowEvent &event);
     void OnCloseWindow(wxCloseEvent &event);
