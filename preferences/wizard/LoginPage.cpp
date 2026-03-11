@@ -53,8 +53,11 @@ LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
     Bind(wxEVT_WIZARD_PAGE_SHOWN, &LoginPage::OnPageShown, this);
 }
 
-void LoginPage::OnPageShown(wxWizardEvent&)
+void LoginPage::OnPageShown(wxWizardEvent& event)
 {
+    if (!event.GetDirection())
+        return;
+
     const auto store = wxSecretStore::GetDefault();
     if (store.IsOk())
     {
