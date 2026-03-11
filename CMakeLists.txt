@@ -7,7 +7,7 @@ set(wxBUILD_SHARED OFF)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(WX_WIDGETS_VERSION v3.2.9)
+set(WX_WIDGETS_VERSION v3.2.10)
 
 if (APPLE)
     FetchContent_Declare(
@@ -16,7 +16,6 @@ if (APPLE)
             GIT_TAG ${WX_WIDGETS_VERSION}
             GIT_SHALLOW ON
             PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets.patch"
-            UPDATE_DISCONNECTED 1
     )
 else ()
     FetchContent_Declare(

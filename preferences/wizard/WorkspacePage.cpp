@@ -14,21 +14,18 @@
 WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) :
     wxWizardPageSimple(pWizard),
     m_wizard(*pWizard),
-    m_context(context),
-    m_staticBox(*new wxStaticBox(this, wxID_ANY, wxT(""))),
-    m_activityIndicator(*CreateActivityIndicator(&m_staticBox))
+    m_context(context)
 {
-    const auto pMainSizer = new wxBoxSizer(wxVERTICAL);
-    const auto pStaticBoxSizer = new wxStaticBoxSizer(&m_staticBox, wxVERTICAL);
-    const auto pListBox = new wxCheckListBox(&m_staticBox, wxID_ANY);
-    m_activityIndicator.Hide();
+    m_pActivityIndicator = CreateActivityIndicator(this);
+    m_pActivityIndicator->Hide();
 
-    pStaticBoxSizer->Add(pListBox, wxSizerFlags().Expand().Proportion(1).Border(wxALL, 5));
-    pStaticBoxSizer->Add(&m_activityIndicator, wxSizerFlags().Center().Border(wxBOTTOM, 5));
-    pMainSizer->Add(pStaticBoxSizer, wxSizerFlags().Expand().Proportion(1).Border(wxALL, 10));
+    const auto pListBox = new wxCheckListBox(this, wxID_ANY);
+
+    const auto pMainSizer = new wxBoxSizer(wxVERTICAL);
+    pMainSizer->Add(pListBox, wxSizerFlags().Expand().Proportion(1).Border(wxALL, 5));
+    pMainSizer->Add(m_pActivityIndicator, wxSizerFlags().Center().Border(wxBOTTOM, 5));
 
     SetSizerAndFit(pMainSizer);
-    Fit();
 
     Bind(wxEVT_WIZARD_PAGE_SHOWN, [this, pListBox](wxWizardEvent&)
     {
@@ -103,7 +100,7 @@ WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) 
                                                        allowExceptions);
 
             wxString repositoryNames;
-            const auto jRepositories = jObject["values"];
+            const auto& jRepositories = jObject["values"];
             for (const auto& jRepository : jRepositories)
             {
                 const Repository& repository = {
@@ -155,27 +152,18 @@ void WorkspacePage::StartRepositoriesRequest(const Workspace& workspace, std::si
     request.Start();
 }
 
-wxActivityIndicator* WorkspacePage::CreateActivityIndicator(wxStaticBox* pStaticBox)
-{
-    const auto pLoader = new wxActivityIndicator(pStaticBox);
-#ifdef __WXMSW__
-    pLoader->SetDoubleBuffered(true);
-#endif
-    return pLoader;
-}
-
 void WorkspacePage::StartBusyAnimation()
 {
     Disable();
-    m_activityIndicator.Show();
-    m_activityIndicator.Start();
+    m_pActivityIndicator->Show();
+    m_pActivityIndicator->Start();
     Layout();
 }
 
 void WorkspacePage::StopBusyAnimation()
 {
     Enable();
-    m_activityIndicator.Stop();
-    m_activityIndicator.Hide();
+    m_pActivityIndicator->Stop();
+    m_pActivityIndicator->Hide();
     Layout();
 }

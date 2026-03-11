@@ -11,9 +11,7 @@ class SetupWizard;
 
 class RepositoryPage : public wxWizardPageSimple
 {
-    //SetupWizard& m_wizard;
     SetupWizardContext& m_context;
-    wxStaticBox& m_staticBox;
 
 public:
     explicit RepositoryPage(SetupWizard* pWizard, SetupWizardContext& context);

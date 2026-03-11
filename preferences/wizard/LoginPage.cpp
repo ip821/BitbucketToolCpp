@@ -10,51 +10,43 @@
 #include <nlohmann/json.hpp>
 
 #include "LoginPage.h"
+
+#include "SetupWizard.h"
 #include "SetupWizardContext.h"
 #include "../../Constants.h"
 
 LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
     wxWizardPageSimple(pWindow),
     m_wizard(*pWindow),
-    m_context(context),
-    m_staticBox(*new wxStaticBox(this, wxID_ANY, wxT(""))),
-    m_errorStaticText(*new wxStaticText(&m_staticBox, wxID_ANY, wxT(""))),
-    m_activityIndicator(*CreateActivityIndicator(&m_staticBox)),
-    m_loginTextCtrl(*new wxTextCtrl(&m_staticBox, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBORDER_THEME,
-                                    wxTextValidator(wxFILTER_NONE, &m_email))),
-    m_passwordTextCtrl(*new wxTextCtrl(&m_staticBox, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD,
-                                       wxTextValidator(wxFILTER_NONE, &m_password)))
+    m_context(context)
 {
-    m_errorStaticText.SetWindowStyleFlag(wxALIGN_CENTER_HORIZONTAL);
-    m_errorStaticText.SetForegroundColour(wxColour(255, 0, 0));
-    m_errorStaticText.Hide();
+    m_pLoginTextCtrl = new wxTextCtrl(this, wxID_ANY);
+    m_pLoginTextCtrl->SetValidator(wxTextValidator(wxFILTER_NONE, &m_email));
 
-    const auto pMainSizer = new wxBoxSizer(wxVERTICAL);
+    m_pPasswordTextCtrl = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD);
+    m_pPasswordTextCtrl->SetValidator(wxTextValidator(wxFILTER_NONE, &m_password));
 
-    const auto pStaticBox = &m_staticBox;
-    m_activityIndicator.Hide();
+    m_pErrorStaticText = new wxStaticText(this, wxID_ANY, wxT(""));
+    m_pErrorStaticText->SetWindowStyleFlag(wxALIGN_CENTER_HORIZONTAL);
+    m_pErrorStaticText->SetForegroundColour(wxColour(255, 0, 0));
+    m_pErrorStaticText->Hide();
 
-    const auto pStaticBoxSizer = new wxStaticBoxSizer(pStaticBox, wxVERTICAL);
+    m_pActivityIndicator = CreateActivityIndicator(this);
+    m_pActivityIndicator->Hide();
 
     const auto pGridSizer = new wxFlexGridSizer(0, 2, 14, 22);
     pGridSizer->AddGrowableCol(1);
+    pGridSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Login")), wxSizerFlags().Left().CenterVertical());
+    pGridSizer->Add(m_pLoginTextCtrl, wxSizerFlags().Left().Expand());
+    pGridSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Password")), wxSizerFlags().Left().CenterVertical());
+    pGridSizer->Add(m_pPasswordTextCtrl, wxSizerFlags().Left().Expand());
 
-    pGridSizer->Add(new wxStaticText(pStaticBox, wxID_ANY, wxT("Login")),
-                    wxSizerFlags().Left().CenterVertical());
-    pGridSizer->Add(&m_loginTextCtrl,
-                    wxSizerFlags().Left().Expand());
-    pGridSizer->Add(new wxStaticText(pStaticBox, wxID_ANY, wxT("Password")),
-                    wxSizerFlags().Left().CenterVertical());
-    pGridSizer->Add(&m_passwordTextCtrl,
-                    wxSizerFlags().Left().Expand());
-
-    pStaticBoxSizer->Add(pGridSizer, wxSizerFlags(1).Expand().Border(wxALL, 15));
-    pStaticBoxSizer->Add(&m_errorStaticText, wxSizerFlags().Expand().Border(wxALL, 15));
-    pStaticBoxSizer->Add(&m_activityIndicator, wxSizerFlags().Center().Border(wxBOTTOM, 15));
-    pMainSizer->Add(pStaticBoxSizer, wxSizerFlags().Expand().Proportion(1).Border(wxALL, 10));
+    const auto pMainSizer = new wxBoxSizer(wxVERTICAL);
+    pMainSizer->Add(pGridSizer, wxSizerFlags(1).Expand().Border(wxALL, 15));
+    pMainSizer->Add(m_pErrorStaticText, wxSizerFlags().Expand().Border(wxALL, 15));
+    pMainSizer->Add(m_pActivityIndicator, wxSizerFlags().Center().Border(wxBOTTOM, 15));
 
     SetSizerAndFit(pMainSizer);
-    Fit();
 
     Bind(wxEVT_WEBREQUEST_STATE, &LoginPage::OnGetWorkspacesRequestStateChanged, this);
     Bind(wxEVT_WIZARD_PAGE_CHANGING, &LoginPage::OnPageChanging, this);
@@ -95,8 +87,8 @@ void LoginPage::OnPageChanging(wxWizardEvent& event)
     auto store = wxSecretStore::GetDefault();
     if (store.IsOk())
     {
-        wxSecretValue password(m_passwordTextCtrl.GetValue());
-        store.Save(SecretStoreAppName, m_loginTextCtrl.GetValue(), password);
+        wxSecretValue password(m_pPasswordTextCtrl->GetValue());
+        store.Save(SecretStoreAppName, m_pLoginTextCtrl->GetValue(), password);
     }
 
     StartGetWorkspacesRequest();
@@ -104,35 +96,26 @@ void LoginPage::OnPageChanging(wxWizardEvent& event)
     event.Veto();
 }
 
-wxActivityIndicator* LoginPage::CreateActivityIndicator(wxStaticBox* pStaticBox)
-{
-    const auto pLoader = new wxActivityIndicator(pStaticBox);
-#ifdef __WXMSW__
-    pLoader->SetDoubleBuffered(true);
-#endif
-    return pLoader;
-}
-
 void LoginPage::StartBusyAnimation()
 {
     Disable();
-    m_activityIndicator.Show();
-    m_activityIndicator.Start();
+    m_pActivityIndicator->Show();
+    m_pActivityIndicator->Start();
     Layout();
 }
 
 void LoginPage::StopBusyAnimation()
 {
     Enable();
-    m_activityIndicator.Stop();
-    m_activityIndicator.Hide();
+    m_pActivityIndicator->Stop();
+    m_pActivityIndicator->Hide();
     Layout();
 }
 
 void LoginPage::HideErrorMessage()
 {
-    m_errorStaticText.SetLabelText("");
-    m_errorStaticText.Hide();
+    m_pErrorStaticText->SetLabelText("");
+    m_pErrorStaticText->Hide();
     Layout();
 }
 
@@ -141,8 +124,8 @@ void LoginPage::ShowErrorMessage(const wxString& str)
     if (str.IsEmpty())
         return;
 
-    m_errorStaticText.SetLabelText(str);
-    m_errorStaticText.Show();
+    m_pErrorStaticText->SetLabelText(str);
+    m_pErrorStaticText->Show();
     Layout();
 }
 

@@ -24,16 +24,13 @@ class LoginPage : public wxWizardPageSimple
     bool m_loginInProgress = false;
     bool m_loginCompleted = false;
 
-    wxStaticBox& m_staticBox;
-    wxStaticText& m_errorStaticText;
-    wxActivityIndicator& m_activityIndicator;
-    wxTextCtrl& m_loginTextCtrl;
-    wxTextCtrl& m_passwordTextCtrl;
+    wxStaticText* m_pErrorStaticText;
+    wxActivityIndicator* m_pActivityIndicator;
+    wxTextCtrl* m_pLoginTextCtrl;
+    wxTextCtrl* m_pPasswordTextCtrl;
 
     wxString m_email;
     wxString m_password;
-
-    static wxActivityIndicator* CreateActivityIndicator(wxStaticBox *pStaticBox);
 
     void OnGetWorkspacesRequestStateChanged(wxWebRequestEvent& event);
     void OnPageChanging(wxWizardEvent& event);

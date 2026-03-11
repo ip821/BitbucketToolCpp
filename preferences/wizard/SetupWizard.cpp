@@ -5,8 +5,7 @@
 #include "RepositoryPage.h"
 #include "WorkspacePage.h"
 
-wxBEGIN_EVENT_TABLE(SetupWizard, wxWizard)
-wxEND_EVENT_TABLE()
+extern "C" void ShowDockIcon();
 
 SetupWizard::SetupWizard(wxWindow* pWindow) :
     wxWizard(pWindow, wxID_ANY, wxT("Setup"))
@@ -17,6 +16,11 @@ SetupWizard::SetupWizard(wxWindow* pWindow) :
     const auto sizer = GetPageAreaSizer();
     sizer->SetMinSize(300, 200);
     sizer->Add(m_pLoginPage);
+
+    Bind(wxEVT_SHOW, [](wxShowEvent&)
+    {
+        ShowDockIcon();
+    });
 }
 
 void SetupWizard::Run()

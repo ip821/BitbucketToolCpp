@@ -20,13 +20,12 @@ class WorkspacePage : public wxWizardPageSimple
 {
     SetupWizard& m_wizard;
     SetupWizardContext& m_context;
-    wxStaticBox& m_staticBox;
-    wxActivityIndicator& m_activityIndicator;
+
+    wxActivityIndicator* m_pActivityIndicator;
 
     std::vector<ProcessedWorkspace> m_workspaces;
     bool m_repositoriesFetched = false;
 
-    static wxActivityIndicator* CreateActivityIndicator(wxStaticBox* pStaticBox);
     void StartBusyAnimation();
     void StopBusyAnimation();
 
