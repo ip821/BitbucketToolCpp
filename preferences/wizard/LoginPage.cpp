@@ -14,6 +14,7 @@
 #include "SetupWizard.h"
 #include "SetupWizardContext.h"
 #include "../../Constants.h"
+#include "../../webrequests/WebRequestFactory.h"
 
 LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
     wxWizardPageSimple(pWindow),
@@ -144,22 +145,7 @@ void LoginPage::StartGetWorkspacesRequest()
     if (!TransferDataFromWindow())
         return;
 
-    const wxString email = m_email;
-    const wxString appPassword = m_password;
-
-    const wxString auth = email + ":" + appPassword;
-    const wxCharBuffer utf8 = auth.ToUTF8();
-    const wxString encoded = wxBase64Encode(utf8.data(), utf8.length());
-
-    wxWebRequest request =
-        wxWebSession::GetDefault().CreateRequest(
-            this,
-            "https://api.bitbucket.org/2.0/workspaces"
-        );
-
-    request.SetHeader("Authorization", "Basic " + encoded);
-    request.SetHeader("Accept", "application/json");
-
+    auto request = WebRequestFactory::CreateWebRequest(this, "/workspaces");
     request.Start();
 }
 
@@ -197,8 +183,11 @@ void LoginPage::OnGetWorkspacesRequestStateChanged(wxWebRequestEvent& event)
     const auto buffer = strBody.ToUTF8();
     constexpr auto pParserCallback = nullptr;
     constexpr auto allowExceptions = false;
-    const auto jObject = nlohmann::json::parse(buffer.data(), buffer.data() + buffer.length(), pParserCallback,
-                                               allowExceptions);
+    const auto jObject = nlohmann::json::parse(
+        buffer.data(),
+        buffer.data() + buffer.length(),
+        pParserCallback,
+        allowExceptions);
 
     if (response.GetStatus() == 200)
     {

@@ -19,10 +19,10 @@ wxBEGIN_EVENT_TABLE(PreferencesWindow, wxFrame)
 wxEND_EVENT_TABLE()
 
 PreferencesWindow::PreferencesWindow(const wxString& title)
-    : wxFrame(NULL, wxID_ANY, title)
+    : wxFrame(nullptr, wxID_ANY, title)
 {
-    wxMenuBar* menuBar = new wxMenuBar();
-    SetMenuBar(menuBar);
+    const auto menuBar = new wxMenuBar();
+    wxFrameBase::SetMenuBar(menuBar);
 
     const auto pWorkspaceStaticText = new wxStaticText(this, wxID_ANY, wxT("mbsolutionsgroup"));
 

@@ -11,6 +11,8 @@
 #include "../../Constants.h"
 #include "WorkspacePage.h"
 
+#include "../../webrequests/WebRequestFactory.h"
+
 WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) :
     wxWizardPageSimple(pWizard),
     m_wizard(*pWizard),
@@ -130,28 +132,7 @@ WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) 
 
 void WorkspacePage::StartRepositoriesRequest(const Workspace& workspace, std::size_t index)
 {
-    wxString strEmail;
-    wxSecretValue strPassword;
-
-    const auto store = wxSecretStore::GetDefault();
-    if (store.IsOk())
-    {
-        if (!store.Load(SecretStoreAppName, strEmail, strPassword))
-            return;
-    }
-
-    const wxString auth = strEmail + ":" + strPassword.GetAsString();
-    const wxCharBuffer utf8 = auth.ToUTF8();
-    const wxString encoded = wxBase64Encode(utf8.data(), utf8.length());
-
-    const std::string strFormattedUrl = std::format("https://api.bitbucket.org/2.0/repositories/{}/",
-                                                    workspace.m_slug.ToStdString());
-
-    wxWebRequest request = wxWebSession::GetDefault().CreateRequest(this, wxString::FromUTF8(strFormattedUrl), index);
-
-    request.SetHeader("Authorization", "Basic " + encoded);
-    request.SetHeader("Accept", "application/json");
-
+    auto request = WebRequestFactory::CreateWebRequest(this, "/repositories/" + workspace.m_slug, index);
     request.Start();
 }
 
