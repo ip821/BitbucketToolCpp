@@ -3,6 +3,7 @@
 
 #include "RepositoryPage.h"
 #include "SetupWizard.h"
+#include "../Config.h"
 
 RepositoryPage::RepositoryPage(SetupWizard* pWizard, SetupWizardContext& context) :
     wxWizardPageSimple(pWizard),
@@ -35,6 +36,19 @@ RepositoryPage::RepositoryPage(SetupWizard* pWizard, SetupWizardContext& context
             !checkedCount)
         {
             event.Veto();
+        }
+        else
+        {
+            wxArrayString repositories;
+            for (const auto& checkedIndex : checkedItemIndexes)
+            {
+                const auto& repository = pListBox->GetString(checkedIndex);
+                repositories.push_back(repository);
+            }
+            Config::SetRepositories(repositories);
+
+            const auto reps = Config::GetRepositories();
+            wxUnusedVar(reps);
         }
     });
 }

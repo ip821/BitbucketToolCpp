@@ -56,6 +56,8 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         preferences/wizard/SetupWizardContext.h
         Constants.h
         webrequests/WebRequestFactory.h
+        preferences/Config.cpp
+        preferences/Config.h
 )
 target_compile_options(PRToolForBitbucket2 PRIVATE
         -Wall -Wextra -Wpedantic -Werror
