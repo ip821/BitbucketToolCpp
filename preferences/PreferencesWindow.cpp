@@ -17,8 +17,8 @@ wxBEGIN_EVENT_TABLE(PreferencesWindow, wxDialog)
     EVT_CLOSE(PreferencesWindow::OnCloseWindow)
 wxEND_EVENT_TABLE()
 
-PreferencesWindow::PreferencesWindow(const wxString& title)
-    : wxDialog(nullptr, wxID_ANY, title)
+PreferencesWindow::PreferencesWindow()
+    : wxDialog(nullptr, wxID_ANY, "Preferences")
 {
     const auto pWorkspaceStaticText = new wxStaticText(this, wxID_ANY, wxT("mbsolutionsgroup"));
 
@@ -34,8 +34,6 @@ PreferencesWindow::PreferencesWindow(const wxString& title)
     const auto pSetupButton = new wxButton(this, wxID_ANY, wxT("Setup..."), wxDefaultPosition);
     pSetupButton->Bind(wxEVT_BUTTON, &PreferencesWindow::OnSetupClicked, this);
 
-    const auto pLaunchAtLoginCheckbox = new wxCheckBox(this, wxID_ANY, wxT("Launch at login"));
-
     const auto pGridSizer = new wxFlexGridSizer(0, 2, 14, 22);
     pGridSizer->AddGrowableCol(1);
     pGridSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Workspace:")), wxSizerFlags().Expand().Left());
@@ -46,7 +44,6 @@ PreferencesWindow::PreferencesWindow(const wxString& title)
     const auto pSizer = new wxBoxSizer(wxVERTICAL);
     pSizer->Add(pHelp, wxSizerFlags().Center().Border(wxALL, 10));
     pSizer->Add(pSetupButton, wxSizerFlags().Center().Border(wxALL, 10));
-    pSizer->Add(pLaunchAtLoginCheckbox, wxSizerFlags().Left().Border(wxALL, 10));
 
     const auto pRootSizer = new wxBoxSizer(wxVERTICAL);
     pRootSizer->Add(pGridSizer, wxSizerFlags().Expand().Top().Border(wxALL, 10));

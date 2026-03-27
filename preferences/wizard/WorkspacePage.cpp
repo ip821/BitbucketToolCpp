@@ -14,7 +14,7 @@
 #include <thread>
 
 #include "../../Switch.h"
-#include "../../webrequests/CurlConnection.h"
+#include "../../curl/CurlConnection.h"
 #include "../../webrequests/RepositoriesRequest.h"
 
 WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) :

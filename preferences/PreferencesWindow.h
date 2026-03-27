@@ -12,7 +12,7 @@ class wxString;
 
 class PreferencesWindow : public wxDialog {
 public:
-    explicit PreferencesWindow(const wxString &title);
+    explicit PreferencesWindow();
 
 protected:
     void OnShowWindow(wxShowEvent &event);

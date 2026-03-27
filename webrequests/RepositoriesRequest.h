@@ -1,5 +1,5 @@
 #pragma once
-#include "CurlConnection.h"
+#include "../curl/CurlConnection.h"
 #include "../preferences/wizard/SetupWizardContext.h"
 #include "wx/arrstr.h"
 

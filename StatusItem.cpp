@@ -1,32 +1,39 @@
 #include <wx/wx.h>
 #include <wx/xrc/xmlres.h>
+#include <wx/notifmsg.h>
+
+#include <thread>
 
 #include "StatusItem.h"
+
+#include "preferences/Config.h"
 #include "preferences/PreferencesWindow.h"
 
 enum
 {
-    MENU_ITEM_PREFERENCES_ID = 10001,
+    MENU_ITEM_PREFERENCES_ID = 10000,
     MENU_ITEM_QUIT_ID,
     MENU_ITEM_UPDATE_ID,
-    MENU_ITEM_CREATE_PULL_REQUEST_ID,
+
+    MENU_ITEM_CREATE_PULL_REQUEST_ID = MENU_ITEM_PREFERENCES_ID + 100,
+
+    MENU_ITEM_LAST_SEPARATOR = MENU_ITEM_PREFERENCES_ID + 1000 - 1,
 };
 
 wxBEGIN_EVENT_TABLE(StatusItem, wxTaskBarIcon)
     EVT_MENU(MENU_ITEM_PREFERENCES_ID, StatusItem::OnMenuPreferences)
     EVT_MENU(MENU_ITEM_QUIT_ID, StatusItem::OnMenuExit)
     EVT_MENU(MENU_ITEM_UPDATE_ID, StatusItem::OnMenuUpdate)
-    EVT_MENU(MENU_ITEM_CREATE_PULL_REQUEST_ID, StatusItem::OnMenuCreatePr)
     EVT_TASKBAR_LEFT_DCLICK(StatusItem::OnLeftButtonDClick)
 wxEND_EVENT_TABLE()
 
-StatusItem::StatusItem() : wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM)
-{
-    m_pDialog = new PreferencesWindow("Preferences");
+constexpr auto tenSeconds = 10 * 1000;
+constexpr auto fiveMinutes = 5 * 60 * 1000;
 
-#ifdef WXDEBUG
-    m_pDialog->Show(true);
-#endif
+StatusItem::StatusItem() :
+    wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM)
+{
+    m_pDialog = new PreferencesWindow();
 
 #if defined(__WXOSX__)
     SetIcon("status32@2x");
@@ -35,22 +42,40 @@ StatusItem::StatusItem() : wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM)
     m_statusBitmap = wxXmlResource::Get()->LoadBitmap("status32");
     if (!m_statusBitmap.IsOk())
     {
-      wxMessageBox("Bitmap was loaded incorrectly");
+        wxMessageBox("Bitmap was loaded incorrectly");
     }
     m_bitmapBundle = wxBitmapBundle::FromBitmap(m_statusBitmap);
     if (!m_bitmapBundle.IsOk())
     {
-      wxMessageBox("Could not load status image");
+        wxMessageBox("Could not load status image");
     }
     if (!IsAvailable())
     {
-      wxMessageBox("System icon is not available");
+        wxMessageBox("System icon is not available");
     }
     SetIcon(m_bitmapBundle, "Tooltip");
 #endif
+    m_pCreatePullRequestsMenu = new wxMenu;
+    m_pCreatePullRequestsMenu->Bind(wxEVT_MENU, &StatusItem::OnMenuCreatePr, this);
+
+    const auto pMenu = new wxMenu;
+    pMenu->AppendSeparator()->SetId(MENU_ITEM_LAST_SEPARATOR);
+    pMenu->AppendSubMenu(m_pCreatePullRequestsMenu, "&Create pull request");
+    pMenu->AppendSeparator();
+    pMenu->Append(MENU_ITEM_UPDATE_ID, "&Update");
+    pMenu->Append(MENU_ITEM_PREFERENCES_ID, "&Preferences...");
+    pMenu->Append(MENU_ITEM_QUIT_ID, "&Quit");
+    m_pMenu = pMenu;
+
+    m_pTimer = new wxTimer(this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&)
+    {
+        OnUpdatePullRequests({.showNotification = false});
+    });
+    m_pTimer->StartOnce(tenSeconds);
 }
 
-void StatusItem::ShowPreferencesDialog()
+void StatusItem::ShowPreferencesDialog() const
 {
     if (!m_pDialog->IsVisible())
         m_pDialog->Show(true);
@@ -70,22 +95,97 @@ void StatusItem::OnMenuExit(wxCommandEvent&)
 
 void StatusItem::OnMenuUpdate(wxCommandEvent&)
 {
+    OnUpdatePullRequests({.showNotification = true});
 }
 
-void StatusItem::OnMenuCreatePr(wxCommandEvent&)
+void StatusItem::OnMenuCreatePr(wxCommandEvent& event)
 {
+    const auto menuItemId = event.GetId();
+    const auto pMenuItem = m_pCreatePullRequestsMenu->FindItemByPosition(menuItemId - MENU_ITEM_CREATE_PULL_REQUEST_ID);
+
+    const auto repository = pMenuItem->GetItemLabel();
+    const auto parts = wxSplit(repository, '/');
+    const auto workspace = parts[0];
+    const auto repo = parts[1];
+
+    const wxString bitbucketHostname = "https://bitbucket.org";
+    const auto url = bitbucketHostname +
+        "/" + workspace +
+        "/" + repo +
+        "/pull-requests/new";
+
+    wxLaunchDefaultBrowser(url);
 }
 
-wxMenu* StatusItem::CreatePopupMenu()
+void StatusItem::RemoveAllPrMenuItems()
 {
-    wxMenu* menu = new wxMenu;
-    menu->AppendSeparator();
-    menu->Append(MENU_ITEM_CREATE_PULL_REQUEST_ID, "&Create pull request...");
-    menu->AppendSeparator();
-    menu->Append(MENU_ITEM_UPDATE_ID, "&Update");
-    menu->Append(MENU_ITEM_PREFERENCES_ID, "&Preferences...");
-    menu->Append(MENU_ITEM_QUIT_ID, "&Quit");
-    return menu;
+    for (const auto menuItems = m_pMenu->GetMenuItems();
+         const auto& item : menuItems)
+    {
+        if (item->GetId() > MENU_ITEM_LAST_SEPARATOR)
+        {
+            m_pMenu->Delete(item);
+        }
+    }
+}
+
+void StatusItem::UpdateCreatePullRequestsMenu(const wxArrayString& repositories)
+{
+    for (const auto menuItems = m_pCreatePullRequestsMenu->GetMenuItems();
+         const auto& item : menuItems)
+    {
+        m_pCreatePullRequestsMenu->Delete(item);
+    }
+
+    auto index = 0;
+    for (const auto& repository : repositories)
+    {
+        m_pCreatePullRequestsMenu->Append(MENU_ITEM_CREATE_PULL_REQUEST_ID + index++, repository);
+    }
+}
+
+void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
+{
+    const auto repositories = Config::GetRepositories();
+
+    UpdateCreatePullRequestsMenu(repositories);
+
+    wxWeakRef weakThis(this);
+    std::thread([this, args, weakThis]()
+    {
+        // Do work
+
+        CallAfter([weakThis, args, this]
+        {
+            if (!weakThis)
+                return;
+
+            RemoveAllPrMenuItems();
+
+            auto index = 0;
+            auto id = MENU_ITEM_LAST_SEPARATOR + 1;
+            m_pMenu->Insert(index++, id++, "Pull requests to review")->Enable(false);
+            m_pMenu->Insert(index++, id++, "   New item 1");
+            m_pMenu->Insert(index++, id++, "   New item 2")->Enable(false);
+            m_pMenu->InsertSeparator(index++);
+            m_pMenu->Insert(index++, id++, "Your pull requests")->Enable(false);
+            m_pMenu->Insert(index++, id++, "   New item 1");
+            m_pMenu->Insert(index++, id++, "   New item 2")->Enable(false);
+
+            if (args.showNotification)
+            {
+                wxNotificationMessage notification("BitbucketTool", "Pull requests were updated");
+                notification.Show();
+            }
+
+            m_pTimer->StartOnce(fiveMinutes);
+        });
+    }).detach();
+}
+
+wxMenu* StatusItem::GetPopupMenu()
+{
+    return m_pMenu;
 }
 
 void StatusItem::OnLeftButtonDClick(wxTaskBarIconEvent&)

@@ -2,7 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "CurlConnection.h"
+#include "../curl/CurlConnection.h"
 #include "../Switch.h"
 #include "../Constants.h"
 
