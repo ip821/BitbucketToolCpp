@@ -32,6 +32,6 @@ bool App::OnInit()
   InitXmlResource();
 #endif
 
-  m_statusItem = std::make_shared<StatusItem>();
+  m_pStatusItem = new StatusItem();
   return true;
 }

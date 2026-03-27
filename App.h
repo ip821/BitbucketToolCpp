@@ -15,7 +15,7 @@ public:
     bool OnInit() override;
 
 private:
-    std::shared_ptr<StatusItem> m_statusItem;
+    StatusItem* m_pStatusItem;
 };
 
 #endif //WXWIDGETSPLAYGROUND_MYAPP_H
