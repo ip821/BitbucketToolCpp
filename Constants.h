@@ -5,6 +5,8 @@
 #ifndef PRTOOLFORBITBUCKET2_CONSTANTS_H
 #define PRTOOLFORBITBUCKET2_CONSTANTS_H
 #include <wx/string.h>
-const auto SecretStoreAppName = wxString("PRToolForBitbucketCpp");
+
+const wxString SecretStoreAppName = "PRToolForBitbucketCpp";
+const wxString BitBucketBaseUrl = "https://api.bitbucket.org/2.0";
 
 #endif //PRTOOLFORBITBUCKET2_CONSTANTS_H

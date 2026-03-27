@@ -9,6 +9,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(WX_WIDGETS_VERSION v3.2.10)
 
+set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
 if (APPLE)
     FetchContent_Declare(
             wxWidgets
@@ -25,7 +28,6 @@ else ()
             GIT_SHALLOW ON
     )
 endif ()
-
 FetchContent_MakeAvailable(wxWidgets)
 
 FetchContent_Declare(
@@ -33,9 +35,14 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/nlohmann/json.git
         GIT_TAG v3.12.0
 )
-
 FetchContent_MakeAvailable(json)
 
+FetchContent_Declare(
+        curl
+        GIT_REPOSITORY https://github.com/curl/curl.git
+        GIT_TAG        curl-8_19_0
+)
+FetchContent_MakeAvailable(curl)
 
 add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         App.cpp
@@ -55,14 +62,24 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         preferences/wizard/RepositoryPage.h
         preferences/wizard/SetupWizardContext.h
         Constants.h
-        webrequests/WebRequestFactory.h
         preferences/Config.cpp
         preferences/Config.h
+        webrequests/CurlConnection.cpp
+        webrequests/CurlConnection.h
+        webrequests/CurlHandle.h
+        Switch.h
+        preferences/Credentials.cpp
+        preferences/Credentials.h
+        webrequests/CurlSList.h
+        webrequests/WorkspacesRequest.cpp
+        webrequests/WorkspacesRequest.h
+        webrequests/RepositoriesRequest.cpp
+        webrequests/RepositoriesRequest.h
 )
 target_compile_options(PRToolForBitbucket2 PRIVATE
         -Wall -Wextra -Wpedantic -Werror
 )
-target_link_libraries(PRToolForBitbucket2 PRIVATE wx::core wx::net wx::xrc nlohmann_json::nlohmann_json)
+target_link_libraries(PRToolForBitbucket2 PRIVATE wx::core wx::xrc nlohmann_json::nlohmann_json libcurl)
 
 if (NOT APPLE)
     # Resources

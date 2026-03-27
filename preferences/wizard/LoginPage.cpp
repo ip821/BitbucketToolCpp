@@ -4,17 +4,19 @@
 
 #include <wx/wx.h>
 #include <wx/activityindicator.h>
-#include <wx/secretstore.h>
-#include <wx/base64.h>
 #include <wx/webrequest.h>
 #include <nlohmann/json.hpp>
 
 #include "LoginPage.h"
 
+#include <thread>
+
 #include "SetupWizard.h"
 #include "SetupWizardContext.h"
-#include "../../Constants.h"
-#include "../../webrequests/WebRequestFactory.h"
+#include "../Credentials.h"
+#include "../../Switch.h"
+#include "../../webrequests/CurlConnection.h"
+#include "../../webrequests/WorkspacesRequest.h"
 
 LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
     wxWizardPageSimple(pWindow),
@@ -49,55 +51,31 @@ LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
 
     SetSizerAndFit(pMainSizer);
 
-    Bind(wxEVT_WEBREQUEST_STATE, &LoginPage::OnGetWorkspacesRequestStateChanged, this);
-    Bind(wxEVT_WIZARD_PAGE_CHANGING, &LoginPage::OnPageChanging, this);
-    Bind(wxEVT_WIZARD_PAGE_SHOWN, &LoginPage::OnPageShown, this);
-}
-
-void LoginPage::OnPageShown(wxWizardEvent& event)
-{
-    if (!event.GetDirection())
-        return;
-
-    const auto store = wxSecretStore::GetDefault();
-    if (store.IsOk())
+    Bind(wxEVT_WIZARD_PAGE_SHOWN, [this](wxWizardEvent&)
     {
-        wxString strUsername;
-        wxSecretValue strPassword;
-        if (store.Load(SecretStoreAppName, strUsername, strPassword))
+        m_asyncOperationCompletedSuccessfully = false;
+
+        if (const auto result = Credentials::GetCredentials();
+            result.has_value())
         {
-            m_email = strUsername;
-            m_password = strPassword.GetAsString();
+            const auto& [strEmail, strPassword] = result.value();
+            m_email = strEmail;
+            m_password = strPassword;
         }
-    }
-    TransferDataToWindow();
-}
 
-void LoginPage::OnPageChanging(wxWizardEvent& event)
-{
-    if (!event.GetDirection()
-        || m_loginInProgress
-    )
-        return;
+        TransferDataToWindow();
+    });
 
-    if (m_loginCompleted)
+    Bind(wxEVT_WIZARD_PAGE_CHANGING, [this](wxWizardEvent& event)
     {
-        m_loginCompleted = false;
-        return;
-    }
+        if (m_asyncOperationCompletedSuccessfully)
+            return;
 
-    StartBusyAnimation();
+        event.Veto();
 
-    auto store = wxSecretStore::GetDefault();
-    if (store.IsOk())
-    {
-        wxSecretValue password(m_pPasswordTextCtrl->GetValue());
-        store.Save(SecretStoreAppName, m_pLoginTextCtrl->GetValue(), password);
-    }
-
-    StartGetWorkspacesRequest();
-
-    event.Veto();
+        if (!m_asyncOperationInProgress)
+            StartAsyncOperation();
+    });
 }
 
 void LoginPage::StartBusyAnimation()
@@ -133,81 +111,49 @@ void LoginPage::ShowErrorMessage(const wxString& str)
     Layout();
 }
 
-void LoginPage::StartGetWorkspacesRequest()
+void LoginPage::StartAsyncOperation()
 {
-    if (m_loginInProgress)
+    if (m_asyncOperationInProgress)
         return;
-
-    HideErrorMessage();
-
-    m_loginInProgress = true;
 
     if (!TransferDataFromWindow())
         return;
 
-    auto request = WebRequestFactory::CreateWebRequest(this, "/workspaces");
-    request.Start();
-}
+    m_asyncOperationInProgress = true;
+    StartBusyAnimation();
 
-void LoginPage::OnGetWorkspacesRequestStateChanged(wxWebRequestEvent& event)
-{
-    auto state = event.GetState();
-    switch (state)
+    HideErrorMessage();
+
+    Credentials::SetCredentials(m_email, m_password);
+
+    m_context.m_workspaces.clear();
+
+    std::thread([this]
     {
-    case wxWebRequest::State_Completed:
-        break;
-    case wxWebRequest::State_Unauthorized:
-        ShowErrorMessage(wxT("Authorization failed"));
-        break;
-    case wxWebRequest::State_Failed:
-        ShowErrorMessage(event.GetErrorDescription());
-        break;
-    case wxWebRequest::State_Cancelled:
-        ShowErrorMessage(wxT("Request cancelled"));
-        break;
-    case wxWebRequest::State_Idle:
-        return;
-    case wxWebRequest::State_Active:
-        return;
-    }
+        const CurlConnection connection;
+        WorkspacesRequest workspacesRequest(connection);
+        const auto response = workspacesRequest.GetWorkspaces();
 
-    StopBusyAnimation();
-    m_loginInProgress = false;
-
-    if (state != wxWebRequest::State_Completed)
-        return;
-
-    const wxWebResponse& response = event.GetResponse();
-
-    const auto strBody = response.AsString();
-    const auto buffer = strBody.ToUTF8();
-    constexpr auto pParserCallback = nullptr;
-    constexpr auto allowExceptions = false;
-    const auto jObject = nlohmann::json::parse(
-        buffer.data(),
-        buffer.data() + buffer.length(),
-        pParserCallback,
-        allowExceptions);
-
-    if (response.GetStatus() == 200)
-    {
-        m_context.m_workspaces.clear();
-
-        wxString workspaceNames;
-        auto jWorkspaces = jObject["values"];
-        for (const auto& jWorkspace : jWorkspaces)
+        CallAfter([this, response]
         {
-            const Workspace& workspace = {
-                jWorkspace["name"].get<std::string>(),
-                jWorkspace["slug"].get<std::string>()
-            };
-            m_context.m_workspaces.push_back(workspace);
-        }
-        m_loginCompleted = true;
-        m_wizard.ShowPage(GetNext());
-    }
-    else
-    {
-        ShowErrorMessage(strBody);
-    }
+            StopBusyAnimation();
+            m_asyncOperationInProgress = false;
+
+            Match(response,
+                  [this](const WorkspacesSuccess& success)
+                  {
+                      for (const auto& workspace : success.workspaces)
+                      {
+                          m_context.m_workspaces.push_back(workspace);
+                      }
+                      m_asyncOperationCompletedSuccessfully = true;
+                      m_wizard.ShowPage(GetNext());
+                  },
+                  [this](const Error& error)
+                  {
+                      ShowErrorMessage(error.message);
+                  }
+                );
+        });
+    }).detach();
 }

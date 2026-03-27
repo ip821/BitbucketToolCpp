@@ -11,7 +11,11 @@
 #include "../../Constants.h"
 #include "WorkspacePage.h"
 
-#include "../../webrequests/WebRequestFactory.h"
+#include <thread>
+
+#include "../../Switch.h"
+#include "../../webrequests/CurlConnection.h"
+#include "../../webrequests/RepositoriesRequest.h"
 
 WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) :
     wxWizardPageSimple(pWizard),
@@ -22,6 +26,7 @@ WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) 
     m_pActivityIndicator->Hide();
 
     const auto pListBox = new wxCheckListBox(this, wxID_ANY);
+    m_pListBox = pListBox;
 
     const auto pMainSizer = new wxBoxSizer(wxVERTICAL);
     pMainSizer->Add(pListBox, wxSizerFlags().Expand().Proportion(1).Border(wxALL, 5));
@@ -31,11 +36,12 @@ WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) 
 
     Bind(wxEVT_WIZARD_PAGE_SHOWN, [this, pListBox](wxWizardEvent& event)
     {
+        m_asyncOperationCompletedSuccessfully = false;
+
         if (!event.GetDirection())
             return;
 
         pListBox->Clear();
-
         for (const auto& ws : m_context.m_workspaces)
         {
             pListBox->Append(ws.m_name);
@@ -44,96 +50,82 @@ WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) 
 
     Bind(wxEVT_WIZARD_PAGE_CHANGING, [pListBox, this](wxWizardEvent& event)
     {
-        if (!event.GetDirection())
+        if (m_asyncOperationCompletedSuccessfully)
             return;
 
-        if (m_repositoriesFetched)
-        {
-            m_repositoriesFetched = false;
+        if (!event.GetDirection() && !m_asyncOperationInProgress)
             return;
-        }
 
-        if (!m_workspaces.empty())
-        {
-            event.Veto();
-            return;
-        }
+        event.Veto();
 
         wxArrayInt checkedItemIndexes;
         if (const auto checkedCount = pListBox->GetCheckedItems(checkedItemIndexes);
             !checkedCount)
         {
-            event.Veto();
             return;
         }
 
-        for (const auto& index : checkedItemIndexes)
-        {
-            const auto& workspace = m_context.m_workspaces.at(index);
-            m_workspaces.push_back({workspace});
-        }
-
-        m_context.m_repositories.clear();
-
-        auto index = 0;
-        for (const auto& workspace : m_workspaces)
-        {
-            StartRepositoriesRequest(workspace.m_workspace, index);
-            index++;
-        }
-
-        StartBusyAnimation();
-
-        event.Veto();
-    });
-
-    Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent& event)
-    {
-        if (event.GetState() != wxWebRequest::State_Completed)
-            return;
-
-        const wxWebResponse& response = event.GetResponse();
-
-        if (response.GetStatus() == 200)
-        {
-            const auto strBody = response.AsString();
-            const auto buffer = strBody.ToUTF8();
-            constexpr auto pParserCallback = nullptr;
-            constexpr auto allowExceptions = false;
-            const auto jObject = nlohmann::json::parse(buffer.data(), buffer.data() + buffer.length(),
-                                                       pParserCallback,
-                                                       allowExceptions);
-
-            wxString repositoryNames;
-            const auto& jRepositories = jObject["values"];
-            for (const auto& jRepository : jRepositories)
-            {
-                const Repository& repository = {
-                    jRepository["full_name"].get<std::string>(),
-                    jRepository["slug"].get<std::string>()
-                };
-                m_context.m_repositories.push_back(repository);
-            }
-
-            const auto& request = event.GetRequest();
-            const auto& index = request.GetId();
-
-            m_workspaces[index].m_isProcessed = true;
-            if (std::ranges::all_of(m_workspaces, [](const auto& item) { return item.m_isProcessed; }))
-            {
-                m_workspaces.clear();
-                StopBusyAnimation();
-                m_repositoriesFetched = true;
-                m_wizard.ShowPage(GetNext());
-            }
-        }
+        if (!m_asyncOperationInProgress)
+            StartAsyncOperation();
     });
 }
 
-void WorkspacePage::StartRepositoriesRequest(const Workspace& workspace, std::size_t index)
+void WorkspacePage::StartAsyncOperation()
 {
-    auto request = WebRequestFactory::CreateWebRequest(this, "/repositories/" + workspace.m_slug, index);
-    request.Start();
+    if (m_asyncOperationInProgress)
+        return;
+
+    m_asyncOperationInProgress = true;
+
+    StartBusyAnimation();
+
+    wxArrayInt checkedItemIndexes;
+    m_pListBox->GetCheckedItems(checkedItemIndexes);
+
+    std::vector<Workspace> workspaces;
+    for (const auto& index : checkedItemIndexes)
+    {
+        const auto& workspace = m_context.m_workspaces.at(index);
+        workspaces.push_back({workspace});
+    }
+
+    m_context.m_repositories.clear();
+
+    std::thread([this, workspaces]
+    {
+        const CurlConnection connection;
+        for (const auto& workspace : workspaces)
+        {
+            RepositoriesRequest repositoriesRequest(connection);
+            const auto response = repositoriesRequest.GetRepositories(workspace.m_slug);
+
+            Match(response,
+                  [this](const RepositoriesSuccess& success)
+                  {
+                      for (const auto& repository : success.repositories)
+                      {
+                          m_context.m_repositories.push_back(repository);
+                      }
+                  },
+                  [](const Error& error)
+                  {
+                      wxLogError("Failed to get repositories: %s", error.message);
+                  }
+                );
+        }
+
+        CallAfter([this]
+        {
+            StopBusyAnimation();
+            m_asyncOperationInProgress = false;
+
+            if (!m_context.m_repositories.empty())
+            {
+                m_asyncOperationCompletedSuccessfully = true;
+                m_wizard.ShowPage(GetNext());
+            }
+        });
+    }).detach();
 }
 
 void WorkspacePage::StartBusyAnimation()

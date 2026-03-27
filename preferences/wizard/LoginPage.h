@@ -1,9 +1,4 @@
-//
-// Created by Igor Palkin on 27.12.2025.
-//
-
-#ifndef WXWIDGETSPLAYGROUND_LOGINPAGE_H
-#define WXWIDGETSPLAYGROUND_LOGINPAGE_H
+#pragma once
 
 #include <wx/wizard.h>
 
@@ -21,8 +16,8 @@ class LoginPage : public wxWizardPageSimple
     wxWizard& m_wizard;
     SetupWizardContext& m_context;
 
-    bool m_loginInProgress = false;
-    bool m_loginCompleted = false;
+    bool m_asyncOperationInProgress = false;
+    bool m_asyncOperationCompletedSuccessfully = false;
 
     wxStaticText* m_pErrorStaticText;
     wxActivityIndicator* m_pActivityIndicator;
@@ -32,11 +27,7 @@ class LoginPage : public wxWizardPageSimple
     wxString m_email;
     wxString m_password;
 
-    void OnGetWorkspacesRequestStateChanged(wxWebRequestEvent& event);
-    void OnPageChanging(wxWizardEvent& event);
-    void OnPageShown(wxWizardEvent& event);
-
-    void StartGetWorkspacesRequest();
+    void StartAsyncOperation();
 
     void HideErrorMessage();
     void ShowErrorMessage(const wxString& str);
@@ -46,6 +37,3 @@ class LoginPage : public wxWizardPageSimple
 public:
     explicit LoginPage(wxWizard* pWindow, SetupWizardContext& context);
 };
-
-
-#endif //WXWIDGETSPLAYGROUND_LOGINPAGE_H
