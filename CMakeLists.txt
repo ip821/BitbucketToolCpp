@@ -11,6 +11,11 @@ set(WX_WIDGETS_VERSION v3.2.10)
 
 set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(CURL_USE_LIBPSL OFF CACHE BOOL "" FORCE)
+
+if (WIN32)
+    set(CURL_USE_SCHANNEL ON CACHE BOOL "" FORCE)
+endif ()
 
 if (APPLE)
     FetchContent_Declare(
@@ -40,7 +45,7 @@ FetchContent_MakeAvailable(json)
 FetchContent_Declare(
         curl
         GIT_REPOSITORY https://github.com/curl/curl.git
-        GIT_TAG        curl-8_19_0
+        GIT_TAG curl-8_19_0
 )
 FetchContent_MakeAvailable(curl)
 

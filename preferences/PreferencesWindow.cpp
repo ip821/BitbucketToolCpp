@@ -12,18 +12,15 @@
 extern "C" void ShowDockIcon();
 extern "C" void HideDockIcon();
 
-wxBEGIN_EVENT_TABLE(PreferencesWindow, wxFrame)
+wxBEGIN_EVENT_TABLE(PreferencesWindow, wxDialog)
     EVT_BUTTON(wxID_EXIT, PreferencesWindow::OnExit)
     EVT_SHOW(PreferencesWindow::OnShowWindow)
     EVT_CLOSE(PreferencesWindow::OnCloseWindow)
 wxEND_EVENT_TABLE()
 
 PreferencesWindow::PreferencesWindow(const wxString& title)
-    : wxFrame(nullptr, wxID_ANY, title)
+    : wxDialog(nullptr, wxID_ANY, title)
 {
-    const auto menuBar = new wxMenuBar();
-    wxFrameBase::SetMenuBar(menuBar);
-
     const auto pWorkspaceStaticText = new wxStaticText(this, wxID_ANY, wxT("mbsolutionsgroup"));
 
     const auto pRepositoryStaticText = new wxStaticText(this, wxID_ANY, wxT("cr"));
@@ -34,7 +31,6 @@ PreferencesWindow::PreferencesWindow(const wxString& title)
         wxT("Use Setup button to enter credentials and to\nchoose Workspace and Repository to follow")
     );
     pHelp->SetFont(pHelp->GetFont().Scale(0.8));
-    pHelp->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
     const auto pSetupButton = new wxButton(this, wxID_ANY, wxT("Setup..."), wxDefaultPosition);
     pSetupButton->Bind(wxEVT_BUTTON, &PreferencesWindow::OnSetupClicked, this);

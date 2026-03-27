@@ -10,7 +10,7 @@
 
 class wxString;
 
-class PreferencesWindow : public wxFrame {
+class PreferencesWindow : public wxDialog {
 public:
     explicit PreferencesWindow(const wxString &title);
 

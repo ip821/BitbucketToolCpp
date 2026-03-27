@@ -19,7 +19,9 @@ SetupWizard::SetupWizard(wxWindow* pWindow) :
 
     Bind(wxEVT_SHOW, [](wxShowEvent&)
     {
+#ifdef __WXOSX__
         ShowDockIcon();
+#endif
     });
 }
 
