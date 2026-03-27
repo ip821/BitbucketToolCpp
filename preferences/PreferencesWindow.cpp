@@ -65,7 +65,6 @@ void PreferencesWindow::OnSetupClicked(wxCommandEvent& WXUNUSED(event))
 
 void PreferencesWindow::OnExit(wxCommandEvent& WXUNUSED(event))
 {
-    Close(true);
     Destroy();
 }
 
