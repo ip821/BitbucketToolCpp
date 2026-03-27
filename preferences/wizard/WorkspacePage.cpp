@@ -44,7 +44,7 @@ WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) 
         pListBox->Clear();
         for (const auto& ws : m_context.m_workspaces)
         {
-            pListBox->Append(ws.m_name);
+            pListBox->Append(ws.m_slug);
         }
     });
 
@@ -91,7 +91,8 @@ void WorkspacePage::StartAsyncOperation()
 
     m_context.m_repositories.clear();
 
-    std::thread([this, workspaces]
+    wxWeakRef weakThis(this);
+    std::thread([this, workspaces, weakThis]
     {
         const CurlConnection connection;
         for (const auto& workspace : workspaces)
@@ -114,8 +115,11 @@ void WorkspacePage::StartAsyncOperation()
                 );
         }
 
-        CallAfter([this]
+        CallAfter([this, weakThis]
         {
+            if (!weakThis)
+                return;
+
             StopBusyAnimation();
             m_asyncOperationInProgress = false;
 

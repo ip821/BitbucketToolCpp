@@ -10,7 +10,6 @@ class wxString;
 
 struct Workspace
 {
-    wxString m_name;
     wxString m_slug;
 };
 

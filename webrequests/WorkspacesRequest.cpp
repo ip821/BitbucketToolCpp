@@ -13,17 +13,17 @@ WorkspacesRequest::WorkspacesRequest(const CurlConnection& connection) :
 
 WorkspacesResult WorkspacesRequest::GetWorkspaces() const
 {
-    const auto response = m_connection.HttpGet(BitBucketBaseUrl + "/workspaces");
+    const auto response = m_connection.HttpGet(BitBucketBaseUrl + "/user/workspaces");
     return Match(response,
                  [](const Success& success)
                  {
                      const auto result = nlohmann::json::parse(success.body.ToStdString());
 
                      std::vector<Workspace> workspaces;
-                     for (const auto& jWorkspace : result["values"])
+                     for (const auto& jWorkspaceAccess : result["values"])
                      {
+                         const auto& jWorkspace = jWorkspaceAccess["workspace"];
                          const Workspace& workspace = {
-                             jWorkspace["name"].get<std::string>(),
                              jWorkspace["slug"].get<std::string>()
                          };
                          workspaces.push_back(workspace);

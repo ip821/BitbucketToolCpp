@@ -13,7 +13,6 @@ extern "C" void ShowDockIcon();
 extern "C" void HideDockIcon();
 
 wxBEGIN_EVENT_TABLE(PreferencesWindow, wxDialog)
-    EVT_BUTTON(wxID_EXIT, PreferencesWindow::OnExit)
     EVT_SHOW(PreferencesWindow::OnShowWindow)
     EVT_CLOSE(PreferencesWindow::OnCloseWindow)
 wxEND_EVENT_TABLE()
@@ -61,11 +60,6 @@ void PreferencesWindow::OnSetupClicked(wxCommandEvent& WXUNUSED(event))
 {
     SetupWizard setupWizard(this);
     setupWizard.Run();
-}
-
-void PreferencesWindow::OnExit(wxCommandEvent& WXUNUSED(event))
-{
-    Destroy();
 }
 
 void PreferencesWindow::OnShowWindow(wxShowEvent& event)
