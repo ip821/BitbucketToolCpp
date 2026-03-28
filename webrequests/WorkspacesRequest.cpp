@@ -22,7 +22,7 @@ WorkspacesResult WorkspacesRequest::GetWorkspaces() const
                      const auto response = jObject.get<WorkspacesResponse>();
 
                      const auto workspaces = response.values
-                         | std::views::transform(&WorkspaceAccess::workspace)
+                         | std::views::transform([](const WorkspaceAccess& it) { return it.workspace; })
                          | std::views::filter([](const Workspace& it) { return !it.slug.IsEmpty(); })
                          | std::ranges::to<std::vector>();
 
