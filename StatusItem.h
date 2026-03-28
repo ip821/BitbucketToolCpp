@@ -9,6 +9,8 @@
 #include <wx/bmpbndl.h>
 #include <wx/timer.h>
 
+#include "preferences/settings/Repository.h"
+
 struct OnUpdatePullRequestsArgs
 {
     bool showNotification;
@@ -23,17 +25,19 @@ class StatusItem : public wxTaskBarIcon
     wxMenu* m_pCreatePullRequestsMenu;
     wxTimer* m_pTimer;
 
+    std::vector<Repository> m_repositories;
+
     wxMenu* GetPopupMenu() override;
-    void ShowPreferencesDialog() const;
 
     void OnLeftButtonDClick(wxTaskBarIconEvent&);
     void OnMenuPreferences(wxCommandEvent&);
     void OnMenuExit(wxCommandEvent&);
     void OnMenuUpdate(wxCommandEvent&);
     void OnMenuCreatePr(wxCommandEvent&);
-    void RemoveAllPrMenuItems();
 
-    void UpdateCreatePullRequestsMenu(const wxArrayString& repositories);
+    void RemoveAllPrMenuItems();
+    void ShowPreferencesDialog() const;
+    void UpdateCreatePullRequestsMenu(const std::vector<Repository>& repositories);
     void OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args);
 
 #ifdef __WXOSX__

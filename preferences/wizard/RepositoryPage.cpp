@@ -3,7 +3,7 @@
 
 #include "RepositoryPage.h"
 #include "SetupWizard.h"
-#include "../Config.h"
+#include "../settings/Config.h"
 
 RepositoryPage::RepositoryPage(SetupWizard* pWizard, SetupWizardContext& context) :
     wxWizardPageSimple(pWizard),
@@ -22,11 +22,11 @@ RepositoryPage::RepositoryPage(SetupWizard* pWizard, SetupWizardContext& context
 
         for (const auto& ws : m_context.m_repositories)
         {
-            pListBox->Append(ws.m_name);
+            pListBox->Append(ws.full_name);
         }
     });
 
-    Bind(wxEVT_WIZARD_PAGE_CHANGING, [pListBox](wxWizardEvent& event)
+    Bind(wxEVT_WIZARD_PAGE_CHANGING, [pListBox, this](wxWizardEvent& event)
     {
         if (!event.GetDirection())
             return;
@@ -39,10 +39,10 @@ RepositoryPage::RepositoryPage(SetupWizard* pWizard, SetupWizardContext& context
         }
         else
         {
-            wxArrayString repositories;
+            std::vector<Repository> repositories;
             for (const auto& checkedIndex : checkedItemIndexes)
             {
-                const auto& repository = pListBox->GetString(checkedIndex);
+                const auto& repository = m_context.m_repositories.at(checkedIndex);
                 repositories.push_back(repository);
             }
             Config::SetRepositories(repositories);

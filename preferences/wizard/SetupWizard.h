@@ -1,9 +1,4 @@
-//
-// Created by Igor Palkin on 27.12.2025.
-//
-
-#ifndef WXWIDGETSPLAYGROUND_MYWIZARD_H
-#define WXWIDGETSPLAYGROUND_MYWIZARD_H
+#pragma once
 
 #include <wx/wizard.h>
 #include <wx/activityindicator.h>
@@ -30,5 +25,3 @@ inline wxActivityIndicator* CreateActivityIndicator(wxWindow* pWindow)
 #endif
     return pLoader;
 }
-
-#endif //WXWIDGETSPLAYGROUND_MYWIZARD_H

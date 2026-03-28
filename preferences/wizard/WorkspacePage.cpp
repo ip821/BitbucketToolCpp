@@ -44,7 +44,7 @@ WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) 
         pListBox->Clear();
         for (const auto& ws : m_context.m_workspaces)
         {
-            pListBox->Append(ws.m_slug);
+            pListBox->Append(ws.slug);
         }
     });
 
@@ -98,7 +98,7 @@ void WorkspacePage::StartAsyncOperation()
         for (const auto& workspace : workspaces)
         {
             RepositoriesRequest repositoriesRequest(connection);
-            const auto response = repositoriesRequest.GetRepositories(workspace.m_slug);
+            const auto response = repositoriesRequest.GetRepositories(workspace);
 
             Match(response,
                   [this](const RepositoriesSuccess& success)

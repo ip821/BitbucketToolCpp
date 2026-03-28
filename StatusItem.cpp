@@ -6,7 +6,7 @@
 
 #include "StatusItem.h"
 
-#include "preferences/Config.h"
+#include "preferences/settings/Config.h"
 #include "preferences/PreferencesWindow.h"
 
 enum
@@ -129,7 +129,7 @@ void StatusItem::RemoveAllPrMenuItems()
     }
 }
 
-void StatusItem::UpdateCreatePullRequestsMenu(const wxArrayString& repositories)
+void StatusItem::UpdateCreatePullRequestsMenu(const std::vector<Repository>& repositories)
 {
     for (const auto menuItems = m_pCreatePullRequestsMenu->GetMenuItems();
          const auto& item : menuItems)
@@ -140,8 +140,10 @@ void StatusItem::UpdateCreatePullRequestsMenu(const wxArrayString& repositories)
     auto index = 0;
     for (const auto& repository : repositories)
     {
-        m_pCreatePullRequestsMenu->Append(MENU_ITEM_CREATE_PULL_REQUEST_ID + index++, repository);
+        m_pCreatePullRequestsMenu->Append(MENU_ITEM_CREATE_PULL_REQUEST_ID + index++, repository.full_name);
     }
+
+    m_repositories = repositories;
 }
 
 void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)

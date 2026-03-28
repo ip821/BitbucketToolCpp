@@ -15,5 +15,5 @@ class RepositoriesRequest {
 public:
     explicit RepositoriesRequest(const CurlConnection& connection);
 
-     RepositoriesResult GetRepositories(const wxString& workspaceSlug) const;
+     RepositoriesResult GetRepositories(const Workspace& workspace) const;
 };

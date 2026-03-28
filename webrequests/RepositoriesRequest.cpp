@@ -10,32 +10,19 @@ RepositoriesRequest::RepositoriesRequest(const CurlConnection& connection) :
 {
 }
 
-RepositoriesResult RepositoriesRequest::GetRepositories(const wxString& workspaceSlug) const
+RepositoriesResult RepositoriesRequest::GetRepositories(const Workspace& workspace) const
 {
-    const auto response = m_connection.HttpGet(BitBucketBaseUrl + "/repositories/" + workspaceSlug);
+    const auto response = m_connection.HttpGet(BitBucketBaseUrl + "/repositories/" + workspace.slug);
     return Match(response,
-                 [](const Success& success)
+                 [](const Success& success) -> RepositoriesResult
                  {
                      const auto jObject = nlohmann::json::parse(success.body.ToStdString());
-
-                     wxString repositoryNames;
-
-                     std::vector<Repository> repositories;
-                     const auto& jRepositories = jObject["values"];
-                     for (const auto& jRepository : jRepositories)
-                     {
-                         const Repository& repository = {
-                             jRepository["full_name"].get<std::string>(),
-                             jRepository["slug"].get<std::string>()
-                         };
-                         repositories.push_back(repository);
-                     }
-
-                     return static_cast<RepositoriesResult>(RepositoriesSuccess{repositories});
+                     const auto& repositories = jObject["values"].get<std::vector<Repository> >();
+                     return RepositoriesSuccess{repositories};
                  },
-                 [](const Error& error)
+                 [](const Error& error)-> RepositoriesResult
                  {
-                     return static_cast<RepositoriesResult>(error);
+                     return error;
                  }
         );
 }

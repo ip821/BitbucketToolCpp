@@ -67,8 +67,8 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         preferences/wizard/RepositoryPage.h
         preferences/wizard/SetupWizardContext.h
         Constants.h
-        preferences/Config.cpp
-        preferences/Config.h
+        preferences/settings/Config.cpp
+        preferences/settings/Config.h
         curl/CurlConnection.cpp
         curl/CurlConnection.h
         curl/CurlHandle.h
@@ -82,6 +82,8 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         webrequests/RepositoriesRequest.h
         PullRequests.cpp
         PullRequests.h
+        preferences/settings/Repository.h
+        wxJson.h
 )
 target_compile_options(PRToolForBitbucket2 PRIVATE
         -Wall -Wextra -Wpedantic -Werror

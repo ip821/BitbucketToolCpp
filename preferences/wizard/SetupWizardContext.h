@@ -6,18 +6,9 @@
 #define PRTOOLFORBITBUCKET2_SETUPWIZARDCONTEXT_H
 #include <vector>
 
+#include "../settings/Repository.h"
+
 class wxString;
-
-struct Workspace
-{
-    wxString m_slug;
-};
-
-struct Repository
-{
-    wxString m_name;
-    wxString m_slug;
-};
 
 struct SetupWizardContext
 {
