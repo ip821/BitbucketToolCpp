@@ -17,8 +17,8 @@ RepositoriesResult RepositoriesRequest::GetRepositories(const Workspace& workspa
                  [](const Success& success) -> RepositoriesResult
                  {
                      const auto jObject = nlohmann::json::parse(success.body.ToStdString());
-                     const auto& repositories = jObject["values"].get<std::vector<Repository> >();
-                     return RepositoriesSuccess{repositories};
+                     const auto& repositories = jObject.get<RepositoriesResponse>();
+                     return RepositoriesSuccess{repositories.values};
                  },
                  [](const Error& error)-> RepositoriesResult
                  {

@@ -1,6 +1,7 @@
 #include "WorkspacesRequest.h"
 
 #include <nlohmann/json.hpp>
+#include <ranges>
 
 #include "../curl/CurlConnection.h"
 #include "../Switch.h"
@@ -15,24 +16,21 @@ WorkspacesResult WorkspacesRequest::GetWorkspaces() const
 {
     const auto response = m_connection.HttpGet(BitBucketBaseUrl + "/user/workspaces");
     return Match(response,
-                 [](const Success& success)
+                 [](const Success& success) -> WorkspacesResult
                  {
-                     const auto result = nlohmann::json::parse(success.body.ToStdString());
+                     const auto jObject = nlohmann::json::parse(success.body.ToStdString());
+                     const auto response = jObject.get<WorkspacesResponse>();
 
-                     std::vector<Workspace> workspaces;
-                     for (const auto& jWorkspaceAccess : result["values"])
-                     {
-                         const auto& jWorkspace = jWorkspaceAccess["workspace"];
-                         const Workspace& workspace = {
-                             jWorkspace["slug"].get<std::string>()
-                         };
-                         workspaces.push_back(workspace);
-                     }
-                     return static_cast<WorkspacesResult>(WorkspacesSuccess{workspaces});
+                     const auto workspaces = response.values
+                         | std::views::transform(&WorkspaceAccess::workspace)
+                         | std::views::filter([](const Workspace& it) { return !it.slug.IsEmpty(); })
+                         | std::ranges::to<std::vector>();
+
+                     return WorkspacesSuccess{workspaces};
                  },
-                 [](const Error& error)
+                 [](const Error& error) -> WorkspacesResult
                  {
-                     return static_cast<WorkspacesResult>(error);
+                     return error;
                  }
         );
 }

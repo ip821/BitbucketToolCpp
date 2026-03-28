@@ -4,7 +4,7 @@
 #include <wx/config.h>
 #include <nlohmann/json.hpp>
 
-#include "Repository.h"
+#include "../../webrequests/Repository.h"
 
 const wxString keyRepositories = "repositories5";
 

@@ -9,7 +9,7 @@
 #include <wx/bmpbndl.h>
 #include <wx/timer.h>
 
-#include "preferences/settings/Repository.h"
+#include "webrequests/Repository.h"
 
 struct OnUpdatePullRequestsArgs
 {

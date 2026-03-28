@@ -3,14 +3,8 @@
 #include <wx/string.h>
 #include <nlohmann/json.hpp>
 
-#include "../../wxJson.h"
-
-struct Workspace
-{
-    wxString slug;
-};
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Workspace, slug);
+#include "Workspace.h"
+#include "../wxJson.h"
 
 struct Repository
 {
@@ -20,3 +14,10 @@ struct Repository
 };
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Repository, full_name, slug, workspace);
+
+struct RepositoriesResponse
+{
+    std::vector<Repository> values;
+};
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(RepositoriesResponse, values);

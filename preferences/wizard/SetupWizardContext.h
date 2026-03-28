@@ -6,7 +6,7 @@
 #define PRTOOLFORBITBUCKET2_SETUPWIZARDCONTEXT_H
 #include <vector>
 
-#include "../settings/Repository.h"
+#include "../../webrequests/Repository.h"
 
 class wxString;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Repository.h"
+#include "../../webrequests/Repository.h"
 #include "wx/arrstr.h"
 
 class Config
