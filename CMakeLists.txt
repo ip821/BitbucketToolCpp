@@ -85,6 +85,7 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         webrequests/Repository.h
         wxJson.h
         webrequests/Workspace.h
+        Ranges.h
 )
 target_compile_options(PRToolForBitbucket2 PRIVATE
         -Wall -Wextra -Wpedantic -Werror

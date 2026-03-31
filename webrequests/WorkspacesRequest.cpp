@@ -6,6 +6,7 @@
 #include "../curl/CurlConnection.h"
 #include "../Switch.h"
 #include "../Constants.h"
+#include "../Ranges.h"
 
 WorkspacesRequest::WorkspacesRequest(const CurlConnection& connection) :
     m_connection(connection)
@@ -24,7 +25,7 @@ WorkspacesResult WorkspacesRequest::GetWorkspaces() const
                      const auto workspaces = response.values
                          | std::views::transform([](const WorkspaceAccess& it) { return it.workspace; })
                          | std::views::filter([](const Workspace& it) { return !it.slug.IsEmpty(); })
-                         | std::ranges::to<std::vector>();
+                         | to_std_vector();
 
                      return WorkspacesSuccess{workspaces};
                  },
