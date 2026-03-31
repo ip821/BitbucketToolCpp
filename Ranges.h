@@ -5,30 +5,42 @@
 #include <utility>
 #include <vector>
 
-struct to_std_vector
+namespace std::ranges
 {
-    template <std::ranges::input_range R>
-    auto operator()(R&& r) const
+#include <vector>
+#include <ranges>
+#include <utility>
+
+    template <template<class...> class Container>
+    struct to_closure
     {
-        using T = std::ranges::range_value_t<R>;
-        std::vector<T> out;
+        template <std::ranges::input_range R>
+        auto operator()(R&& r) const
+        {
+            using T = std::ranges::range_value_t<R>;
+            Container<T> out;
 
-        if constexpr (std::ranges::sized_range<R>)
-            out.reserve(std::ranges::size(r));
+            if constexpr (std::ranges::sized_range<R> && requires(Container<T> c, std::size_t n) { c.reserve(n); })
+                out.reserve(std::ranges::size(r));
 
-        for (auto&& x : r)
-            out.push_back(x);
+            for (auto&& x : r)
+                out.push_back(std::forward<decltype(x)>(x));
 
-        return out;
+            return out;
+        }
+    };
+
+    template <template<class...> class Container>
+    constexpr auto to()
+    {
+        return to_closure<Container>{};
     }
-};
 
-template <std::ranges::input_range R>
-auto operator|(R&& r, const to_std_vector& fn)
-{
-    return fn(std::forward<R>(r));
+    template <std::ranges::input_range R, template<class...> class Container>
+    auto operator|(R&& r, to_closure<Container> closure)
+    {
+        return closure(std::forward<R>(r));
+    }
 }
 
-#else
-#define to_std_vector to<std::vector>
 #endif

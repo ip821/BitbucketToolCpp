@@ -25,7 +25,7 @@ WorkspacesResult WorkspacesRequest::GetWorkspaces() const
                      const auto workspaces = response.values
                          | std::views::transform([](const WorkspaceAccess& it) { return it.workspace; })
                          | std::views::filter([](const Workspace& it) { return !it.slug.IsEmpty(); })
-                         | to_std_vector();
+                         | std::ranges::to<std::vector>();
 
                      return WorkspacesSuccess{workspaces};
                  },
