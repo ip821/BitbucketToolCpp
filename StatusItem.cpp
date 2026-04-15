@@ -152,14 +152,14 @@ void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 
     UpdateCreatePullRequestsMenu(repositories);
 
-    wxWeakRef weakThis(this);
-    std::thread([this, args, weakThis]()
+    wxWeakRef isWindowValid(this);
+    std::thread([this, args, isWindowValid]()
     {
         // Do work
 
-        CallAfter([weakThis, args, this]
+        CallAfter([isWindowValid, args, this]
         {
-            if (!weakThis)
+            if (!isWindowValid)
                 return;
 
             RemoveAllPrMenuItems();

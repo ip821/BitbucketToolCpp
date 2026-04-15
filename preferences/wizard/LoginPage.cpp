@@ -128,16 +128,16 @@ void LoginPage::StartAsyncOperation()
 
     m_context.m_workspaces.clear();
 
-    wxWeakRef weakThis(this);
-    std::thread([weakThis, this]
+    wxWeakRef isWindowValid(this);
+    std::thread([isWindowValid, this]
     {
         const CurlConnection connection;
         WorkspacesRequest workspacesRequest(connection);
         const auto response = workspacesRequest.GetWorkspaces();
 
-        CallAfter([weakThis, response, this]
+        CallAfter([isWindowValid, response, this]
         {
-            if (!weakThis)
+            if (!isWindowValid)
                 return;
 
             StopBusyAnimation();

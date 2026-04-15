@@ -88,8 +88,8 @@ void WorkspacePage::StartAsyncOperation()
 
     m_context.m_repositories.clear();
 
-    wxWeakRef weakThis(this);
-    std::thread([this, workspaces, weakThis]
+    wxWeakRef isWindowValid(this);
+    std::thread([this, workspaces, isWindowValid]
     {
         const CurlConnection connection;
         for (const auto& workspace : workspaces)
@@ -112,9 +112,9 @@ void WorkspacePage::StartAsyncOperation()
                 );
         }
 
-        CallAfter([this, weakThis]
+        CallAfter([this, isWindowValid]
         {
-            if (!weakThis)
+            if (!isWindowValid)
                 return;
 
             StopBusyAnimation();
