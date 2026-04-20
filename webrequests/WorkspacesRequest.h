@@ -7,7 +7,6 @@ struct WorkspacesSuccess
 {
     std::vector<Workspace> workspaces;
 };
-
 using WorkspacesResult = std::expected<WorkspacesSuccess, Error>;
 
 class WorkspacesRequest
