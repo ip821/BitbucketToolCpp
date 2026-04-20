@@ -53,7 +53,7 @@ CurlResult CurlConnection::HttpGet(const wxString& url) const
     else
     {
         const wxString strError = GetErrorMessage(rc);
-        return Error{strError};
+        return std::unexpected(Error{strError});
     }
 }
 

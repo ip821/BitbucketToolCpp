@@ -15,23 +15,18 @@ WorkspacesRequest::WorkspacesRequest(const CurlConnection& connection) :
 
 WorkspacesResult WorkspacesRequest::GetWorkspaces() const
 {
-    const auto response = m_connection.HttpGet(BitBucketBaseUrl + "/user/workspaces");
-    return Match(response,
-                 [](const Success& success) -> WorkspacesResult
-                 {
-                     const auto jObject = nlohmann::json::parse(success.body.ToStdString());
-                     const auto response = jObject.get<WorkspacesResponse>();
+    return m_connection
+            .HttpGet(BitBucketBaseUrl + "/user/workspaces")
+            .transform([](const Success& success)
+            {
+                const auto jObject = nlohmann::json::parse(success.body.ToStdString());
+                const auto [repositories] = jObject.get<WorkspacesResponse>();
 
-                     const auto workspaces = response.values
-                         | std::views::transform([](const WorkspaceAccess& it) { return it.workspace; })
-                         | std::views::filter([](const Workspace& it) { return !it.slug.IsEmpty(); })
-                         | std::ranges::to<std::vector>();
+                const auto workspaces = repositories
+                        | std::views::transform([](const WorkspaceAccess& it) { return it.workspace; })
+                        | std::views::filter([](const Workspace& it) { return !it.slug.IsEmpty(); })
+                        | std::ranges::to<std::vector>();
 
-                     return WorkspacesSuccess{workspaces};
-                 },
-                 [](const Error& error) -> WorkspacesResult
-                 {
-                     return error;
-                 }
-        );
+                return WorkspacesSuccess{workspaces};
+            });
 }

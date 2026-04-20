@@ -14,7 +14,7 @@
 #include "../../curl/CurlConnection.h"
 #include "../../webrequests/RepositoriesRequest.h"
 
-WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) :
+WorkspacePage::WorkspacePage(SetupWizard *pWizard, SetupWizardContext& context) :
     wxWizardPageSimple(pWizard),
     m_wizard(*pWizard),
     m_context(context)
@@ -39,7 +39,7 @@ WorkspacePage::WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context) 
             return;
 
         pListBox->Clear();
-        for (const auto& ws : m_context.m_workspaces)
+        for (const auto& ws: m_context.m_workspaces)
         {
             pListBox->Append(ws.slug);
         }
@@ -80,7 +80,7 @@ void WorkspacePage::StartAsyncOperation()
     m_pListBox->GetCheckedItems(checkedItemIndexes);
 
     std::vector<Workspace> workspaces;
-    for (const auto& index : checkedItemIndexes)
+    for (const auto& index: checkedItemIndexes)
     {
         const auto& workspace = m_context.m_workspaces.at(index);
         workspaces.push_back({workspace});
@@ -92,15 +92,14 @@ void WorkspacePage::StartAsyncOperation()
     std::thread([this, workspaces, isWindowValid]
     {
         const CurlConnection connection;
-        for (const auto& workspace : workspaces)
+        for (const auto& workspace: workspaces)
         {
             RepositoriesRequest repositoriesRequest(connection);
-            const auto response = repositoriesRequest.GetRepositories(workspace);
 
-            Match(response,
+            Match(repositoriesRequest.GetRepositories(workspace),
                   [this](const RepositoriesSuccess& success)
                   {
-                      for (const auto& repository : success.repositories)
+                      for (const auto& repository: success.repositories)
                       {
                           m_context.m_repositories.push_back(repository);
                       }
@@ -109,7 +108,7 @@ void WorkspacePage::StartAsyncOperation()
                   {
                       wxLogError("Failed to get repositories: %s", error.message);
                   }
-                );
+            );
         }
 
         CallAfter([this, isWindowValid]

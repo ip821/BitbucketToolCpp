@@ -2,13 +2,13 @@
 
 #include "../curl/CurlConnection.h"
 #include "../preferences/wizard/SetupWizardContext.h"
-#include "wx/arrstr.h"
 
 struct WorkspacesSuccess
 {
     std::vector<Workspace> workspaces;
 };
-using WorkspacesResult = std::variant<WorkspacesSuccess, Error>;
+
+using WorkspacesResult = std::expected<WorkspacesSuccess, Error>;
 
 class WorkspacesRequest
 {
@@ -17,5 +17,5 @@ class WorkspacesRequest
 public:
     explicit WorkspacesRequest(const CurlConnection& connection);
 
-    WorkspacesResult GetWorkspaces() const;
+    [[nodiscard]] WorkspacesResult GetWorkspaces() const;
 };

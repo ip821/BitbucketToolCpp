@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/curl-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/wxwidgets-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/wxwidgets-src/3rdparty/catch" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/wxwidgets-src/3rdparty/nanosvg" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/wxwidgets-src/3rdparty/pcre" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/wxwidgets-src/src/expat" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/wxwidgets-src/src/jpeg" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/wxwidgets-src/src/png" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/wxwidgets-src/src/tiff" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/wxwidgets-src/src/zlib" vcs="Git" />
+  </component>
+</project>

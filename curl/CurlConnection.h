@@ -1,5 +1,5 @@
 #pragma once
-#include <variant>
+#include <expected>
 #include <wx/string.h>
 
 #include "CurlHandle.h"
@@ -14,7 +14,7 @@ struct Error
     wxString message;
 };
 
-using CurlResult = std::variant<Success, Error>;
+using CurlResult = std::expected<Success, Error>;
 
 class CurlConnection
 {
@@ -26,5 +26,5 @@ public:
     CurlConnection();
     ~CurlConnection();
 
-    CurlResult HttpGet(const wxString& url) const;
+    [[nodiscard]] CurlResult HttpGet(const wxString& url) const;
 };
