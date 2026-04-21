@@ -14,11 +14,12 @@
 #include "SetupWizard.h"
 #include "SetupWizardContext.h"
 #include "../Credentials.h"
-#include "../../Switch.h"
+#include "../../MatchExpected.h"
+#include "../../MatchVariant.h"
 #include "../../curl/CurlConnection.h"
 #include "../../webrequests/WorkspacesRequest.h"
 
-LoginPage::LoginPage(wxWizard* pWindow, SetupWizardContext& context) :
+LoginPage::LoginPage(wxWizard *pWindow, SetupWizardContext& context) :
     wxWizardPageSimple(pWindow),
     m_wizard(*pWindow),
     m_context(context)
@@ -143,21 +144,18 @@ void LoginPage::StartAsyncOperation()
             StopBusyAnimation();
             m_asyncOperationInProgress = false;
 
-            Match(response,
-                  [this](const WorkspacesSuccess& success)
-                  {
-                      for (const auto& workspace : success.workspaces)
-                      {
-                          m_context.m_workspaces.push_back(workspace);
-                      }
-                      m_asyncOperationCompletedSuccessfully = true;
-                      m_wizard.ShowPage(GetNext());
-                  },
-                  [this](const Error& error)
-                  {
-                      ShowErrorMessage(error.message);
-                  }
-                );
+            MatchExpected(response,
+                          [this](const WorkspacesSuccess& success)
+                          {
+                              for (const auto& workspace: success.workspaces)
+                              {
+                                  m_context.m_workspaces.push_back(workspace);
+                              }
+                              m_asyncOperationCompletedSuccessfully = true;
+                              m_wizard.ShowPage(GetNext());
+                          },
+                          [this](const Error& error) { ShowErrorMessage(error.message); }
+            );
         });
     }).detach();
 }

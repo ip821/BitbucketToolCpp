@@ -10,7 +10,8 @@
 
 #include <thread>
 
-#include "../../Switch.h"
+#include "../../MatchExpected.h"
+#include "../../MatchVariant.h"
 #include "../../curl/CurlConnection.h"
 #include "../../webrequests/RepositoriesRequest.h"
 
@@ -96,18 +97,15 @@ void WorkspacePage::StartAsyncOperation()
         {
             RepositoriesRequest repositoriesRequest(connection);
 
-            Match(repositoriesRequest.GetRepositories(workspace),
-                  [this](const RepositoriesSuccess& success)
-                  {
-                      for (const auto& repository: success.repositories)
-                      {
-                          m_context.m_repositories.push_back(repository);
-                      }
-                  },
-                  [](const Error& error)
-                  {
-                      wxLogError("Failed to get repositories: %s", error.message);
-                  }
+            MatchExpected(repositoriesRequest.GetRepositories(workspace),
+                          [this](const RepositoriesSuccess& success)
+                          {
+                              for (const auto& repository: success.repositories)
+                              {
+                                  m_context.m_repositories.push_back(repository);
+                              }
+                          },
+                          [](const Error& error) { wxLogError("Failed to get repositories: %s", error.message); }
             );
         }
 

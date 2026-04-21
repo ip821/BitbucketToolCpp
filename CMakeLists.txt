@@ -72,7 +72,7 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         curl/CurlConnection.cpp
         curl/CurlConnection.h
         curl/CurlHandle.h
-        Switch.h
+        MatchVariant.h
         preferences/Credentials.cpp
         preferences/Credentials.h
         curl/CurlSList.h
@@ -86,6 +86,7 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         wxJson.h
         webrequests/Workspace.h
         Ranges.h
+        MatchExpected.h
 )
 target_compile_options(PRToolForBitbucket2 PRIVATE
         -Wall -Wextra -Wpedantic -Werror
