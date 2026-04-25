@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../wxJson.h"
+#include <cpp_utils/wx_json.h>
 
 struct Workspace
 {

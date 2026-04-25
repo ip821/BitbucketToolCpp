@@ -49,6 +49,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(curl)
 
+FetchContent_Declare(
+        cpp-utils
+        GIT_REPOSITORY https://github.com/ip821/cpp-utils.git
+)
+FetchContent_MakeAvailable(cpp-utils)
+
 add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         App.cpp
         App.h
@@ -72,7 +78,6 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         curl/CurlConnection.cpp
         curl/CurlConnection.h
         curl/CurlHandle.h
-        MatchVariant.h
         preferences/Credentials.cpp
         preferences/Credentials.h
         curl/CurlSList.h
@@ -83,15 +88,12 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         PullRequests.cpp
         PullRequests.h
         webrequests/Repository.h
-        wxJson.h
         webrequests/Workspace.h
-        Ranges.h
-        MatchExpected.h
 )
 target_compile_options(PRToolForBitbucket2 PRIVATE
         -Wall -Wextra -Wpedantic -Werror
 )
-target_link_libraries(PRToolForBitbucket2 PRIVATE wx::core wx::xrc nlohmann_json::nlohmann_json libcurl)
+target_link_libraries(PRToolForBitbucket2 PRIVATE wx::core wx::xrc nlohmann_json::nlohmann_json libcurl cpp_utils::cpp_utils)
 
 if (NOT APPLE)
     # Resources

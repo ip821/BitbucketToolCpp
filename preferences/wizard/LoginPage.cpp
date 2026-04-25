@@ -6,16 +6,13 @@
 #include <wx/activityindicator.h>
 #include <wx/webrequest.h>
 #include <nlohmann/json.hpp>
-
-#include "LoginPage.h"
-
+#include <cpp_utils/match_expected.h>
 #include <thread>
 
+#include "LoginPage.h"
 #include "SetupWizard.h"
 #include "SetupWizardContext.h"
 #include "../Credentials.h"
-#include "../../MatchExpected.h"
-#include "../../MatchVariant.h"
 #include "../../curl/CurlConnection.h"
 #include "../../webrequests/WorkspacesRequest.h"
 
@@ -144,17 +141,17 @@ void LoginPage::StartAsyncOperation()
             StopBusyAnimation();
             m_asyncOperationInProgress = false;
 
-            MatchExpected(response,
-                          [this](const WorkspacesSuccess& success)
-                          {
-                              for (const auto& workspace: success.workspaces)
-                              {
-                                  m_context.m_workspaces.push_back(workspace);
-                              }
-                              m_asyncOperationCompletedSuccessfully = true;
-                              m_wizard.ShowPage(GetNext());
-                          },
-                          [this](const Error& error) { ShowErrorMessage(error.message); }
+            ip::match_expected(response,
+                               [this](const WorkspacesSuccess& success)
+                               {
+                                   for (const auto& workspace: success.workspaces)
+                                   {
+                                       m_context.m_workspaces.push_back(workspace);
+                                   }
+                                   m_asyncOperationCompletedSuccessfully = true;
+                                   m_wizard.ShowPage(GetNext());
+                               },
+                               [this](const Error& error) { ShowErrorMessage(error.message); }
             );
         });
     }).detach();

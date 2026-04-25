@@ -2,9 +2,9 @@
 
 #include <wx/string.h>
 #include <nlohmann/json.hpp>
+#include <cpp_utils/wx_json.h>
 
 #include "Workspace.h"
-#include "../wxJson.h"
 
 struct Repository
 {

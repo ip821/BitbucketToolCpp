@@ -1,17 +1,15 @@
 #include <format>
+#include <thread>
 #include <nlohmann/json.hpp>
 #include <wx/activityindicator.h>
 #include <wx/base64.h>
 #include <wx/webrequest.h>
 #include <wx/wizard.h>
 #include <wx/wx.h>
+#include <cpp_utils/match_expected.h>
 
 #include "WorkspacePage.h"
 
-#include <thread>
-
-#include "../../MatchExpected.h"
-#include "../../MatchVariant.h"
 #include "../../curl/CurlConnection.h"
 #include "../../webrequests/RepositoriesRequest.h"
 
@@ -97,15 +95,15 @@ void WorkspacePage::StartAsyncOperation()
         {
             RepositoriesRequest repositoriesRequest(connection);
 
-            MatchExpected(repositoriesRequest.GetRepositories(workspace),
-                          [this](const RepositoriesSuccess& success)
-                          {
-                              for (const auto& repository: success.repositories)
-                              {
-                                  m_context.m_repositories.push_back(repository);
-                              }
-                          },
-                          [](const Error& error) { wxLogError("Failed to get repositories: %s", error.message); }
+            ip::match_expected(repositoriesRequest.GetRepositories(workspace),
+                               [this](const RepositoriesSuccess& success)
+                               {
+                                   for (const auto& repository: success.repositories)
+                                   {
+                                       m_context.m_repositories.push_back(repository);
+                                   }
+                               },
+                               [](const Error& error) { wxLogError("Failed to get repositories: %s", error.message); }
             );
         }
 
