@@ -4,6 +4,7 @@
 #include <ranges>
 #include <cpp_utils/match_expected.h>
 #include <cpp_utils/ranges.h>
+#include <cpp_utils/macros_expected.h>
 
 #include "../curl/CurlConnection.h"
 #include "../Constants.h"
@@ -15,22 +16,15 @@ WorkspacesRequest::WorkspacesRequest(const CurlConnection& connection) :
 
 WorkspacesResult WorkspacesRequest::GetWorkspaces() const
 {
-    return ip::map_expected(
-        m_connection.HttpGet(BitBucketBaseUrl + "/user/workspaces"),
-        [](const Success& success)
-        {
-            const auto jObject = nlohmann::json::parse(success.body.ToStdString());
-            const auto [repositories] = jObject.get<WorkspacesResponse>();
+    UNWRAP_OR_RETURN_ERROR(success, m_connection.HttpGet(BitBucketBaseUrl + "/user/workspaces"));
 
-            const auto workspaces = repositories
-                    | std::views::transform([](const WorkspaceAccess& it) { return it.workspace; })
-                    | std::views::filter([](const Workspace& it) { return !it.slug.IsEmpty(); })
-                    | std::ranges::to<std::vector>();
+    const auto jObject = nlohmann::json::parse(success.body.ToStdString());
+    const auto [repositories] = jObject.get<WorkspacesResponse>();
 
-            return WorkspacesSuccess{workspaces};
-        },
-        [](const auto& error)
-        {
-            return error;
-        });
+    const auto workspaces = repositories
+            | std::views::transform([](const WorkspaceAccess& it) { return it.workspace; })
+            | std::views::filter([](const Workspace& it) { return !it.slug.IsEmpty(); })
+            | std::ranges::to<std::vector>();
+
+    return WorkspacesSuccess{workspaces};
 }

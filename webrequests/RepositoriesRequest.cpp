@@ -1,5 +1,6 @@
 #include "RepositoriesRequest.h"
 
+#include <cpp_utils/macros_expected.h>
 #include <nlohmann/json.hpp>
 #include <cpp_utils/match_expected.h>
 
@@ -12,13 +13,9 @@ RepositoriesRequest::RepositoriesRequest(const CurlConnection& connection) :
 
 RepositoriesResult RepositoriesRequest::GetRepositories(const Workspace& workspace) const
 {
-    return ip::map_expected(
-        m_connection.HttpGet(BitBucketBaseUrl + "/repositories/" + workspace.slug),
-        [](const Success& success)
-        {
-            const auto jObject = nlohmann::json::parse(success.body.ToStdString());
-            const auto& repositories = jObject.get<RepositoriesResponse>();
-            return RepositoriesSuccess{repositories.values};
-        },
-        [](const Error& error) { return error; });
+    UNWRAP_OR_RETURN_ERROR(success, m_connection.HttpGet(BitBucketBaseUrl + "/repositories/" + workspace.slug));
+
+    const auto jObject = nlohmann::json::parse(success.body.ToStdString());
+    const auto& repositories = jObject.get<RepositoriesResponse>();
+    return RepositoriesSuccess{repositories.values};
 }
