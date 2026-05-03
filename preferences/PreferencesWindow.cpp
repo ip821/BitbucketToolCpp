@@ -7,56 +7,53 @@
 
 #include "../preferences/PreferencesWindow.h"
 
+#include <ranges>
+#include <set>
+#include <cpp_utils/ranges.h>
+
+#include "cpp_utils/wx_string_join.h"
+#include "settings/Config.h"
 #include "wizard/SetupWizard.h"
 
 extern "C" void ShowDockIcon();
 extern "C" void HideDockIcon();
 
-wxBEGIN_EVENT_TABLE(PreferencesWindow, wxDialog)
-    EVT_SHOW(PreferencesWindow::OnShowWindow)
-    EVT_CLOSE(PreferencesWindow::OnCloseWindow)
-wxEND_EVENT_TABLE()
-
-PreferencesWindow::PreferencesWindow()
-    : wxDialog(nullptr, wxID_ANY, "Preferences")
+PreferencesWindow::PreferencesWindow() :
+    PreferencesWindowBase(nullptr)
 {
-    const auto pWorkspaceStaticText = new wxStaticText(this, wxID_ANY, wxT("mbsolutionsgroup"));
+    m_pHelpText->SetFont(m_pHelpText->GetFont().Scale(0.8));
+    Bind(wxEVT_SHOW, &PreferencesWindow::OnShowWindow, this);
+    Bind(wxEVT_CLOSE_WINDOW, &PreferencesWindow::OnCloseWindow, this);
+}
 
-    const auto pRepositoryStaticText = new wxStaticText(this, wxID_ANY, wxT("cr"));
-
-    const auto pHelp = new wxStaticText(
-        this,
-        wxID_ANY,
-        wxT("Use Setup button to enter credentials and to\nchoose Workspace and Repository to follow")
-    );
-    pHelp->SetFont(pHelp->GetFont().Scale(0.8));
-
-    const auto pSetupButton = new wxButton(this, wxID_ANY, wxT("Setup..."), wxDefaultPosition);
-    pSetupButton->Bind(wxEVT_BUTTON, &PreferencesWindow::OnSetupClicked, this);
-
-    const auto pGridSizer = new wxFlexGridSizer(0, 2, 14, 22);
-    pGridSizer->AddGrowableCol(1);
-    pGridSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Workspace:")), wxSizerFlags().Expand().Left());
-    pGridSizer->Add(pWorkspaceStaticText, wxSizerFlags().Right());
-    pGridSizer->Add(new wxStaticText(this, wxID_ANY, wxT("Repository:")), wxSizerFlags().Expand().Left());
-    pGridSizer->Add(pRepositoryStaticText, wxSizerFlags().Right());
-
-    const auto pSizer = new wxBoxSizer(wxVERTICAL);
-    pSizer->Add(pHelp, wxSizerFlags().Center().Border(wxALL, 10));
-    pSizer->Add(pSetupButton, wxSizerFlags().Center().Border(wxALL, 10));
-
-    const auto pRootSizer = new wxBoxSizer(wxVERTICAL);
-    pRootSizer->Add(pGridSizer, wxSizerFlags().Expand().Top().Border(wxALL, 10));
-    pRootSizer->Add(pSizer, wxSizerFlags().Expand().Border(wxLEFT | wxBOTTOM | wxRIGHT, 10));
-
-    SetSizerAndFit(pRootSizer);
-    Centre();
+void PreferencesWindow::OnInitDialog(wxInitDialogEvent&)
+{
+    UpdateTextBoxes();
 }
 
 void PreferencesWindow::OnSetupClicked(wxCommandEvent& WXUNUSED(event))
 {
     SetupWizard setupWizard(this);
     setupWizard.Run();
+    UpdateTextBoxes();
+}
+
+void PreferencesWindow::UpdateTextBoxes()
+{
+    const auto repositories = Config::GetRepositories();
+
+    std::set<wxString> workspaceNames;
+    std::set<wxString> repositoryNames;
+
+    for (const auto& repository: repositories)
+    {
+        workspaceNames.insert(repository.workspace.slug);
+        repositoryNames.insert(repository.slug);
+    }
+
+    m_workspaceText->SetLabelText(ip::wxJoin(workspaceNames, wxS(", ")));
+    m_repositoryText->SetLabelText(ip::wxJoin(repositoryNames, wxS(", ")));
+    Layout();
 }
 
 void PreferencesWindow::OnShowWindow(wxShowEvent& event)
@@ -65,8 +62,7 @@ void PreferencesWindow::OnShowWindow(wxShowEvent& event)
     if (event.IsShown())
     {
         ShowDockIcon();
-    }
-    else
+    } else
     {
         HideDockIcon();
     }

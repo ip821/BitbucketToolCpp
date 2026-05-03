@@ -2,6 +2,7 @@
 #include <wx/wizard.h>
 
 #include "RepositoryPage.h"
+#include "RepositoryView.h"
 #include "SetupWizard.h"
 #include "../settings/Config.h"
 
@@ -9,30 +10,24 @@ RepositoryPage::RepositoryPage(SetupWizard* pWizard, SetupWizardContext& context
     wxWizardPageSimple(pWizard),
     m_context(context)
 {
-    const auto pListBox = new wxCheckListBox(this, wxID_ANY);
+    m_pRepositoryView = new RepositoryView(this);
 
     const auto pMainSizer = new wxBoxSizer(wxVERTICAL);
-    pMainSizer->Add(pListBox, wxSizerFlags().Expand().Proportion(1).Border(wxALL, 5));
-
+    pMainSizer->Add(m_pRepositoryView, wxSizerFlags().Expand().Proportion(1));
     SetSizerAndFit(pMainSizer);
 
-    Bind(wxEVT_WIZARD_PAGE_SHOWN, [this, pListBox](wxWizardEvent&)
+    Bind(wxEVT_WIZARD_PAGE_SHOWN, [this](wxWizardEvent&)
     {
-        pListBox->Clear();
-
-        for (const auto& ws : m_context.m_repositories)
-        {
-            pListBox->Append(ws.full_name);
-        }
+        m_pRepositoryView->SetRepositories(m_context.m_repositories);
     });
 
-    Bind(wxEVT_WIZARD_PAGE_CHANGING, [pListBox, this](wxWizardEvent& event)
+    Bind(wxEVT_WIZARD_PAGE_CHANGING, [this](wxWizardEvent& event)
     {
         if (!event.GetDirection())
             return;
 
         wxArrayInt checkedItemIndexes;
-        if (const auto checkedCount = pListBox->GetCheckedItems(checkedItemIndexes);
+        if (const auto checkedCount = m_pRepositoryView->GetCheckedItems(checkedItemIndexes);
             !checkedCount)
         {
             event.Veto();

@@ -5,13 +5,14 @@
 #ifndef WXWIDGETSPLAYGROUND_REPOSITORYPAGE_H
 #define WXWIDGETSPLAYGROUND_REPOSITORYPAGE_H
 
+class RepositoryView;
 struct SetupWizardContext;
-class wxStaticBox;
 class SetupWizard;
 
 class RepositoryPage : public wxWizardPageSimple
 {
     SetupWizardContext& m_context;
+    RepositoryView* m_pRepositoryView;
 
 public:
     explicit RepositoryPage(SetupWizard* pWizard, SetupWizardContext& context);

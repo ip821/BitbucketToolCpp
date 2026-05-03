@@ -9,6 +9,7 @@
 #include <cpp_utils/match_expected.h>
 
 #include "WorkspacePage.h"
+#include "WorkspaceView.h"
 
 #include "../../curl/CurlConnection.h"
 #include "../../webrequests/RepositoriesRequest.h"
@@ -18,33 +19,24 @@ WorkspacePage::WorkspacePage(SetupWizard *pWizard, SetupWizardContext& context) 
     m_wizard(*pWizard),
     m_context(context)
 {
-    m_pActivityIndicator = CreateActivityIndicator(this);
-    m_pActivityIndicator->Hide();
-
-    const auto pListBox = new wxCheckListBox(this, wxID_ANY);
-    m_pListBox = pListBox;
+    m_pWorkspaceView = new WorkspaceView(this);
 
     const auto pMainSizer = new wxBoxSizer(wxVERTICAL);
-    pMainSizer->Add(pListBox, wxSizerFlags().Expand().Proportion(1).Border(wxALL, 5));
-    pMainSizer->Add(m_pActivityIndicator, wxSizerFlags().Center().Border(wxBOTTOM, 5));
+    pMainSizer->Add(m_pWorkspaceView, wxSizerFlags().Expand().Proportion(1));
 
     SetSizerAndFit(pMainSizer);
 
-    Bind(wxEVT_WIZARD_PAGE_SHOWN, [this, pListBox](wxWizardEvent& event)
+    Bind(wxEVT_WIZARD_PAGE_SHOWN, [this](wxWizardEvent& event)
     {
         m_asyncOperationCompletedSuccessfully = false;
 
         if (!event.GetDirection())
             return;
 
-        pListBox->Clear();
-        for (const auto& ws: m_context.m_workspaces)
-        {
-            pListBox->Append(ws.slug);
-        }
+        m_pWorkspaceView->SetWorkspaces(m_context.m_workspaces);
     });
 
-    Bind(wxEVT_WIZARD_PAGE_CHANGING, [pListBox, this](wxWizardEvent& event)
+    Bind(wxEVT_WIZARD_PAGE_CHANGING, [this](wxWizardEvent& event)
     {
         if (m_asyncOperationCompletedSuccessfully)
             return;
@@ -55,7 +47,7 @@ WorkspacePage::WorkspacePage(SetupWizard *pWizard, SetupWizardContext& context) 
         event.Veto();
 
         wxArrayInt checkedItemIndexes;
-        if (const auto checkedCount = pListBox->GetCheckedItems(checkedItemIndexes);
+        if (const auto checkedCount = m_pWorkspaceView->GetCheckedItems(checkedItemIndexes);
             !checkedCount)
         {
             return;
@@ -76,7 +68,7 @@ void WorkspacePage::StartAsyncOperation()
     StartBusyAnimation();
 
     wxArrayInt checkedItemIndexes;
-    m_pListBox->GetCheckedItems(checkedItemIndexes);
+    m_pWorkspaceView->GetCheckedItems(checkedItemIndexes);
 
     std::vector<Workspace> workspaces;
     for (const auto& index: checkedItemIndexes)
@@ -95,15 +87,19 @@ void WorkspacePage::StartAsyncOperation()
         {
             RepositoriesRequest repositoriesRequest(connection);
 
-            ip::match_expected(repositoriesRequest.GetRepositories(workspace),
-                               [this](const RepositoriesSuccess& success)
-                               {
-                                   for (const auto& repository: success.repositories)
-                                   {
-                                       m_context.m_repositories.push_back(repository);
-                                   }
-                               },
-                               [](const Error& error) { wxLogError("Failed to get repositories: %s", error.message); }
+            ip::match_expected(
+                repositoriesRequest.GetRepositories(workspace),
+                [this](const RepositoriesSuccess& success)
+                {
+                    for (const auto& repository: success.repositories)
+                    {
+                        m_context.m_repositories.push_back(repository);
+                    }
+                },
+                [](const Error& error)
+                {
+                    wxLogError("Failed to get repositories: %s", error.message);
+                }
             );
         }
 
@@ -127,15 +123,13 @@ void WorkspacePage::StartAsyncOperation()
 void WorkspacePage::StartBusyAnimation()
 {
     Disable();
-    m_pActivityIndicator->Show();
-    m_pActivityIndicator->Start();
+    m_pWorkspaceView->ShowActivityIndicator();
     Layout();
 }
 
 void WorkspacePage::StopBusyAnimation()
 {
     Enable();
-    m_pActivityIndicator->Stop();
-    m_pActivityIndicator->Hide();
+    m_pWorkspaceView->HideActivityIndicator();
     Layout();
 }

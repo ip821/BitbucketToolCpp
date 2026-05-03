@@ -58,10 +58,14 @@ FetchContent_MakeAvailable(cpp-utils)
 add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         App.cpp
         App.h
+        preferences/PreferencesWindowBase.cpp
+        preferences/PreferencesWindowBase.h
         preferences/PreferencesWindow.cpp
         preferences/PreferencesWindow.h
         StatusItem.cpp
         StatusItem.h
+        preferences/wizard/WizardPages.cpp
+        preferences/wizard/WizardPages.h
         preferences/wizard/SetupWizard.cpp
         preferences/wizard/SetupWizard.h
         preferences/wizard/LoginPage.cpp
@@ -89,6 +93,13 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         PullRequests.h
         webrequests/Repository.h
         webrequests/Workspace.h
+        preferences/wizard/LoginView.cpp
+        preferences/wizard/LoginView.h
+        preferences/wizard/WorkspaceView.cpp
+        preferences/wizard/WorkspaceView.h
+        preferences/wizard/RepositoryView.cpp
+        preferences/wizard/RepositoryView.h
+        cmake-build-debug/_deps/cpp-utils-src/include/cpp_utils/wx_string_join.h
 )
 target_compile_options(PRToolForBitbucket2 PRIVATE
         -Wall -Wextra -Wpedantic -Werror

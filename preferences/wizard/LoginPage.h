@@ -2,6 +2,7 @@
 
 #include <wx/wizard.h>
 
+class LoginView;
 class wxTextCtrl;
 class wxStaticText;
 class wxStaticBox;
@@ -19,13 +20,7 @@ class LoginPage : public wxWizardPageSimple
     bool m_asyncOperationInProgress = false;
     bool m_asyncOperationCompletedSuccessfully = false;
 
-    wxStaticText* m_pErrorStaticText;
-    wxActivityIndicator* m_pActivityIndicator;
-    wxTextCtrl* m_pLoginTextCtrl;
-    wxTextCtrl* m_pPasswordTextCtrl;
-
-    wxString m_email;
-    wxString m_password;
+    LoginView* m_pLoginView;
 
     void StartAsyncOperation();
 

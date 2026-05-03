@@ -2,6 +2,7 @@
 
 #include "SetupWizard.h"
 
+class WorkspaceView;
 struct ProcessedWorkspace
 {
     Workspace m_workspace;
@@ -16,9 +17,7 @@ class WorkspacePage : public wxWizardPageSimple
     SetupWizard& m_wizard;
     SetupWizardContext& m_context;
 
-    wxCheckListBox* m_pListBox;
-
-    wxActivityIndicator* m_pActivityIndicator;
+    WorkspaceView* m_pWorkspaceView;
 
     bool m_asyncOperationInProgress = false;
     bool m_asyncOperationCompletedSuccessfully = false;
