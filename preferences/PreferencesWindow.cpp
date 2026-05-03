@@ -21,7 +21,13 @@ extern "C" void HideDockIcon();
 PreferencesWindow::PreferencesWindow() :
     PreferencesWindowBase(nullptr)
 {
+    const auto statusBitmap = wxXmlResource::Get()->LoadBitmap("status32");
+    wxIcon icon;
+    icon.CopyFromBitmap(statusBitmap);
+    SetIcon(icon);
+
     m_pHelpText->SetFont(m_pHelpText->GetFont().Scale(0.8));
+
     Bind(wxEVT_SHOW, &PreferencesWindow::OnShowWindow, this);
     Bind(wxEVT_CLOSE_WINDOW, &PreferencesWindow::OnCloseWindow, this);
 }
