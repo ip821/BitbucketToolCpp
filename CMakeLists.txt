@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(WX_WIDGETS_VERSION v3.2.10)
+set(wxBUILD_SHARED OFF)
 
 set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
@@ -99,7 +100,6 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         preferences/wizard/WorkspaceView.h
         preferences/wizard/RepositoryView.cpp
         preferences/wizard/RepositoryView.h
-        cmake-build-debug/_deps/cpp-utils-src/include/cpp_utils/wx_string_join.h
 )
 target_compile_options(PRToolForBitbucket2 PRIVATE
         -Wall -Wextra -Wpedantic -Werror
