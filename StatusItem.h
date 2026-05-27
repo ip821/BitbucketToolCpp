@@ -31,7 +31,7 @@ class StatusItem : public wxTaskBarIcon
 
     void OnLeftButtonDClick(wxTaskBarIconEvent&);
     void OnMenuPreferences(wxCommandEvent&);
-    void OnMenuExit(wxCommandEvent&);
+    void OnMenuQuit(wxCommandEvent&);
     void OnMenuUpdate(wxCommandEvent&);
     void OnMenuCreatePr(wxCommandEvent&);
 
@@ -51,8 +51,6 @@ class StatusItem : public wxTaskBarIcon
 
 public:
     explicit StatusItem();
-
-    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // WXWIDGETSPLAYGROUND_MYTASKBARICON_H

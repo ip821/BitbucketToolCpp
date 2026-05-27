@@ -14,18 +14,9 @@ enum
     MENU_ITEM_PREFERENCES_ID = 10000,
     MENU_ITEM_QUIT_ID,
     MENU_ITEM_UPDATE_ID,
-
     MENU_ITEM_CREATE_PULL_REQUEST_ID = MENU_ITEM_PREFERENCES_ID + 100,
-
     MENU_ITEM_LAST_SEPARATOR = MENU_ITEM_PREFERENCES_ID + 1000 - 1,
 };
-
-wxBEGIN_EVENT_TABLE(StatusItem, wxTaskBarIcon)
-    EVT_MENU(MENU_ITEM_PREFERENCES_ID, StatusItem::OnMenuPreferences)
-    EVT_MENU(MENU_ITEM_QUIT_ID, StatusItem::OnMenuExit)
-    EVT_MENU(MENU_ITEM_UPDATE_ID, StatusItem::OnMenuUpdate)
-    EVT_TASKBAR_LEFT_DCLICK(StatusItem::OnLeftButtonDClick)
-wxEND_EVENT_TABLE()
 
 constexpr auto tenSeconds = 10 * 1000;
 constexpr auto fiveMinutes = 5 * 60 * 1000;
@@ -63,9 +54,14 @@ StatusItem::StatusItem() :
     pMenu->AppendSubMenu(m_pCreatePullRequestsMenu, "&Create pull request");
     pMenu->AppendSeparator();
     pMenu->Append(MENU_ITEM_UPDATE_ID, "&Update");
+    pMenu->Bind(wxEVT_MENU, &StatusItem::OnMenuUpdate, this, MENU_ITEM_UPDATE_ID);
     pMenu->Append(MENU_ITEM_PREFERENCES_ID, "&Preferences...");
+    pMenu->Bind(wxEVT_MENU, &StatusItem::OnMenuPreferences, this, MENU_ITEM_PREFERENCES_ID);
     pMenu->Append(MENU_ITEM_QUIT_ID, "&Quit");
+    pMenu->Bind(wxEVT_MENU, &StatusItem::OnMenuQuit, this, MENU_ITEM_QUIT_ID);
     m_pMenu = pMenu;
+
+    Bind(wxEVT_TASKBAR_LEFT_DCLICK, &StatusItem::OnLeftButtonDClick, this);
 
     m_pTimer = new wxTimer(this);
     Bind(wxEVT_TIMER, [this](wxTimerEvent&)
@@ -88,7 +84,7 @@ void StatusItem::OnMenuPreferences(wxCommandEvent&)
     ShowPreferencesDialog();
 }
 
-void StatusItem::OnMenuExit(wxCommandEvent&)
+void StatusItem::OnMenuQuit(wxCommandEvent&)
 {
     wxExit();
 }
