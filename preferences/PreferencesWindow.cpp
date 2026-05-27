@@ -21,10 +21,12 @@ extern "C" void HideDockIcon();
 PreferencesWindow::PreferencesWindow() :
     PreferencesWindowBase(nullptr)
 {
+#if !defined(__WXOSX__)
     const auto statusBitmap = wxXmlResource::Get()->LoadBitmap("status32");
     wxIcon icon;
     icon.CopyFromBitmap(statusBitmap);
     SetIcon(icon);
+#endif
 
     m_pHelpText->SetFont(m_pHelpText->GetFont().Scale(0.8));
 
