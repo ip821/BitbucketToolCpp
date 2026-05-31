@@ -6,17 +6,9 @@ include(FetchContent)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(WX_WIDGETS_VERSION v3.2.10)
+set(WX_WIDGETS_VERSION v3.3.2)
 set(wxBUILD_SHARED OFF)
 set(wxUSE_STC OFF CACHE BOOL "" FORCE)
-
-set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-set(CURL_USE_LIBPSL OFF CACHE BOOL "" FORCE)
-
-if (WIN32)
-    set(CURL_USE_SCHANNEL ON CACHE BOOL "" FORCE)
-endif ()
 
 if (APPLE)
     FetchContent_Declare(
@@ -24,7 +16,7 @@ if (APPLE)
             GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
             GIT_TAG ${WX_WIDGETS_VERSION}
             GIT_SHALLOW ON
-            PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets.patch"
+            PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets-3_3_2.patch"
     )
 else ()
     FetchContent_Declare(
@@ -42,13 +34,6 @@ FetchContent_Declare(
         GIT_TAG v3.12.0
 )
 FetchContent_MakeAvailable(json)
-
-FetchContent_Declare(
-        curl
-        GIT_REPOSITORY https://github.com/curl/curl.git
-        GIT_TAG curl-8_19_0
-)
-FetchContent_MakeAvailable(curl)
 
 FetchContent_Declare(
         cpp-utils
@@ -80,12 +65,10 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         Constants.h
         preferences/settings/Config.cpp
         preferences/settings/Config.h
-        curl/CurlConnection.cpp
-        curl/CurlConnection.h
-        curl/CurlHandle.h
         preferences/Credentials.cpp
         preferences/Credentials.h
-        curl/CurlSList.h
+        http/HttpConnection.h
+        http/HttpConnection.cpp
         webrequests/WorkspacesRequest.cpp
         webrequests/WorkspacesRequest.h
         webrequests/RepositoriesRequest.cpp
@@ -104,7 +87,12 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
 target_compile_options(PRToolForBitbucket2 PRIVATE
         -Wall -Wextra -Wpedantic -Werror
 )
-target_link_libraries(PRToolForBitbucket2 PRIVATE wx::core wx::xrc nlohmann_json::nlohmann_json libcurl cpp_utils::cpp_utils)
+target_link_libraries(PRToolForBitbucket2 PRIVATE
+        wx::core
+        wx::xrc
+        wx::net
+        nlohmann_json::nlohmann_json
+        cpp_utils::cpp_utils)
 
 if (NOT APPLE)
     # Resources

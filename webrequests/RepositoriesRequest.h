@@ -2,7 +2,7 @@
 
 #include <expected>
 
-#include "../curl/CurlConnection.h"
+#include "../http/HttpConnection.h"
 #include "../preferences/wizard/SetupWizardContext.h"
 
 struct RepositoriesSuccess
@@ -14,10 +14,10 @@ using RepositoriesResult = std::expected<RepositoriesSuccess, Error>;
 
 class RepositoriesRequest
 {
-    const CurlConnection& m_connection;
+    const HttpConnection& m_connection;
 
 public:
-    explicit RepositoriesRequest(const CurlConnection& connection);
+    explicit RepositoriesRequest(const HttpConnection& connection);
 
     [[nodiscard]] RepositoriesResult GetRepositories(const Workspace& workspace) const;
 };

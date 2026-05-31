@@ -11,7 +11,7 @@
 #include "WorkspacePage.h"
 #include "WorkspaceView.h"
 
-#include "../../curl/CurlConnection.h"
+#include "../../http/HttpConnection.h"
 #include "../../webrequests/RepositoriesRequest.h"
 
 WorkspacePage::WorkspacePage(SetupWizard *pWizard, SetupWizardContext& context) :
@@ -82,7 +82,7 @@ void WorkspacePage::StartAsyncOperation()
     wxWeakRef isWindowValid(this);
     std::thread([this, workspaces, isWindowValid]
     {
-        const CurlConnection connection;
+        const HttpConnection connection;
         for (const auto& workspace: workspaces)
         {
             RepositoriesRequest repositoriesRequest(connection);

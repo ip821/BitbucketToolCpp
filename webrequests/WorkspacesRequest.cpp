@@ -6,10 +6,10 @@
 #include <cpp_utils/ranges.h>
 #include <cpp_utils/macros_expected.h>
 
-#include "../curl/CurlConnection.h"
+#include "../http/HttpConnection.h"
 #include "../Constants.h"
 
-WorkspacesRequest::WorkspacesRequest(const CurlConnection& connection) :
+WorkspacesRequest::WorkspacesRequest(const HttpConnection& connection) :
     m_connection(connection)
 {
 }

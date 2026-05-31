@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../curl/CurlConnection.h"
+#include "../http/HttpConnection.h"
 #include "../preferences/wizard/SetupWizardContext.h"
 
 struct WorkspacesSuccess
@@ -11,10 +11,10 @@ using WorkspacesResult = std::expected<WorkspacesSuccess, Error>;
 
 class WorkspacesRequest
 {
-    const CurlConnection& m_connection;
+    const HttpConnection& m_connection;
 
 public:
-    explicit WorkspacesRequest(const CurlConnection& connection);
+    explicit WorkspacesRequest(const HttpConnection& connection);
 
     [[nodiscard]] WorkspacesResult GetWorkspaces() const;
 };

@@ -15,7 +15,7 @@
 #include "SetupWizard.h"
 #include "SetupWizardContext.h"
 #include "../Credentials.h"
-#include "../../curl/CurlConnection.h"
+#include "../../http/HttpConnection.h"
 #include "../../webrequests/WorkspacesRequest.h"
 
 LoginPage::LoginPage(wxWizard *pWindow, SetupWizardContext& context) :
@@ -105,7 +105,7 @@ void LoginPage::StartAsyncOperation()
     wxWeakRef isWindowValid(this);
     std::thread([isWindowValid, this]
     {
-        const CurlConnection connection;
+        const HttpConnection connection;
         const WorkspacesRequest workspacesRequest(connection);
         const auto response = workspacesRequest.GetWorkspaces();
 

@@ -6,7 +6,7 @@
 
 #include "../Constants.h"
 
-RepositoriesRequest::RepositoriesRequest(const CurlConnection& connection) :
+RepositoriesRequest::RepositoriesRequest(const HttpConnection& connection) :
     m_connection(connection)
 {
 }
