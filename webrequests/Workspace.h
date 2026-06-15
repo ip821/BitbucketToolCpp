@@ -4,21 +4,18 @@
 
 struct Workspace
 {
-    wxString slug;
+    wxString slug{};
 };
-
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Workspace, slug);
 
 struct WorkspaceAccess
 {
-    Workspace workspace;
+    Workspace workspace{};
 };
-
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WorkspaceAccess, workspace);
 
 struct WorkspacesResponse
 {
-    std::vector<WorkspaceAccess> values;
+    std::vector<WorkspaceAccess> values{};
 };
-
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WorkspacesResponse, values);

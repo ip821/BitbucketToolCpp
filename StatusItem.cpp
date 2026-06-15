@@ -6,8 +6,11 @@
 
 #include "StatusItem.h"
 
+#include "http/HttpConnection.h"
 #include "preferences/settings/Config.h"
 #include "preferences/PreferencesWindow.h"
+#include "webrequests/CurrentUserRequest.h"
+#include "webrequests/PullRequestsRequest.h"
 
 enum
 {
@@ -106,9 +109,9 @@ void StatusItem::OnMenuCreatePr(wxCommandEvent& event)
 
     const wxString bitbucketHostname = "https://bitbucket.org";
     const auto url = bitbucketHostname +
-        "/" + workspace +
-        "/" + repo +
-        "/pull-requests/new";
+            "/" + workspace +
+            "/" + repo +
+            "/pull-requests/new";
 
     wxLaunchDefaultBrowser(url);
 }
@@ -116,7 +119,7 @@ void StatusItem::OnMenuCreatePr(wxCommandEvent& event)
 void StatusItem::RemoveAllPrMenuItems()
 {
     for (const auto menuItems = m_pMenu->GetMenuItems();
-         const auto& item : menuItems)
+         const auto& item: menuItems)
     {
         if (item->GetId() > MENU_ITEM_LAST_SEPARATOR)
         {
@@ -128,18 +131,24 @@ void StatusItem::RemoveAllPrMenuItems()
 void StatusItem::UpdateCreatePullRequestsMenu(const std::vector<Repository>& repositories)
 {
     for (const auto menuItems = m_pCreatePullRequestsMenu->GetMenuItems();
-         const auto& item : menuItems)
+         const auto& item: menuItems)
     {
         m_pCreatePullRequestsMenu->Delete(item);
     }
 
     auto index = 0;
-    for (const auto& repository : repositories)
+    for (const auto& repository: repositories)
     {
         m_pCreatePullRequestsMenu->Append(MENU_ITEM_CREATE_PULL_REQUEST_ID + index++, repository.full_name);
     }
 
     m_repositories = repositories;
+}
+
+void StatusItem::ShowErrorNotification(const wxString& message) const
+{
+    wxNotificationMessage notification("BitbucketTool", message);
+    notification.Show();
 }
 
 void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
@@ -149,9 +158,34 @@ void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
     UpdateCreatePullRequestsMenu(repositories);
 
     wxWeakRef isWindowValid(this);
-    std::thread([this, args, isWindowValid]()
+    std::thread([this, args, isWindowValid, repositories]
     {
-        // Do work
+        const HttpConnection connection;
+
+        const CurrentUserRequest currentUserRequest(connection);
+        const auto currentUserResult = currentUserRequest.GetCurrentUser();
+
+        if (!currentUserResult)
+        {
+            ShowErrorNotification(currentUserResult.error().message);
+            return;
+        }
+
+        const auto currentUser = currentUserResult.value();
+
+        const PullRequestsRequest pullRequestsRequest(connection);
+        for (const auto& repository: repositories)
+        {
+            const auto pullRequestsResult = pullRequestsRequest.GetPullRequests(repository, currentUser.uuid);
+            if (!pullRequestsResult)
+            {
+                ShowErrorNotification(pullRequestsResult.error().message);
+                return;
+            }
+
+            const auto pullRequests = pullRequestsResult.value();
+            wxUnusedVar(pullRequests);
+        }
 
         CallAfter([isWindowValid, args, this]
         {
@@ -176,12 +210,14 @@ void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
                 notification.Show();
             }
 
+            // SetTitle();
+
             m_pTimer->StartOnce(fiveMinutes);
         });
     }).detach();
 }
 
-wxMenu* StatusItem::GetPopupMenu()
+wxMenu *StatusItem::GetPopupMenu()
 {
     return m_pMenu;
 }

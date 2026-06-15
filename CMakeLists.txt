@@ -73,8 +73,8 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         webrequests/WorkspacesRequest.h
         webrequests/RepositoriesRequest.cpp
         webrequests/RepositoriesRequest.h
-        PullRequests.cpp
-        PullRequests.h
+        webrequests/PullRequestsRequest.cpp
+        webrequests/PullRequestsRequest.h
         webrequests/Repository.h
         webrequests/Workspace.h
         preferences/wizard/LoginView.cpp
@@ -83,6 +83,12 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         preferences/wizard/WorkspaceView.h
         preferences/wizard/RepositoryView.cpp
         preferences/wizard/RepositoryView.h
+        webrequests/PullRequest.h
+        webrequests/User.h
+        webrequests/Participant.h
+        webrequests/Link.h
+        webrequests/CurrentUserRequest.cpp
+        webrequests/CurrentUserRequest.h
 )
 target_compile_options(PRToolForBitbucket2 PRIVATE
         -Wall -Wextra -Wpedantic -Werror

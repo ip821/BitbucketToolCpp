@@ -22,8 +22,8 @@ WorkspacesResult WorkspacesRequest::GetWorkspaces() const
     const auto [repositories] = jObject.get<WorkspacesResponse>();
 
     const auto workspaces = repositories
-            | std::views::transform([](const WorkspaceAccess& it) { return it.workspace; })
-            | std::views::filter([](const Workspace& it) { return !it.slug.IsEmpty(); })
+            | std::views::transform([](const auto& it) { return it.workspace; })
+            | std::views::filter([](const auto& it) { return !it.slug.IsEmpty(); })
             | std::ranges::to<std::vector>();
 
     return WorkspacesSuccess{workspaces};

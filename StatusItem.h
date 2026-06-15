@@ -38,6 +38,7 @@ class StatusItem : public wxTaskBarIcon
     void RemoveAllPrMenuItems();
     void ShowPreferencesDialog() const;
     void UpdateCreatePullRequestsMenu(const std::vector<Repository>& repositories);
+    void ShowErrorNotification(const wxString& message) const;
     void OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args);
 
 #ifdef __WXOSX__
