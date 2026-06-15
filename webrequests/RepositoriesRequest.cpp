@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <cpp_utils/match_expected.h>
 
+#include "Values.h"
 #include "../Constants.h"
 
 RepositoriesRequest::RepositoriesRequest(const HttpConnection& connection) :
@@ -16,6 +17,6 @@ RepositoriesResult RepositoriesRequest::GetRepositories(const Workspace& workspa
     UNWRAP_OR_RETURN_ERROR(success, m_connection.HttpGet(BitBucketBaseUrl + "/repositories/" + workspace.slug));
 
     const auto jObject = nlohmann::json::parse(success.body.ToStdString());
-    const auto& repositories = jObject.get<RepositoriesResponse>();
+    const auto& repositories = jObject.get<Values<Repository>>();
     return RepositoriesSuccess{repositories.values};
 }

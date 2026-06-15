@@ -6,6 +6,7 @@
 #include "Link.h"
 #include "Participant.h"
 #include "User.h"
+#include "Values.h"
 
 enum PullRequestState
 {
@@ -87,8 +88,3 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PullRequest,
                                    source,
                                    draft);
 
-struct PullRequestsResponse
-{
-    std::vector<PullRequestItem> values{};
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PullRequestsResponse, values);

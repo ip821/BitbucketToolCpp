@@ -13,9 +13,3 @@ struct WorkspaceAccess
     Workspace workspace{};
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WorkspaceAccess, workspace);
-
-struct WorkspacesResponse
-{
-    std::vector<WorkspaceAccess> values{};
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WorkspacesResponse, values);

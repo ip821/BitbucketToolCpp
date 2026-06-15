@@ -89,6 +89,7 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         webrequests/Link.h
         webrequests/CurrentUserRequest.cpp
         webrequests/CurrentUserRequest.h
+        webrequests/Values.h
 )
 target_compile_options(PRToolForBitbucket2 PRIVATE
         -Wall -Wextra -Wpedantic -Werror

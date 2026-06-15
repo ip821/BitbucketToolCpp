@@ -29,6 +29,6 @@ PullRequestsResult PullRequestsRequest::GetPullRequests(const Repository& reposi
 
     const auto body = success.body.ToStdString();
     const auto jObject = nlohmann::json::parse(body);
-    const auto& response = jObject.get<PullRequestsResponse>();
+    const auto& response = jObject.get<Values<PullRequestItem>>();
     return PullRequestsSuccess{response.values};
 }

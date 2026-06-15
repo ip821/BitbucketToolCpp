@@ -6,6 +6,7 @@
 #include <cpp_utils/ranges.h>
 #include <cpp_utils/macros_expected.h>
 
+#include "Values.h"
 #include "../http/HttpConnection.h"
 #include "../Constants.h"
 
@@ -19,7 +20,7 @@ WorkspacesResult WorkspacesRequest::GetWorkspaces() const
     UNWRAP_OR_RETURN_ERROR(success, m_connection.HttpGet(BitBucketBaseUrl + "/user/workspaces"));
 
     const auto jObject = nlohmann::json::parse(success.body.ToStdString());
-    const auto [repositories] = jObject.get<WorkspacesResponse>();
+    const auto [repositories] = jObject.get<Values<WorkspaceAccess>>();
 
     const auto workspaces = repositories
             | std::views::transform([](const auto& it) { return it.workspace; })

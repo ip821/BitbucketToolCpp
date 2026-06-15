@@ -13,9 +13,3 @@ struct Repository
     wxString slug{};
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Repository, full_name, slug, workspace);
-
-struct RepositoriesResponse
-{
-    std::vector<Repository> values;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(RepositoriesResponse, values);
