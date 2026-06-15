@@ -1,20 +1,25 @@
 #pragma once
 
+#include "BitbucketClient.h"
+#include "Values.h"
+#include "../Constants.h"
 #include "../http/HttpConnection.h"
 #include "../preferences/wizard/SetupWizardContext.h"
 
-struct WorkspacesSuccess
+class WorkspacesRequest : public BitbucketClient<Values<WorkspaceAccess> >
 {
-    std::vector<Workspace> workspaces;
-};
-using WorkspacesResult = std::expected<WorkspacesSuccess, Error>;
-
-class WorkspacesRequest
-{
-    const HttpConnection& m_connection;
-
 public:
-    explicit WorkspacesRequest(const HttpConnection& connection);
+    [[nodiscard]] std::expected<std::vector<Workspace>, Error> GetWorkspaces() const
+    {
+        const auto url = BitBucketBaseUrl + wxS("/user/workspaces");
+        const auto result = PerformRequest(url);
+        UNWRAP_OR_RETURN_ERROR(repositories, result);
 
-    [[nodiscard]] WorkspacesResult GetWorkspaces() const;
+        const auto workspaces = repositories.values
+                | std::views::transform([](const auto& it) { return it.workspace; })
+                | std::views::filter([](const auto& it) { return !it.slug.IsEmpty(); })
+                | std::ranges::to<std::vector>();
+
+        return workspaces;
+    }
 };

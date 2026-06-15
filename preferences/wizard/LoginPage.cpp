@@ -105,8 +105,7 @@ void LoginPage::StartAsyncOperation()
     wxWeakRef isWindowValid(this);
     std::thread([isWindowValid, this]
     {
-        const HttpConnection connection;
-        const WorkspacesRequest workspacesRequest(connection);
+        const WorkspacesRequest workspacesRequest;
         const auto response = workspacesRequest.GetWorkspaces();
 
         CallAfter([isWindowValid, response, this]
@@ -119,9 +118,9 @@ void LoginPage::StartAsyncOperation()
 
             ip::match_expected(
                 response,
-                [this](const WorkspacesSuccess& success)
+                [this](const std::vector<Workspace>& workspaces)
                 {
-                    for (const auto& workspace: success.workspaces)
+                    for (const auto& workspace: workspaces)
                     {
                         m_context.m_workspaces.push_back(workspace);
                     }

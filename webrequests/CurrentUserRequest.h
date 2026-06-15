@@ -1,16 +1,19 @@
 #pragma once
 #include <expected>
 
+#include "BitbucketClient.h"
 #include "User.h"
+#include "../Constants.h"
 #include "../http/HttpConnection.h"
 
 using CurrentUserResult = std::expected<User, Error>;
 
-class CurrentUserRequest
+class CurrentUserRequest : public BitbucketClient<User>
 {
-    const HttpConnection& m_connection;
-
 public:
-    explicit CurrentUserRequest(const HttpConnection& connection);
-    [[nodiscard]] CurrentUserResult GetCurrentUser() const;
+    TResponse GetCurrentUser() const
+    {
+        const auto url = BitBucketBaseUrl + wxS("/user/");
+        return PerformRequest(url);
+    }
 };

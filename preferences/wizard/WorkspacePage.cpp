@@ -82,16 +82,15 @@ void WorkspacePage::StartAsyncOperation()
     wxWeakRef isWindowValid(this);
     std::thread([this, workspaces, isWindowValid]
     {
-        const HttpConnection connection;
         for (const auto& workspace: workspaces)
         {
-            RepositoriesRequest repositoriesRequest(connection);
+            RepositoriesRequest repositoriesRequest;
 
             ip::match_expected(
                 repositoriesRequest.GetRepositories(workspace),
-                [this](const RepositoriesSuccess& success)
+                [this](const Values<Repository>& success)
                 {
-                    for (const auto& repository: success.repositories)
+                    for (const auto& repository: success.values)
                     {
                         m_context.m_repositories.push_back(repository);
                     }

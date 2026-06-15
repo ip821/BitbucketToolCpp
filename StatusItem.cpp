@@ -3,12 +3,16 @@
 #include <wx/notifmsg.h>
 
 #include <thread>
+#include <ranges>
 
 #include "StatusItem.h"
+
+#include <cpp_utils/match_expected.h>
 
 #include "http/HttpConnection.h"
 #include "preferences/settings/Config.h"
 #include "preferences/PreferencesWindow.h"
+#include "pull_requests/PullRequestService.h"
 #include "webrequests/CurrentUserRequest.h"
 #include "webrequests/PullRequestsRequest.h"
 
@@ -158,36 +162,20 @@ void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
     UpdateCreatePullRequestsMenu(repositories);
 
     wxWeakRef isWindowValid(this);
-    std::thread([this, args, isWindowValid, repositories]
+    std::thread([this, args, isWindowValid]
     {
-        const HttpConnection connection;
+        PullRequestService pullRequestService;
+        const auto result = pullRequestService.GetPullRequests();
 
-        const CurrentUserRequest currentUserRequest(connection);
-        const auto currentUserResult = currentUserRequest.GetCurrentUser();
-
-        if (!currentUserResult)
+        if (!result)
         {
-            ShowErrorNotification(currentUserResult.error().message);
+            ShowErrorNotification(result.error().message);
             return;
         }
 
-        const auto currentUser = currentUserResult.value();
+        const auto pullRequestsInfo = result.value();
 
-        const PullRequestsRequest pullRequestsRequest(connection);
-        for (const auto& repository: repositories)
-        {
-            const auto pullRequestsResult = pullRequestsRequest.GetPullRequests(repository, currentUser.uuid);
-            if (!pullRequestsResult)
-            {
-                ShowErrorNotification(pullRequestsResult.error().message);
-                return;
-            }
-
-            const auto pullRequests = pullRequestsResult.value();
-            wxUnusedVar(pullRequests);
-        }
-
-        CallAfter([isWindowValid, args, this]
+        CallAfter([isWindowValid, args, this, pullRequestsInfo]
         {
             if (!isWindowValid)
                 return;
@@ -197,12 +185,45 @@ void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
             auto index = 0;
             auto id = MENU_ITEM_LAST_SEPARATOR + 1;
             m_pMenu->Insert(index++, id++, "Pull requests to review")->Enable(false);
-            m_pMenu->Insert(index++, id++, "   New item 1");
-            m_pMenu->Insert(index++, id++, "   New item 2")->Enable(false);
+
+            auto waitingForMyApprovalPullRequests = std::views::filter(
+                pullRequestsInfo.pullRequests,
+                [&pullRequestsInfo](const PullRequestInfo& it)
+                {
+                    const auto& pullRequest = it.pullRequest;
+                    const auto& currentUser = pullRequestsInfo.currentUser;
+                    const auto& currentUserParticipant = pullRequest.GetParticipantForUser(currentUser);
+                    return
+                            pullRequest.author.uuid != currentUser.uuid
+                            && !pullRequest.draft
+                            && currentUserParticipant.has_value()
+                            && !currentUserParticipant.value().approved;
+                });
+
+            for (const auto& [pullRequest]: waitingForMyApprovalPullRequests)
+            {
+                m_pMenu->Insert(index++, id++, pullRequest.GetTitle().Left(90));
+            }
+            // m_pMenu->Insert(index++, id++, "   New item 1");
+            // m_pMenu->Insert(index++, id++, "   New item 2")->Enable(false);
+
             m_pMenu->InsertSeparator(index++);
             m_pMenu->Insert(index++, id++, "Your pull requests")->Enable(false);
-            m_pMenu->Insert(index++, id++, "   New item 1");
-            m_pMenu->Insert(index++, id++, "   New item 2")->Enable(false);
+            auto myPullRequests = std::views::filter(
+                pullRequestsInfo.pullRequests,
+                [&pullRequestsInfo](const PullRequestInfo& it)
+                {
+                    const auto& pullRequest = it.pullRequest;
+                    const auto& currentUser = pullRequestsInfo.currentUser;
+                    return pullRequest.author.uuid == currentUser.uuid && pullRequest.state == Open;
+                });
+
+            for (const auto& [pullRequest]: myPullRequests)
+            {
+                m_pMenu->Insert(index++, id++, pullRequest.GetTitle().Left(90));
+            }
+            // m_pMenu->Insert(index++, id++, "   New item 1");
+            // m_pMenu->Insert(index++, id++, "   New item 2")->Enable(false);
 
             if (args.showNotification)
             {

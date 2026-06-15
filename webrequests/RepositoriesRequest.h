@@ -2,22 +2,17 @@
 
 #include <expected>
 
+#include "BitbucketClient.h"
+#include "Values.h"
+#include "../Constants.h"
 #include "../http/HttpConnection.h"
 #include "../preferences/wizard/SetupWizardContext.h"
 
-struct RepositoriesSuccess
+class RepositoriesRequest : public BitbucketClient<Values<Repository> >
 {
-    std::vector<Repository> repositories;
-};
-
-using RepositoriesResult = std::expected<RepositoriesSuccess, Error>;
-
-class RepositoriesRequest
-{
-    const HttpConnection& m_connection;
-
 public:
-    explicit RepositoriesRequest(const HttpConnection& connection);
-
-    [[nodiscard]] RepositoriesResult GetRepositories(const Workspace& workspace) const;
+    [[nodiscard]] TResponse GetRepositories(const Workspace& workspace) const
+    {
+        return PerformRequest(BitBucketBaseUrl + "/repositories/" + workspace.slug);
+    }
 };
