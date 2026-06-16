@@ -35,7 +35,6 @@ StatusItem::StatusItem() :
 
 #if defined(__WXOSX__)
     SetIcon("status32@2x");
-    SetTitle("1/2");
 #else
     m_statusBitmap = wxXmlResource::Get()->LoadBitmap("status32");
     if (!m_statusBitmap.IsOk())
@@ -61,11 +60,9 @@ StatusItem::StatusItem() :
     pMenu->AppendSubMenu(m_pCreatePullRequestsMenu, "&Create pull request");
     pMenu->AppendSeparator();
     pMenu->Append(MENU_ITEM_UPDATE_ID, "&Update");
-    pMenu->Bind(wxEVT_MENU, &StatusItem::OnMenuUpdate, this, MENU_ITEM_UPDATE_ID);
     pMenu->Append(MENU_ITEM_PREFERENCES_ID, "&Preferences...");
-    pMenu->Bind(wxEVT_MENU, &StatusItem::OnMenuPreferences, this, MENU_ITEM_PREFERENCES_ID);
     pMenu->Append(MENU_ITEM_QUIT_ID, "&Quit");
-    pMenu->Bind(wxEVT_MENU, &StatusItem::OnMenuQuit, this, MENU_ITEM_QUIT_ID);
+    pMenu->Bind(wxEVT_MENU, &StatusItem::OnMenuItemClick, this);
     m_pMenu = pMenu;
 
     Bind(wxEVT_TASKBAR_LEFT_DCLICK, &StatusItem::OnLeftButtonDClick, this);
@@ -75,7 +72,13 @@ StatusItem::StatusItem() :
     {
         OnUpdatePullRequests({.showNotification = false});
     });
+
+#if defined(WXDEBUG)
+    wxUnusedVar(tenSeconds);
+    m_pTimer->StartOnce(1000);
+#else
     m_pTimer->StartOnce(tenSeconds);
+#endif
 }
 
 void StatusItem::ShowPreferencesDialog() const
@@ -86,19 +89,31 @@ void StatusItem::ShowPreferencesDialog() const
     m_pDialog->Raise();
 }
 
-void StatusItem::OnMenuPreferences(wxCommandEvent&)
+void StatusItem::OnMenuItemClick(wxCommandEvent& e)
 {
-    ShowPreferencesDialog();
-}
+    switch (e.GetId())
+    {
+        case MENU_ITEM_UPDATE_ID:
+            OnUpdatePullRequests({.showNotification = true});
+            return;
 
-void StatusItem::OnMenuQuit(wxCommandEvent&)
-{
-    wxExit();
-}
+        case MENU_ITEM_PREFERENCES_ID:
+            ShowPreferencesDialog();
+            return;
 
-void StatusItem::OnMenuUpdate(wxCommandEvent&)
-{
-    OnUpdatePullRequests({.showNotification = true});
+        case MENU_ITEM_QUIT_ID:
+            wxExit();
+            return;
+
+        default:
+            break;
+    }
+
+    if (const auto it = m_menuItemIdToPullRequest.find(e.GetId());
+        it != m_menuItemIdToPullRequest.end())
+    {
+        wxLaunchDefaultBrowser(it->second.pullRequest.links.html.href);
+    }
 }
 
 void StatusItem::OnMenuCreatePr(wxCommandEvent& event)
@@ -182,56 +197,69 @@ void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 
             RemoveAllPrMenuItems();
 
+            m_menuItemIdToPullRequest.clear();
+
             auto index = 0;
             auto id = MENU_ITEM_LAST_SEPARATOR + 1;
             m_pMenu->Insert(index++, id++, "Pull requests to review")->Enable(false);
 
-            auto waitingForMyApprovalPullRequests = std::views::filter(
-                pullRequestsInfo.pullRequests,
-                [&pullRequestsInfo](const PullRequestInfo& it)
-                {
-                    const auto& pullRequest = it.pullRequest;
-                    const auto& currentUser = pullRequestsInfo.currentUser;
-                    const auto& currentUserParticipant = pullRequest.GetParticipantForUser(currentUser);
-                    return
-                            pullRequest.author.uuid != currentUser.uuid
-                            && !pullRequest.draft
-                            && currentUserParticipant.has_value()
-                            && !currentUserParticipant.value().approved;
-                });
-
-            for (const auto& [pullRequest]: waitingForMyApprovalPullRequests)
+            for (const auto& pullRequest: pullRequestsInfo.waitingForMyApprovalPullRequests)
             {
-                m_pMenu->Insert(index++, id++, pullRequest.GetTitle().Left(90));
+                m_menuItemIdToPullRequest[id] = pullRequest;
+                m_pMenu->Insert(index++, id++, pullRequest.GetMainMenuItemTitle().Left(90));
+
+                const auto secondLineTitle = std::format(wxS("   {}"), pullRequest.GetAuthorAndBranchMenuItemTitle());
+                m_pMenu->Insert(index++, id++, secondLineTitle)->Enable(false);
+
+                const auto thirdLineTitle = std::format(wxS("   {}"), pullRequest.GetPullRequestDetailsMenuItemTitle());
+                m_pMenu->Insert(index++, id++, thirdLineTitle)->Enable(false);
             }
-            // m_pMenu->Insert(index++, id++, "   New item 1");
-            // m_pMenu->Insert(index++, id++, "   New item 2")->Enable(false);
 
             m_pMenu->InsertSeparator(index++);
             m_pMenu->Insert(index++, id++, "Your pull requests")->Enable(false);
-            auto myPullRequests = std::views::filter(
-                pullRequestsInfo.pullRequests,
-                [&pullRequestsInfo](const PullRequestInfo& it)
-                {
-                    const auto& pullRequest = it.pullRequest;
-                    const auto& currentUser = pullRequestsInfo.currentUser;
-                    return pullRequest.author.uuid == currentUser.uuid && pullRequest.state == Open;
-                });
 
-            for (const auto& [pullRequest]: myPullRequests)
+            for (const auto& pullRequest: pullRequestsInfo.myPullRequests)
             {
-                m_pMenu->Insert(index++, id++, pullRequest.GetTitle().Left(90));
+                m_menuItemIdToPullRequest[id] = pullRequest;
+                m_pMenu->Insert(index++, id++, pullRequest.GetMainMenuItemTitle().Left(90));
             }
-            // m_pMenu->Insert(index++, id++, "   New item 1");
-            // m_pMenu->Insert(index++, id++, "   New item 2")->Enable(false);
+
+            const auto waitingCount = pullRequestsInfo.waitingForMyApprovalPullRequests.size();
+            const auto myCount = pullRequestsInfo.myPullRequests.size();
+            if (waitingCount || myCount)
+            {
+                if (myCount)
+                {
+                    auto title = std::format(wxS("{}/{}"), waitingCount, myCount);
+                    const auto hasFailedBuilds = std::ranges::any_of(
+                        pullRequestsInfo.myPullRequests,
+                        [](const auto& it)
+                        {
+                            return std::ranges::any_of(it.statuses, [](const auto& status) { return status.state == Failed; });
+                        });
+                    const auto hasSomeoneRequestedChanges = std::ranges::any_of(
+                        pullRequestsInfo.myPullRequests,
+                        [](const auto& it)
+                        {
+                            return std::ranges::any_of(it.pullRequest.participants, [](const auto& p) { return p.state == ChangesRequested; });
+                        });
+
+                    if (hasFailedBuilds || hasSomeoneRequestedChanges)
+                        title += wxS(" (!)");
+                } else
+                {
+                    SetTitle(std::format(wxS("{}"), waitingCount));
+                }
+            } else
+            {
+                SetTitle(wxS(""));
+            }
 
             if (args.showNotification)
             {
                 wxNotificationMessage notification("BitbucketTool", "Pull requests were updated");
                 notification.Show();
             }
-
-            // SetTitle();
 
             m_pTimer->StartOnce(fiveMinutes);
         });

@@ -5,14 +5,13 @@
 #include <cpp_utils/wx_string_format.h>
 
 #include "Link.h"
-#include "Participant.h"
+#include "ParticipantUser.h"
 #include "User.h"
 #include "Values.h"
 
 enum PullRequestState
 {
-    Uninitialized,
-    Merged,
+    Merged = 1,
     Superseded,
     Open,
     Declined,
@@ -71,35 +70,24 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PullRequestItem, id, title, author, links, cr
 
 struct PullRequest
 {
+    int id{};
     wxString title{};
     User author{};
     wxString created_on{};
     int comment_count{};
     PullRequestState state{};
-    std::vector<struct Participant> participants{};
+    std::vector<ParticipantUser> participants{};
     PullRequestLinks links{};
     Destination destination{};
     Source source{};
     bool draft{};
 
-    std::optional<struct Participant> GetParticipantForUser(const User& user) const
-    {
-        const auto filtered = participants
-                | std::views::filter([&user](const auto& it) { return it.user.uuid == user.uuid; })
-                | std::ranges::to<std::vector>();
-
-        if (filtered.empty())
-            return std::nullopt;
-
-        return *filtered.cbegin();
-    }
-
-    wxString GetTitle() const
-    {
-        return std::format(wxS("[{}] - {}"), destination.repository.name, title);
-    }
+    std::optional<ParticipantUser> GetParticipantForUser(const User& user) const;
+    bool IsWaitingForUserApproval(const User& user) const;
+    bool IsUserPullRequest(const User& user) const;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PullRequest,
+                                   id,
                                    title,
                                    author,
                                    created_on,
@@ -110,3 +98,30 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PullRequest,
                                    destination,
                                    source,
                                    draft);
+
+inline std::optional<ParticipantUser> PullRequest::GetParticipantForUser(const User& user) const
+{
+    const auto filtered = participants
+            | std::views::filter([&user](const auto& it) { return it.user.uuid == user.uuid; })
+            | std::ranges::to<std::vector>();
+
+    if (filtered.empty())
+        return std::nullopt;
+
+    return *filtered.cbegin();
+}
+
+inline bool PullRequest::IsWaitingForUserApproval(const User& user) const
+{
+    const auto& userParticipant = GetParticipantForUser(user);
+    return
+            author.uuid != user.uuid
+            && !draft
+            && userParticipant.has_value()
+            && !userParticipant.value().approved;
+}
+
+inline bool PullRequest::IsUserPullRequest(const User& user) const
+{
+    return author.uuid == user.uuid && state == Open;
+}

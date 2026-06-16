@@ -33,11 +33,11 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
     }
 );
 
-struct Participant
+struct ParticipantUser
 {
     ParticipantState state{};
     ParticipantRole role{};
     bool approved{};
     User user{};
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(struct Participant, state, role, approved, user);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ParticipantUser, state, role, approved, user);

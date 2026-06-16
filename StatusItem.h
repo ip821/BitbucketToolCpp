@@ -9,6 +9,7 @@
 #include <wx/bmpbndl.h>
 #include <wx/timer.h>
 
+#include "pull_requests/PullRequestInfo.h"
 #include "webrequests/Repository.h"
 
 struct OnUpdatePullRequestsArgs
@@ -26,13 +27,12 @@ class StatusItem : public wxTaskBarIcon
     wxTimer* m_pTimer;
 
     std::vector<Repository> m_repositories;
+    std::unordered_map<int, PullRequestInfo> m_menuItemIdToPullRequest;
 
     wxMenu* GetPopupMenu() override;
 
     void OnLeftButtonDClick(wxTaskBarIconEvent&);
-    void OnMenuPreferences(wxCommandEvent&);
-    void OnMenuQuit(wxCommandEvent&);
-    void OnMenuUpdate(wxCommandEvent&);
+    void OnMenuItemClick(wxCommandEvent&);
     void OnMenuCreatePr(wxCommandEvent&);
 
     void RemoveAllPrMenuItems();

@@ -4,8 +4,10 @@
 
 #include "../preferences/settings/Config.h"
 #include "../webrequests/CurrentUserRequest.h"
+#include "../webrequests/DiffStatRequest.h"
 #include "../webrequests/PullRequestRequest.h"
 #include "../webrequests/PullRequestsRequest.h"
+#include "../webrequests/StatusRequest.h"
 
 GetPullRequestsResult PullRequestService::GetPullRequests()
 {
@@ -13,10 +15,13 @@ GetPullRequestsResult PullRequestService::GetPullRequests()
     const auto currentUserResult = currentUserRequest.GetCurrentUser();
     UNWRAP_OR_RETURN_ERROR(currentUser, currentUserResult);
 
-    std::vector<PullRequestInfo> pullRequestInfos;
+    std::vector<PullRequestInfo> waitingForMyApprovalPullRequests;
+    std::vector<PullRequestInfo> myPullRequests;
 
     constexpr PullRequestsRequest pullRequestsRequest;
     constexpr PullRequestRequest pullRequestRequest;
+    constexpr DiffStatRequest diffStatRequest;
+    constexpr StatusRequest statusRequest;
     for (const auto& repository: Config::GetRepositories())
     {
         const auto pullRequestsResult = pullRequestsRequest.GetPullRequests(repository, currentUser.uuid);
@@ -27,9 +32,36 @@ GetPullRequestsResult PullRequestService::GetPullRequests()
             const auto pullRequestResult = pullRequestRequest.GetPullRequest(repository, pullRequestItem.id);
             UNWRAP_OR_RETURN_ERROR(pullRequest, pullRequestResult);
 
-            pullRequestInfos.push_back({pullRequest});
+            if (!pullRequest.IsWaitingForUserApproval(currentUser)
+                && !pullRequest.IsUserPullRequest(currentUser))
+            {
+                continue;
+            }
+
+            const auto statusesResult = statusRequest.GetStatuses(repository, pullRequestItem.id);
+            UNWRAP_OR_RETURN_ERROR(statuses, statusesResult);
+
+            const auto diffStatResult = diffStatRequest.GetDiffStat(repository, pullRequestItem.id);
+            UNWRAP_OR_RETURN_ERROR(diffStat, diffStatResult);
+
+            if (pullRequest.IsWaitingForUserApproval(currentUser))
+                waitingForMyApprovalPullRequests.push_back({pullRequest, statuses.values, diffStat});
+            else
+                myPullRequests.push_back({pullRequest, statuses.values, diffStat});
         }
     }
 
-    return PullRequestsInfo{currentUser, pullRequestInfos};
+    std::ranges::sort(waitingForMyApprovalPullRequests,
+                      [](const PullRequestInfo& a, const PullRequestInfo& b)
+                      {
+                          return a.pullRequest.created_on < b.pullRequest.created_on;
+                      });
+
+    std::ranges::sort(myPullRequests,
+                      [](const PullRequestInfo& a, const PullRequestInfo& b)
+                      {
+                          return a.pullRequest.created_on < b.pullRequest.created_on;
+                      });
+
+    return PullRequestsInfo{currentUser, waitingForMyApprovalPullRequests, myPullRequests};
 }

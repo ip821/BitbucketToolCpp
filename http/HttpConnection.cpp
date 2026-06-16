@@ -13,23 +13,41 @@ HttpConnection::~HttpConnection()
 
 HttpResult HttpConnection::HttpGet(const wxString& url) const
 {
-    wxWebRequestSync webRequest = wxWebSessionSync::GetDefault().CreateRequest(url);
-    webRequest.SetMethod(wxS("GET"));
+    auto requestUrl = url;
 
-    const auto credentialsBase64 = Credentials::GetCredentialsBase64();
-    webRequest.SetHeader(wxS("Accept"), wxS("application/json"));
-    webRequest.SetHeader(wxS("Authorization"), wxS("Basic ") + wxString::FromUTF8(credentialsBase64));
-
-    const auto result = webRequest.Execute();
-    if (!result)
-        return std::unexpected(Error{result.error});
-
-    const auto response = webRequest.GetResponse();
-    const auto errorMessage = response.GetStatusText();
-    if (const auto statusCode = response.GetStatus(); statusCode != 200)
+    auto redirectCount = 3;
+    while (redirectCount > 0)
     {
-        return std::unexpected(Error{errorMessage});
+        wxWebRequestSync webRequest = wxWebSessionSync::GetDefault().CreateRequest(requestUrl);
+        webRequest.SetMethod(wxS("GET"));
+
+        const auto credentialsBase64 = Credentials::GetCredentialsBase64();
+        webRequest.SetHeader(wxS("Accept"), wxS("application/json"));
+        webRequest.SetHeader(wxS("Authorization"), wxS("Basic ") + wxString::FromUTF8(credentialsBase64));
+
+        const auto result = webRequest.Execute();
+        const auto response = webRequest.GetResponse();
+
+        if (!result)
+        {
+            const auto responseUrl = response.GetURL();
+            if (response.GetStatus() == 404 && responseUrl != requestUrl)
+            {
+                redirectCount--;
+                requestUrl = responseUrl;
+                continue;
+            }
+            return std::unexpected(Error{result.error});
+        }
+
+        const auto errorMessage = response.GetStatusText();
+        if (const auto statusCode = response.GetStatus(); statusCode != 200)
+        {
+            return std::unexpected(Error{errorMessage});
+        }
+
+        return Success{webRequest.GetResponse().AsString()};
     }
 
-    return Success{webRequest.GetResponse().AsString()};
+    return std::unexpected(Error{wxS("Redirect count is exceeded.")});
 }

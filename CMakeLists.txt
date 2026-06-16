@@ -82,7 +82,7 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         preferences/wizard/RepositoryView.h
         webrequests/PullRequest.h
         webrequests/User.h
-        webrequests/Participant.h
+        webrequests/ParticipantUser.h
         webrequests/Link.h
         webrequests/CurrentUserRequest.h
         webrequests/Values.h
@@ -91,6 +91,10 @@ add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
         pull_requests/PullRequestInfo.h
         webrequests/BitbucketClient.h
         webrequests/PullRequestRequest.h
+        webrequests/DiffStat.h
+        webrequests/DiffStatRequest.h
+        webrequests/Status.h
+        webrequests/StatusRequest.h
 )
 target_compile_options(PRToolForBitbucket2 PRIVATE
         -Wall -Wextra -Wpedantic -Werror
