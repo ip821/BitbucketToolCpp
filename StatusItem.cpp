@@ -15,6 +15,8 @@
 #include "pull_requests/PullRequestService.h"
 #include "webrequests/CurrentUserRequest.h"
 #include "webrequests/PullRequestsRequest.h"
+#include "wx/clipbrd.h"
+#include "wx/osx/clipbrd.h"
 
 enum
 {
@@ -112,7 +114,19 @@ void StatusItem::OnMenuItemClick(wxCommandEvent& e)
     if (const auto it = m_menuItemIdToPullRequest.find(e.GetId());
         it != m_menuItemIdToPullRequest.end())
     {
-        wxLaunchDefaultBrowser(it->second.pullRequest.links.html.href);
+        const auto href = it->second.pullRequest.links.html.href;
+        if (wxGetKeyState(WXK_ALT))
+        {
+            if (wxTheClipboard->Open())
+            {
+                wxTheClipboard->SetData(new wxTextDataObject(href));
+                wxTheClipboard->Close();
+            }
+        }
+        else
+        {
+            wxLaunchDefaultBrowser(href);
+        }
     }
 }
 
