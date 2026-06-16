@@ -17,7 +17,8 @@ protected:
         HttpConnection connection;
         UNWRAP_OR_RETURN_ERROR(success, connection.HttpGet(requestUrl));
 
-        const auto body = success.body;
+        const wxString bodyUtf8 = success.body.ToUTF8();
+        const auto body = bodyUtf8.ToStdString();
         const auto jObject = nlohmann::json::parse(body);
         const auto& response = jObject.get<TResult>();
         return response;
