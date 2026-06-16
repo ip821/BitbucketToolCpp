@@ -52,6 +52,44 @@ struct PullRequestInfo
     {
         return std::ranges::any_of(statuses, [&state](const auto& it) { return it.state == state; });
     }
+
+    wxString GetStatus() const
+    {
+        auto status = wxS("Waiting for approve");
+
+        const auto approved = pullRequest.participants
+                | std::views::filter([](const auto& it) { return it.approved; })
+                | std::ranges::to<std::vector>();
+        if (approved.size() == pullRequest.participants.size())
+            status = wxS("Ready for merge");
+
+        const auto hasFailedBuilds = std::ranges::any_of(
+            statuses,
+            [](const auto& status) { return status.state == Failed; }
+        );
+
+        const auto hasInProgressBuilds = std::ranges::any_of(
+            statuses,
+            [](const auto& status) { return status.state == InProgress; }
+        );
+
+        if (hasFailedBuilds)
+            status = wxS("Build failed");
+        else if (hasInProgressBuilds)
+            status = wxS("Building");
+
+        return status;
+    }
+
+    wxString GetMyPullRequestBranchMenuItemTitle() const
+    {
+        return std::format(
+            wxS("[{}] [{}] → [{}]"),
+            GetStatus(),
+            pullRequest.source.branch.name,
+            pullRequest.destination.branch.name
+        );
+    }
 };
 
 struct PullRequestsInfo

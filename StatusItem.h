@@ -10,6 +10,7 @@
 #include <wx/timer.h>
 
 #include "pull_requests/PullRequestInfo.h"
+#include "pull_requests/PullRequestService.h"
 #include "webrequests/Repository.h"
 
 struct OnUpdatePullRequestsArgs
@@ -42,6 +43,7 @@ class StatusItem : public wxTaskBarIcon
     void UpdateCreatePullRequestsMenu(const std::vector<Repository>& repositories);
     void ShowErrorNotification(const wxString& message) const;
     void OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args);
+    void UpdateTitle(const PullRequestsInfo& pullRequestsInfo);
 
 #ifdef __WXOSX__
     wxBitmapBundle m_bitmapBundle = wxBitmapBundle::FromResources("status32@2x");

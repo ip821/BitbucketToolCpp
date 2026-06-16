@@ -124,8 +124,7 @@ void StatusItem::OnMenuItemClick(wxCommandEvent& e)
                 wxTheClipboard->SetData(new wxTextDataObject(href));
                 wxTheClipboard->Close();
             }
-        }
-        else
+        } else
         {
             wxLaunchDefaultBrowser(href);
         }
@@ -238,38 +237,29 @@ void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
             {
                 m_menuItemIdToPullRequest[id] = pullRequest;
                 m_pMenu->Insert(index++, id++, pullRequest.GetMainMenuItemTitle().Left(90));
-            }
 
-            const auto waitingCount = pullRequestsInfo.waitingForMyApprovalPullRequests.size();
-            const auto myCount = pullRequestsInfo.myPullRequests.size();
-            if (waitingCount || myCount)
-            {
-                if (myCount)
-                {
-                    auto title = std::format(wxS("{}/{}"), waitingCount, myCount);
-                    const auto hasFailedBuilds = std::ranges::any_of(
-                        pullRequestsInfo.myPullRequests,
-                        [](const auto& it)
-                        {
-                            return std::ranges::any_of(it.statuses, [](const auto& status) { return status.state == Failed; });
-                        });
-                    const auto hasSomeoneRequestedChanges = std::ranges::any_of(
-                        pullRequestsInfo.myPullRequests,
-                        [](const auto& it)
-                        {
-                            return std::ranges::any_of(it.pullRequest.participants, [](const auto& p) { return p.state == ChangesRequested; });
-                        });
+                const auto secondLineTitle = std::format(wxS("   {}"), pullRequest.GetMyPullRequestBranchMenuItemTitle());
+                m_pMenu->Insert(index++, id++, secondLineTitle)->Enable(false);
 
-                    if (hasFailedBuilds || hasSomeoneRequestedChanges)
-                        title += wxS(" (!)");
-                } else
+                const auto thirdLineTitle = std::format(wxS("   {}"), pullRequest.GetPullRequestDetailsMenuItemTitle());
+                m_pMenu->Insert(index++, id++, thirdLineTitle)->Enable(false);
+
+                const auto participants = pullRequest.pullRequest.participants
+                        | std::views::filter([](const auto& it) { return it.role == Reviewer || it.approved; })
+                        | std::ranges::to<std::vector>();
+
+                for (const auto& participant: participants)
                 {
-                    SetStatusItemTitle(std::format(wxS("{}"), waitingCount));
+                    const auto& symbol = participant.approved ? wxS("✔") : wxS("...");
+                    wxString title = std::format(wxS("   {} {}"), symbol, participant.user.display_name);
+                    if (participant.state == ChangesRequested)
+                        title += wxS(" - Requested changes");
+
+                    m_pMenu->Insert(index++, id++, title)->Enable(false);
                 }
-            } else
-            {
-                SetStatusItemTitle(wxS(""));
             }
+
+            UpdateTitle(pullRequestsInfo);
 
             if (args.showNotification)
             {
@@ -280,6 +270,42 @@ void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
             m_pTimer->StartOnce(fiveMinutes);
         });
     }).detach();
+}
+
+void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo)
+{
+    const auto waitingCount = pullRequestsInfo.waitingForMyApprovalPullRequests.size();
+    const auto myCount = pullRequestsInfo.myPullRequests.size();
+    if (waitingCount || myCount)
+    {
+        if (myCount)
+        {
+            auto title = std::format(wxS("{}/{}"), waitingCount, myCount);
+            const auto hasFailedBuilds = std::ranges::any_of(
+                pullRequestsInfo.myPullRequests,
+                [](const auto& it)
+                {
+                    return std::ranges::any_of(it.statuses, [](const auto& status) { return status.state == Failed; });
+                });
+            const auto hasSomeoneRequestedChanges = std::ranges::any_of(
+                pullRequestsInfo.myPullRequests,
+                [](const auto& it)
+                {
+                    return std::ranges::any_of(it.pullRequest.participants, [](const auto& p) { return p.state == ChangesRequested; });
+                });
+
+            if (hasFailedBuilds || hasSomeoneRequestedChanges)
+                title += wxS(" (!)");
+
+            SetStatusItemTitle(title);
+        } else
+        {
+            SetStatusItemTitle(std::format(wxS("{}"), waitingCount));
+        }
+    } else
+    {
+        SetStatusItemTitle(wxS(""));
+    }
 }
 
 wxMenu *StatusItem::GetPopupMenu()

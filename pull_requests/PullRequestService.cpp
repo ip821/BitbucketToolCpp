@@ -1,5 +1,6 @@
 #include "PullRequestService.h"
 
+#include <unordered_set>
 #include <cpp_utils/macros_expected.h>
 
 #include "../preferences/settings/Config.h"
@@ -27,12 +28,22 @@ GetPullRequestsResult PullRequestService::GetPullRequests()
         const auto pullRequestsResult = pullRequestsRequest.GetPullRequests(repository, currentUser.uuid);
         UNWRAP_OR_RETURN_ERROR(pullRequestItems, pullRequestsResult);
 
+        std::vector<PullRequestItem> uniquePullRequests;
+        std::unordered_set<decltype(PullRequestItem::id)> processedIds;
+
         for (const auto& pullRequestItem: pullRequestItems.values)
+        {
+            if (processedIds.insert(pullRequestItem.id).second)
+                uniquePullRequests.push_back(pullRequestItem);
+        }
+
+        for (const auto& pullRequestItem: uniquePullRequests)
         {
             const auto pullRequestResult = pullRequestRequest.GetPullRequest(repository, pullRequestItem.id);
             UNWRAP_OR_RETURN_ERROR(pullRequest, pullRequestResult);
 
-            if (!pullRequest.IsWaitingForUserApproval(currentUser)
+            if (
+                !pullRequest.IsWaitingForUserApproval(currentUser)
                 && !pullRequest.IsUserPullRequest(currentUser))
             {
                 continue;
@@ -46,7 +57,7 @@ GetPullRequestsResult PullRequestService::GetPullRequests()
 
             if (pullRequest.IsWaitingForUserApproval(currentUser))
                 waitingForMyApprovalPullRequests.push_back({pullRequest, statuses.values, diffStat});
-            else
+            else if (pullRequest.IsUserPullRequest(currentUser))
                 myPullRequests.push_back({pullRequest, statuses.values, diffStat});
         }
     }

@@ -22,12 +22,14 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
 
 enum ParticipantState
 {
-    ChangesRequested = 1,
-    Approved
+    None = 1,
+    ChangesRequested,
+    Approved,
 };
 NLOHMANN_JSON_SERIALIZE_ENUM(
     ParticipantState,
     {
+    {ParticipantState::None, nullptr},
     {ParticipantState::ChangesRequested, "changes_requested"},
     {ParticipantState::Approved, "approved"}
     }

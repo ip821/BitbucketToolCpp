@@ -46,7 +46,7 @@ HttpResult HttpConnection::HttpGet(const wxString& url) const
             return std::unexpected(Error{errorMessage});
         }
 
-        return Success{webRequest.GetResponse().AsString()};
+        return Success{response.AsString()};
     }
 
     return std::unexpected(Error{wxS("Redirect count is exceeded.")});
