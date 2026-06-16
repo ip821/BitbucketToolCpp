@@ -41,7 +41,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(cpp-utils)
 
-add_executable(PRToolForBitbucket2 MACOSX_BUNDLE
+add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         App.cpp
         App.h
         preferences/PreferencesWindowBase.cpp
@@ -105,6 +105,32 @@ target_link_libraries(PRToolForBitbucket2 PRIVATE
         wx::net
         nlohmann_json::nlohmann_json
         cpp_utils::cpp_utils)
+target_link_options(PRToolForBitbucket2 PRIVATE
+        $<$<CONFIG:Release>:-Wl,--strip-all>
+)
+
+if (WIN32)
+    target_sources(PRToolForBitbucket2 PRIVATE
+            windows/app.rc
+            windows/app.manifest
+    )
+    set_source_files_properties(windows/app.rc PROPERTIES LANGUAGE RC)
+    get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+
+    add_custom_command(TARGET PRToolForBitbucket2 POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${MINGW_BIN_DIR}/libgcc_s_seh-1.dll"
+            "${MINGW_BIN_DIR}/libstdc++-6.dll"
+            "${MINGW_BIN_DIR}/libwinpthread-1.dll"
+            "$<TARGET_FILE_DIR:PRToolForBitbucket2>"
+            COMMENT "Copying MinGW runtime DLLs"
+    )
+#    target_link_options(PRToolForBitbucket2 PRIVATE
+#            -static
+#            -static-libgcc
+#            -static-libstdc++
+#    )
+endif ()
 
 if (NOT APPLE)
     # Resources
@@ -169,12 +195,4 @@ if (APPLE)
             -fno-builtin-std-forward_like
     )
     target_link_libraries(PRToolForBitbucket2 PRIVATE "-framework Cocoa")
-endif ()
-
-if (WIN32)
-    target_sources(PRToolForBitbucket2 PRIVATE
-            windows/app.rc
-            windows/app.manifest
-    )
-    set_source_files_properties(windows/app.rc PROPERTIES LANGUAGE RC)
 endif ()
