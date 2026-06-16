@@ -1,6 +1,7 @@
 #pragma once
 #include <expected>
 #include <cpp_utils/macros_expected.h>
+#include <cpp_utils/wx_json.h>
 #include <nlohmann/json.hpp>
 
 #include "../http/HttpConnection.h"
@@ -16,7 +17,7 @@ protected:
         HttpConnection connection;
         UNWRAP_OR_RETURN_ERROR(success, connection.HttpGet(requestUrl));
 
-        const auto body = success.body.ToStdString();
+        const auto body = success.body;
         const auto jObject = nlohmann::json::parse(body);
         const auto& response = jObject.get<TResult>();
         return response;

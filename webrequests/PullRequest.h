@@ -1,6 +1,7 @@
 #pragma once
 
 #include "wx/string.h"
+#include <cpp_utils/ranges.h>
 #include <cpp_utils/wx_json.h>
 #include <cpp_utils/wx_string_format.h>
 

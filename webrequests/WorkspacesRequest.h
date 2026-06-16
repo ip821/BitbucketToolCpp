@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cpp_utils/ranges.h>
+
 #include "BitbucketClient.h"
 #include "Values.h"
 #include "../Constants.h"

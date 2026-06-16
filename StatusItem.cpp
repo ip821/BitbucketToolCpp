@@ -67,7 +67,9 @@ StatusItem::StatusItem() :
     pMenu->Bind(wxEVT_MENU, &StatusItem::OnMenuItemClick, this);
     m_pMenu = pMenu;
 
-    Bind(wxEVT_TASKBAR_LEFT_DCLICK, &StatusItem::OnLeftButtonDClick, this);
+#ifdef __WXMSW__
+    Bind(wxEVT_TASKBAR_LEFT_UP, &StatusItem::OnLeftButtonClick, this);
+#endif
 
     m_pTimer = new wxTimer(this);
     Bind(wxEVT_TIMER, [this](wxTimerEvent&)
@@ -262,11 +264,11 @@ void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
                         title += wxS(" (!)");
                 } else
                 {
-                    SetTitle(std::format(wxS("{}"), waitingCount));
+                    SetStatusItemTitle(std::format(wxS("{}"), waitingCount));
                 }
             } else
             {
-                SetTitle(wxS(""));
+                SetStatusItemTitle(wxS(""));
             }
 
             if (args.showNotification)
@@ -285,7 +287,16 @@ wxMenu *StatusItem::GetPopupMenu()
     return m_pMenu;
 }
 
-void StatusItem::OnLeftButtonDClick(wxTaskBarIconEvent&)
+void StatusItem::SetStatusItemTitle(const wxString& title)
 {
-    ShowPreferencesDialog();
+#if defined(__WXOSX__)
+    SetTitle(title);
+#else
+    wxUnusedVar(title);
+#endif
+}
+
+void StatusItem::OnLeftButtonClick(wxTaskBarIconEvent&)
+{
+    PopupMenu(m_pMenu);
 }
