@@ -231,7 +231,7 @@ void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
                 m_pMenu->Insert(index++, id++, thirdLineTitle)->Enable(false);
             }
 
-            m_pMenu->InsertSeparator(index++);
+            m_pMenu->InsertSeparator(index++)->SetId(id++);
             m_pMenu->Insert(index++, id++, "Your pull requests")->Enable(false);
 
             for (const auto& pullRequest: pullRequestsInfo.myPullRequests)
