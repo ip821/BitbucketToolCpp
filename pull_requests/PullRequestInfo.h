@@ -89,7 +89,7 @@ struct PullRequestInfo
 
 struct PullRequestsInfo
 {
-    User currentUser{};
-    std::vector<PullRequestInfo> waitingForMyApprovalPullRequests{};
-    std::vector<PullRequestInfo> myPullRequests{};
+    const User currentUser{};
+    const std::vector<PullRequestInfo> waitingForMyApprovalPullRequests{};
+    const std::vector<PullRequestInfo> myPullRequests{};
 };

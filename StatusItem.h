@@ -22,8 +22,6 @@ class PreferencesWindow;
 
 class StatusItem : public wxTaskBarIcon
 {
-    friend class UpdateOperationScope;
-
     PreferencesWindow *m_pDialog{};
     wxMenu *m_pMenu{};
     wxMenu *m_pCreatePullRequestsMenu{};
@@ -48,8 +46,6 @@ class StatusItem : public wxTaskBarIcon
     void InsertPullRequestTitleMenuItem(IdAndIndex& menuItemId, const PullRequestInfo& pullRequest) const;
     void InsertSecondaryPullRequestMenuItem(IdAndIndex& menuItemId, const wxString& title) const;
     void UpdateTitle(const PullRequestsInfo& pullRequestsInfo);
-    void BeginUpdate() const;
-    void EndUpdate() const;
 
 #ifdef __WXOSX__
     wxBitmapBundle m_bitmapBundle = wxBitmapBundle::FromResources("status32@2x");
