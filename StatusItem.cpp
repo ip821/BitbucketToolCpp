@@ -10,6 +10,7 @@
 
 #include "StatusItem.h"
 
+#include "UpdateOperationScope.h"
 #include "http/HttpConnection.h"
 #include "preferences/PreferencesWindow.h"
 #include "preferences/settings/Config.h"
@@ -186,8 +187,6 @@ void StatusItem::ShowErrorNotification(const wxString& message) const
 
 void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 {
-    m_pMenu->Enable(MENU_ITEM_UPDATE_ID, false);
-
     const auto repositories = Config::GetRepositories();
 
     UpdateCreatePullRequestsMenu(repositories);
@@ -195,21 +194,29 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
     wxWeakRef isWindowValid(this);
     std::thread([this, args, isWindowValid]
     {
-        PullRequestService pullRequestService;
-        const auto result = pullRequestService.GetPullRequests();
+        PullRequestsInfo pullRequestsInfo;
 
-        if (!result)
         {
-            ShowErrorNotification(result.error().message);
-            return;
-        }
+            UpdateOperationScope scope(this);
 
-        const auto pullRequestsInfo = result.value();
+            PullRequestService pullRequestService;
+            const auto pullRequestsResult = pullRequestService.GetPullRequests();
+
+            if (!pullRequestsResult)
+            {
+                ShowErrorNotification(pullRequestsResult.error().message);
+                return;
+            }
+
+            pullRequestsInfo = pullRequestsResult.value();
+        }
 
         CallAfter([isWindowValid, args, this, pullRequestsInfo]
         {
             if (!isWindowValid)
                 return;
+
+            UpdateOperationScope scope(this);
 
             RemoveAllPrMenuItems();
 
@@ -260,9 +267,6 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
                 wxNotificationMessage notification("BitbucketTool", "Pull requests were updated");
                 notification.Show();
             }
-
-            m_pTimer->StartOnce(fiveMinutes);
-            m_pMenu->Enable(MENU_ITEM_UPDATE_ID, true);
         });
     }).detach();
 }
@@ -311,6 +315,17 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo)
     {
         SetStatusItemTitle(wxS(""));
     }
+}
+
+void StatusItem::BeginUpdate() const
+{
+    m_pMenu->Enable(MENU_ITEM_UPDATE_ID, false);
+}
+
+void StatusItem::EndUpdate() const
+{
+    m_pTimer->StartOnce(fiveMinutes);
+    m_pMenu->Enable(MENU_ITEM_UPDATE_ID, true);
 }
 
 wxMenu *StatusItem::GetPopupMenu()
