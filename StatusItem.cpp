@@ -195,21 +195,26 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
     wxWeakRef isWindowValid(this);
     std::thread([this, args, isWindowValid]
     {
+        m_pMenu->Enable(MENU_ITEM_UPDATE_ID, false);
+
         PullRequestService pullRequestService;
-        const auto result = pullRequestService.GetPullRequests();
+        const auto pullRequestsResult = pullRequestService.GetPullRequests();
 
-        if (!result)
-        {
-            ShowErrorNotification(result.error().message);
-            return;
-        }
-
-        const auto pullRequestsInfo = result.value();
-
-        CallAfter([isWindowValid, args, this, pullRequestsInfo]
+        CallAfter([isWindowValid, args, this, pullRequestsResult]
         {
             if (!isWindowValid)
                 return;
+
+            m_pTimer->StartOnce(fiveMinutes);
+            m_pMenu->Enable(MENU_ITEM_UPDATE_ID, true);
+
+            if (!pullRequestsResult)
+            {
+                ShowErrorNotification(pullRequestsResult.error().message);
+                return;
+            }
+
+            const auto pullRequestsInfo = pullRequestsResult.value();
 
             RemoveAllPrMenuItems();
 
@@ -260,9 +265,6 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
                 wxNotificationMessage notification("BitbucketTool", "Pull requests were updated");
                 notification.Show();
             }
-
-            m_pTimer->StartOnce(fiveMinutes);
-            m_pMenu->Enable(MENU_ITEM_UPDATE_ID, true);
         });
     }).detach();
 }
