@@ -1,7 +1,7 @@
-#include "PullRequestService.h"
-
 #include <unordered_set>
 #include <cpp_utils/macros_expected.h>
+
+#include "PullRequestService.h"
 
 #include "../preferences/settings/Config.h"
 #include "../webrequests/CurrentUserRequest.h"

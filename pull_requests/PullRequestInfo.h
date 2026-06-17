@@ -1,4 +1,5 @@
 #pragma once
+
 #include "../webrequests/DiffStat.h"
 #include "../webrequests/PullRequest.h"
 #include "../webrequests/Status.h"
@@ -37,7 +38,10 @@ struct PullRequestInfo
                           ? wxS("Cancelled")
                           : HasBuildsWithStatus(InProgress)
                                 ? wxS("InProgress")
-                                : std::format(wxS("Success ({})"), std::ranges::count_if(statuses, [](const auto& it) { return it.state == Successful; }));
+                                : std::format(
+                                    wxS("Success ({})"),
+                                    std::ranges::count_if(statuses, [](const auto& it) { return it.state == Successful; })
+                                );
 
         return std::format(
             wxS("[Files: {}] [Comments: {}] [Approvals: {}] [Builds: {}]"),
@@ -60,22 +64,13 @@ struct PullRequestInfo
         const auto approved = pullRequest.participants
                 | std::views::filter([](const auto& it) { return it.approved; })
                 | std::ranges::to<std::vector>();
+
         if (approved.size() == pullRequest.participants.size())
             status = wxS("Ready for merge");
 
-        const auto hasFailedBuilds = std::ranges::any_of(
-            statuses,
-            [](const auto& status) { return status.state == Failed; }
-        );
-
-        const auto hasInProgressBuilds = std::ranges::any_of(
-            statuses,
-            [](const auto& status) { return status.state == InProgress; }
-        );
-
-        if (hasFailedBuilds)
+        if (HasBuildsWithStatus(Failed))
             status = wxS("Build failed");
-        else if (hasInProgressBuilds)
+        else if (HasBuildsWithStatus(InProgress))
             status = wxS("Building");
 
         return status;
@@ -94,7 +89,7 @@ struct PullRequestInfo
 
 struct PullRequestsInfo
 {
-    const User currentUser;
-    const std::vector<PullRequestInfo> waitingForMyApprovalPullRequests;
-    const std::vector<PullRequestInfo> myPullRequests;
+    const User currentUser{};
+    const std::vector<PullRequestInfo> waitingForMyApprovalPullRequests{};
+    const std::vector<PullRequestInfo> myPullRequests{};
 };

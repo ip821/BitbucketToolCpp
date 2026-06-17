@@ -4,12 +4,13 @@
 
 struct Success
 {
-    wxString body;
+    wxString responseBody;
 };
 
 struct Error
 {
     wxString message;
+    wxString responseBody;
 };
 
 using HttpResult = std::expected<Success, Error>;

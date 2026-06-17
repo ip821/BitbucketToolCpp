@@ -2,6 +2,7 @@
 
 #include <wx/wizard.h>
 #include <wx/activityindicator.h>
+
 #include "SetupWizardContext.h"
 
 class LoginPage;

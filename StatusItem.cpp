@@ -54,7 +54,7 @@ StatusItem::StatusItem() :
     SetIcon(m_bitmapBundle, "Tooltip");
 #endif
     m_pCreatePullRequestsMenu = new wxMenu;
-    m_pCreatePullRequestsMenu->Bind(wxEVT_MENU, &StatusItem::OnMenuCreatePr, this);
+    m_pCreatePullRequestsMenu->Bind(wxEVT_MENU, &StatusItem::OnCreatePullRequestMenuItemClick, this);
 
     const auto pMenu = new wxMenu;
     pMenu->AppendSeparator()->SetId(MENU_ITEM_LAST_SEPARATOR);
@@ -73,7 +73,7 @@ StatusItem::StatusItem() :
     m_pTimer = new wxTimer(this);
     Bind(wxEVT_TIMER, [this](wxTimerEvent&)
     {
-        OnUpdatePullRequests({.showNotification = false});
+        UpdatePullRequests({.showNotification = false});
     });
 
 #if defined(WXDEBUG)
@@ -97,7 +97,7 @@ void StatusItem::OnMenuItemClick(wxCommandEvent& e)
     switch (e.GetId())
     {
         case MENU_ITEM_UPDATE_ID:
-            OnUpdatePullRequests({.showNotification = true});
+            UpdatePullRequests({.showNotification = true});
             return;
 
         case MENU_ITEM_PREFERENCES_ID:
@@ -130,7 +130,7 @@ void StatusItem::OnMenuItemClick(wxCommandEvent& e)
     }
 }
 
-void StatusItem::OnMenuCreatePr(wxCommandEvent& event)
+void StatusItem::OnCreatePullRequestMenuItemClick(wxCommandEvent& event)
 {
     const auto menuItemId = event.GetId();
     const auto pMenuItem = m_pCreatePullRequestsMenu->FindItemByPosition(menuItemId - MENU_ITEM_CREATE_PULL_REQUEST_ID);
@@ -140,11 +140,11 @@ void StatusItem::OnMenuCreatePr(wxCommandEvent& event)
     const auto workspace = parts[0];
     const auto repo = parts[1];
 
-    const wxString bitbucketHostname = "https://bitbucket.org";
+    const wxString bitbucketHostname = wxS("https://bitbucket.org");
     const auto url = bitbucketHostname +
-            "/" + workspace +
-            "/" + repo +
-            "/pull-requests/new";
+            wxS("/") + workspace +
+            wxS("/") + repo +
+            wxS("/pull-requests/new");
 
     wxLaunchDefaultBrowser(url);
 }
@@ -184,7 +184,7 @@ void StatusItem::ShowErrorNotification(const wxString& message) const
     notification.Show();
 }
 
-void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
+void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 {
     const auto repositories = Config::GetRepositories();
 
@@ -213,35 +213,28 @@ void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 
             m_menuItemIdToPullRequest.clear();
 
-            auto index = 0;
-            auto id = MENU_ITEM_LAST_SEPARATOR + 1;
-            m_pMenu->Insert(index++, id++, "Pull requests to review")->Enable(false);
+            IdAndIndex idAndIndex = {.id = MENU_ITEM_LAST_SEPARATOR + 1, .index = 0};
+            m_pMenu->Insert(idAndIndex.index++, idAndIndex.id++, "Pull requests to review")->Enable(false);
 
             for (const auto& pullRequest: pullRequestsInfo.waitingForMyApprovalPullRequests)
             {
-                m_menuItemIdToPullRequest[id] = pullRequest;
-                m_pMenu->Insert(index++, id++, pullRequest.GetMainMenuItemTitle().Left(90));
+                m_menuItemIdToPullRequest[idAndIndex.id] = pullRequest;
+                InsertPullRequestTitleMenuItem(idAndIndex, pullRequest);
 
-                const auto secondLineTitle = std::format(wxS("   {}"), pullRequest.GetAuthorAndBranchMenuItemTitle());
-                m_pMenu->Insert(index++, id++, secondLineTitle)->Enable(false);
-
-                const auto thirdLineTitle = std::format(wxS("   {}"), pullRequest.GetPullRequestDetailsMenuItemTitle());
-                m_pMenu->Insert(index++, id++, thirdLineTitle)->Enable(false);
+                InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetAuthorAndBranchMenuItemTitle());
+                InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetPullRequestDetailsMenuItemTitle());
             }
 
-            m_pMenu->InsertSeparator(index++)->SetId(id++);
-            m_pMenu->Insert(index++, id++, "Your pull requests")->Enable(false);
+            m_pMenu->InsertSeparator(idAndIndex.index++)->SetId(idAndIndex.id++);
+            m_pMenu->Insert(idAndIndex.index++, idAndIndex.id++, "Your pull requests")->Enable(false);
 
             for (const auto& pullRequest: pullRequestsInfo.myPullRequests)
             {
-                m_menuItemIdToPullRequest[id] = pullRequest;
-                m_pMenu->Insert(index++, id++, pullRequest.GetMainMenuItemTitle().Left(90));
+                m_menuItemIdToPullRequest[idAndIndex.id] = pullRequest;
+                InsertPullRequestTitleMenuItem(idAndIndex, pullRequest);
 
-                const auto secondLineTitle = std::format(wxS("   {}"), pullRequest.GetMyPullRequestBranchMenuItemTitle());
-                m_pMenu->Insert(index++, id++, secondLineTitle)->Enable(false);
-
-                const auto thirdLineTitle = std::format(wxS("   {}"), pullRequest.GetPullRequestDetailsMenuItemTitle());
-                m_pMenu->Insert(index++, id++, thirdLineTitle)->Enable(false);
+                InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetMyPullRequestBranchMenuItemTitle());
+                InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetPullRequestDetailsMenuItemTitle());
 
                 const auto participants = pullRequest.pullRequest.participants
                         | std::views::filter([](const auto& it) { return it.role == Reviewer || it.approved; })
@@ -250,11 +243,11 @@ void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
                 for (const auto& participant: participants)
                 {
                     const auto& symbol = participant.approved ? wxS("✔") : wxS("...");
-                    wxString title = std::format(wxS("   {} {}"), symbol, participant.user.display_name);
+                    wxString participantMenuItemTitle = std::format(wxS("{} {}"), symbol, participant.user.display_name);
                     if (participant.state == ChangesRequested)
-                        title += wxS(" - Requested changes");
+                        participantMenuItemTitle += wxS(" - Requested changes");
 
-                    m_pMenu->Insert(index++, id++, title)->Enable(false);
+                    InsertSecondaryPullRequestMenuItem(idAndIndex, participantMenuItemTitle);
                 }
             }
 
@@ -269,6 +262,17 @@ void StatusItem::OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args)
             m_pTimer->StartOnce(fiveMinutes);
         });
     }).detach();
+}
+
+void StatusItem::InsertPullRequestTitleMenuItem(IdAndIndex& menuItemId, const PullRequestInfo& pullRequest) const
+{
+    m_pMenu->Insert(menuItemId.index++, menuItemId.id++, pullRequest.GetMainMenuItemTitle().Left(90));
+}
+
+void StatusItem::InsertSecondaryPullRequestMenuItem(IdAndIndex& menuItemId, const wxString& title) const
+{
+    const auto secondLineTitle = std::format(wxS("   {}"), title);
+    m_pMenu->Insert(menuItemId.index++, menuItemId.id++, secondLineTitle)->Enable(false);
 }
 
 void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo)

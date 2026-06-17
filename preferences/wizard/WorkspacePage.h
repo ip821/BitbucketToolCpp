@@ -3,10 +3,11 @@
 #include "SetupWizard.h"
 
 class WorkspaceView;
+
 struct ProcessedWorkspace
 {
-    Workspace m_workspace;
-    bool m_isProcessed = false;
+    Workspace m_workspace{};
+    bool m_isProcessed{};
 };
 
 class wxStaticBox;

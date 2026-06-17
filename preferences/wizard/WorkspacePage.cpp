@@ -1,5 +1,6 @@
 #include <format>
 #include <thread>
+
 #include <nlohmann/json.hpp>
 #include <wx/activityindicator.h>
 #include <wx/base64.h>

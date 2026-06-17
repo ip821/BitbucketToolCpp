@@ -1,8 +1,9 @@
-#include "Config.h"
-
 #include <wx/wx.h>
 #include <wx/config.h>
+
 #include <nlohmann/json.hpp>
+
+#include "Config.h"
 
 #include "../../webrequests/Repository.h"
 

@@ -1,13 +1,10 @@
-//
-// Created by Igor Palkin on 27.12.2025.
-//
+#include <thread>
 
 #include <wx/wx.h>
 #include <wx/activityindicator.h>
 #include <wx/webrequest.h>
 #include <nlohmann/json.hpp>
 #include <cpp_utils/match_expected.h>
-#include <thread>
 
 #include "LoginPage.h"
 #include "LoginView.h"

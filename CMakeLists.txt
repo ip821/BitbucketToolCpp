@@ -3,7 +3,7 @@ project(PRToolForBitbucket2 LANGUAGES CXX)
 
 include(FetchContent)
 
-set(BITBACKETTOOL_APP_VERSION 1.0)
+set(BITBACKETTOOL_APP_VERSION 1.1)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -64,7 +64,6 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         preferences/wizard/RepositoryPage.cpp
         preferences/wizard/RepositoryPage.h
         preferences/wizard/SetupWizardContext.h
-        Constants.h
         preferences/settings/Config.cpp
         preferences/settings/Config.h
         preferences/Credentials.cpp
@@ -91,7 +90,7 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         pull_requests/PullRequestService.cpp
         pull_requests/PullRequestService.h
         pull_requests/PullRequestInfo.h
-        webrequests/BitbucketClient.h
+        webrequests/BitbucketRequest.h
         webrequests/PullRequestRequest.h
         webrequests/DiffStat.h
         webrequests/DiffStatRequest.h
@@ -99,6 +98,8 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         webrequests/StatusRequest.h
         version.h
         main.cpp
+        webrequests/ServerResponse.h
+        webrequests/BitbucketUrlBuilder.h
 )
 configure_file(
         ${CMAKE_SOURCE_DIR}/version.h.in

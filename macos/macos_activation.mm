@@ -1,7 +1,3 @@
-//
-// Created by Igor Palkin on 19.12.2025.
-//
-
 #if defined(__WXOSX__)
 
 #import <Cocoa/Cocoa.h>

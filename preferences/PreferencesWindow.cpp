@@ -1,20 +1,16 @@
-//
-// Created by Igor Palkin on 19.12.2025.
-//
+#include <ranges>
+#include <set>
 
 #include <wx/wizard.h>
 #include <wx/wx.h>
 
-#include "../preferences/PreferencesWindow.h"
-
-#include <ranges>
-#include <set>
 #include <cpp_utils/ranges.h>
+#include <cpp_utils/wx_string_join.h>
 
 #include "version.h"
-#include "cpp_utils/wx_string_join.h"
 #include "settings/Config.h"
 #include "wizard/SetupWizard.h"
+#include "../preferences/PreferencesWindow.h"
 
 extern "C" void ShowDockIcon();
 extern "C" void HideDockIcon();
@@ -33,8 +29,8 @@ PreferencesWindow::PreferencesWindow() :
     m_pVersionText->SetFont(m_pVersionText->GetFont().Scale(0.8));
     m_pVersionText->SetLabelText(std::format("Version: {}", APP_VERSION));
 
-    Bind(wxEVT_SHOW, &PreferencesWindow::OnShowWindow, this);
-    Bind(wxEVT_CLOSE_WINDOW, &PreferencesWindow::OnCloseWindow, this);
+    Bind(wxEVT_SHOW, &PreferencesWindow::OnShow, this);
+    Bind(wxEVT_CLOSE_WINDOW, &PreferencesWindow::OnClose, this);
 }
 
 void PreferencesWindow::OnInitDialog(wxInitDialogEvent&)
@@ -67,7 +63,7 @@ void PreferencesWindow::UpdateTextBoxes()
     Layout();
 }
 
-void PreferencesWindow::OnShowWindow(wxShowEvent& event)
+void PreferencesWindow::OnShow(wxShowEvent& event)
 {
 #if defined(__WXOSX__)
     if (event.IsShown())
@@ -82,7 +78,7 @@ void PreferencesWindow::OnShowWindow(wxShowEvent& event)
 #endif
 }
 
-void PreferencesWindow::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
+void PreferencesWindow::OnClose(wxCloseEvent& WXUNUSED(event))
 {
     Show(false);
 }

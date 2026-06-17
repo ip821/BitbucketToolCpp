@@ -1,9 +1,4 @@
-//
-// Created by Igor Palkin on 27.12.2025.
-//
-
-#ifndef WXWIDGETSPLAYGROUND_REPOSITORYPAGE_H
-#define WXWIDGETSPLAYGROUND_REPOSITORYPAGE_H
+#pragma once
 
 class RepositoryView;
 struct SetupWizardContext;
@@ -17,6 +12,3 @@ class RepositoryPage : public wxWizardPageSimple
 public:
     explicit RepositoryPage(SetupWizard* pWizard, SetupWizardContext& context);
 };
-
-
-#endif //WXWIDGETSPLAYGROUND_REPOSITORYPAGE_H

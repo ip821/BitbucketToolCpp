@@ -45,7 +45,7 @@ void Credentials::SetCredentials(const wxString& userName, const wxString& passw
     if (auto store = wxSecretStore::GetDefault();
         store.IsOk())
     {
-        wxSecretValue passwordSecretValue(password);
+        const wxSecretValue passwordSecretValue(password);
         store.Save(SecretStoreAppName, userName, passwordSecretValue);
     }
 }

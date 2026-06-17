@@ -12,31 +12,39 @@ struct OnUpdatePullRequestsArgs
     bool showNotification{};
 };
 
+struct IdAndIndex
+{
+    int id{};
+    int index{};
+};
+
 class PreferencesWindow;
 
 class StatusItem : public wxTaskBarIcon
 {
-    PreferencesWindow* m_pDialog{};
-    wxMenu* m_pMenu{};
-    wxMenu* m_pCreatePullRequestsMenu{};
-    wxTimer* m_pTimer{};
+    PreferencesWindow *m_pDialog{};
+    wxMenu *m_pMenu{};
+    wxMenu *m_pCreatePullRequestsMenu{};
+    wxTimer *m_pTimer{};
 
-    std::vector<Repository> m_repositories{};
-    std::unordered_map<int, PullRequestInfo> m_menuItemIdToPullRequest{};
+    std::vector<Repository> m_repositories;
+    std::unordered_map<int, PullRequestInfo> m_menuItemIdToPullRequest;
 
-    wxMenu* GetPopupMenu() override;
+    wxMenu *GetPopupMenu() override;
 
     void SetStatusItemTitle(const wxString& title);
 
     void OnLeftButtonClick(wxTaskBarIconEvent&);
     void OnMenuItemClick(wxCommandEvent&);
-    void OnMenuCreatePr(wxCommandEvent&);
+    void OnCreatePullRequestMenuItemClick(wxCommandEvent&);
 
     void RemoveAllPrMenuItems();
     void ShowPreferencesDialog() const;
     void UpdateCreatePullRequestsMenu(const std::vector<Repository>& repositories);
     void ShowErrorNotification(const wxString& message) const;
-    void OnUpdatePullRequests(const OnUpdatePullRequestsArgs& args);
+    void UpdatePullRequests(const OnUpdatePullRequestsArgs& args);
+    void InsertPullRequestTitleMenuItem(IdAndIndex& menuItemId, const PullRequestInfo& pullRequest) const;
+    void InsertSecondaryPullRequestMenuItem(IdAndIndex& menuItemId, const wxString& title) const;
     void UpdateTitle(const PullRequestsInfo& pullRequestsInfo);
 
 #ifdef __WXOSX__

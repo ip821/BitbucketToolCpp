@@ -1,23 +1,14 @@
 #pragma once
-#include "BitbucketClient.h"
+
+#include "BitbucketRequest.h"
 #include "Repository.h"
 #include "Status.h"
-#include "../Constants.h"
 
-class StatusRequest : public BitbucketClient<Values<Status>>
+class StatusRequest : public BitbucketRequest<Values<Status>>
 {
 public:
     TResponse GetStatuses(const Repository& repository, int pullRequestId) const
     {
-        const auto repoKey = repository.GetRepoKey();
-
-        const auto url = BitBucketBaseUrl
-                + wxS("/repositories/")
-                + repoKey
-                + wxS("/pullrequests/")
-                + std::format(wxS("{}"), pullRequestId)
-                + wxS("/statuses");
-
-        return PerformRequest(url);
+        return PerformRequest(BitbucketUrlBuilder::GetStatusesUrl(repository, pullRequestId));
     }
 };

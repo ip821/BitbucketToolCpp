@@ -1,20 +1,20 @@
 #pragma once
 
 #include <cpp_utils/ranges.h>
+#include <cpp_utils/macros_expected.h>
 
-#include "BitbucketClient.h"
+#include "BitbucketRequest.h"
+#include "BitbucketUrlBuilder.h"
 #include "Values.h"
-#include "../Constants.h"
 #include "../http/HttpConnection.h"
 #include "../preferences/wizard/SetupWizardContext.h"
 
-class WorkspacesRequest : public BitbucketClient<Values<WorkspaceAccess> >
+class WorkspacesRequest : public BitbucketRequest<Values<WorkspaceAccess> >
 {
 public:
     [[nodiscard]] std::expected<std::vector<Workspace>, Error> GetWorkspaces() const
     {
-        const auto url = BitBucketBaseUrl + wxS("/user/workspaces");
-        const auto result = PerformRequest(url);
+        const auto result = PerformRequest(BitbucketUrlBuilder::GetWorkspacesUrl());
         UNWRAP_OR_RETURN_ERROR(repositories, result);
 
         const auto workspaces = repositories.values

@@ -27,27 +27,30 @@ HttpResult HttpConnection::HttpGet(const wxString& url) const
 
         const auto result = webRequest.Execute();
         const auto response = webRequest.GetResponse();
+        const auto responseBody = response.AsString();
 
         if (!result)
         {
             const auto responseUrl = response.GetURL();
             if (response.GetStatus() == 404 && responseUrl != requestUrl)
             {
+                // On macOS redirection occurs without attaching proper Authentication headers to the forthcoming requests
+                // So I repeat the request to the redirected URL manually
                 redirectCount--;
                 requestUrl = responseUrl;
                 continue;
             }
-            return std::unexpected(Error{result.error});
+            return std::unexpected(Error{result.error, responseBody});
         }
 
         const auto errorMessage = response.GetStatusText();
         if (const auto statusCode = response.GetStatus(); statusCode != 200)
         {
-            return std::unexpected(Error{errorMessage});
+            return std::unexpected(Error{errorMessage, responseBody});
         }
 
-        return Success{response.AsString()};
+        return Success{responseBody};
     }
 
-    return std::unexpected(Error{wxS("Redirect count is exceeded.")});
+    return std::unexpected(Error{wxS("Redirect count is exceeded."), {}});
 }
