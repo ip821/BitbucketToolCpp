@@ -105,11 +105,11 @@ target_link_libraries(PRToolForBitbucket2 PRIVATE
         wx::net
         nlohmann_json::nlohmann_json
         cpp_utils::cpp_utils)
-target_link_options(PRToolForBitbucket2 PRIVATE
-        $<$<CONFIG:Release>:-Wl,--strip-all>
-)
 
 if (WIN32)
+    target_link_options(PRToolForBitbucket2 PRIVATE
+            $<$<CONFIG:Release>:-Wl,--strip-all>
+    )
     target_sources(PRToolForBitbucket2 PRIVATE
             windows/app.rc
             windows/app.manifest
