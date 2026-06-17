@@ -1,6 +1,9 @@
+#include <format>
 #include <wx/webrequest.h>
+#include <cpp_utils/wx_string_format.h>
 
 #include "HttpConnection.h"
+
 #include "../preferences/Credentials.h"
 
 HttpConnection::HttpConnection()
@@ -40,12 +43,12 @@ HttpResult HttpConnection::HttpGet(const wxString& url) const
                 requestUrl = responseUrl;
                 continue;
             }
-            return std::unexpected(Error{result.error, responseBody});
         }
 
-        const auto errorMessage = response.GetStatusText();
-        if (const auto statusCode = response.GetStatus(); statusCode != 200)
+        if (!result)
         {
+            const auto httpStatus = response.GetStatus();
+            const auto errorMessage = std::format(wxS("{}: {}"), result.error, HttpStatusToString(httpStatus));
             return std::unexpected(Error{errorMessage, responseBody});
         }
 
@@ -53,4 +56,23 @@ HttpResult HttpConnection::HttpGet(const wxString& url) const
     }
 
     return std::unexpected(Error{wxS("Redirect count is exceeded."), {}});
+}
+
+wxString HttpConnection::HttpStatusToString(int code)
+{
+    switch (code)
+    {
+        case 400: return "Bad Request";
+        case 401: return "Unauthorized";
+        case 403: return "Forbidden";
+        case 404: return "Not Found";
+        case 409: return "Conflict";
+        case 429: return "Too Many Requests";
+        case 500: return "Internal Server Error";
+        case 502: return "Bad Gateway";
+        case 503: return "Service Unavailable";
+        case 504: return "Gateway Timeout";
+        default:
+            return wxString::Format("HTTP %d", code);
+    }
 }

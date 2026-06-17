@@ -22,4 +22,5 @@ public:
     ~HttpConnection();
 
     [[nodiscard]] HttpResult HttpGet(const wxString& url) const;
+    static wxString HttpStatusToString(int code);
 };

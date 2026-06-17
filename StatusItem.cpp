@@ -284,12 +284,11 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo)
         if (myCount)
         {
             auto title = std::format(wxS("{}/{}"), waitingCount, myCount);
+
             const auto hasFailedBuilds = std::ranges::any_of(
                 pullRequestsInfo.myPullRequests,
-                [](const auto& it)
-                {
-                    return std::ranges::any_of(it.statuses, [](const auto& status) { return status.state == Failed; });
-                });
+                [](const auto& it) { return it.HasBuildsWithStatus(Failed); });
+
             const auto hasSomeoneRequestedChanges = std::ranges::any_of(
                 pullRequestsInfo.myPullRequests,
                 [](const auto& it)
