@@ -1,10 +1,4 @@
-//
-// Created by Igor Palkin on 19.12.2025.
-//
-
-#ifndef WXWIDGETSPLAYGROUND_MYAPP_H
-#define WXWIDGETSPLAYGROUND_MYAPP_H
-#include <memory>
+#pragma once
 
 class StatusItem;
 
@@ -15,7 +9,5 @@ public:
     bool OnInit() override;
 
 private:
-    StatusItem* m_pStatusItem;
+    StatusItem* m_pStatusItem{};
 };
-
-#endif //WXWIDGETSPLAYGROUND_MYAPP_H

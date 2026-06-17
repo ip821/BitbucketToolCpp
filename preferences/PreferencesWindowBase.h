@@ -38,7 +38,8 @@ class PreferencesWindowBase : public wxDialog
 		wxStaticText* m_staticText6;
 		wxStaticText* m_repositoryText;
 		wxStaticText* m_pHelpText;
-		wxButton* m_button1;
+		wxButton* m_pButtonSetup;
+		wxStaticText* m_pVersionText;
 
 		// Virtual event handlers, override them in your derived class
 		virtual void OnInitDialog( wxInitDialogEvent& event ) = 0;

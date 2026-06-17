@@ -3,6 +3,8 @@ project(PRToolForBitbucket2 LANGUAGES CXX)
 
 include(FetchContent)
 
+set(BITBACKETTOOL_APP_VERSION 1.0)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -95,7 +97,16 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         webrequests/DiffStatRequest.h
         webrequests/Status.h
         webrequests/StatusRequest.h
+        version.h
+        main.cpp
 )
+configure_file(
+        ${CMAKE_SOURCE_DIR}/version.h.in
+        ${CMAKE_BINARY_DIR}/version.h
+        @ONLY
+)
+target_include_directories(PRToolForBitbucket2 PRIVATE ${CMAKE_BINARY_DIR})
+
 target_compile_options(PRToolForBitbucket2 PRIVATE
         -Wall -Wextra -Wpedantic -Werror
 )

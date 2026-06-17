@@ -1,11 +1,11 @@
-#include "Credentials.h"
-
 #include "wx/base64.h"
 #include "wx/wx.h"
 #include "wx/log.h"
 #include "wx/secretstore.h"
 
-#include "../Constants.h"
+#include "Credentials.h"
+
+const wxString SecretStoreAppName = "PRToolForBitbucketCpp";
 
 wxString Credentials::GetCredentialsBase64()
 {

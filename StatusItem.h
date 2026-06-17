@@ -1,34 +1,28 @@
-//
-// Created by Igor Palkin on 19.12.2025.
-//
-
-#ifndef WXWIDGETSPLAYGROUND_MYTASKBARICON_H
-#define WXWIDGETSPLAYGROUND_MYTASKBARICON_H
+#pragma once
 
 #include <wx/taskbar.h>
 #include <wx/bmpbndl.h>
 #include <wx/timer.h>
 
 #include "pull_requests/PullRequestInfo.h"
-#include "pull_requests/PullRequestService.h"
 #include "webrequests/Repository.h"
 
 struct OnUpdatePullRequestsArgs
 {
-    bool showNotification;
+    bool showNotification{};
 };
 
 class PreferencesWindow;
 
 class StatusItem : public wxTaskBarIcon
 {
-    PreferencesWindow* m_pDialog;
-    wxMenu* m_pMenu;
-    wxMenu* m_pCreatePullRequestsMenu;
-    wxTimer* m_pTimer;
+    PreferencesWindow* m_pDialog{};
+    wxMenu* m_pMenu{};
+    wxMenu* m_pCreatePullRequestsMenu{};
+    wxTimer* m_pTimer{};
 
-    std::vector<Repository> m_repositories;
-    std::unordered_map<int, PullRequestInfo> m_menuItemIdToPullRequest;
+    std::vector<Repository> m_repositories{};
+    std::unordered_map<int, PullRequestInfo> m_menuItemIdToPullRequest{};
 
     wxMenu* GetPopupMenu() override;
 
@@ -50,12 +44,10 @@ class StatusItem : public wxTaskBarIcon
 #endif
 
 #ifndef __WXOSX__
-    wxBitmap m_statusBitmap;
-    wxBitmapBundle m_bitmapBundle;
+    wxBitmap m_statusBitmap{};
+    wxBitmapBundle m_bitmapBundle{};
 #endif
 
 public:
     explicit StatusItem();
 };
-
-#endif // WXWIDGETSPLAYGROUND_MYTASKBARICON_H

@@ -1,22 +1,21 @@
+#include <ranges>
+#include <thread>
+
+#include <wx/notifmsg.h>
 #include <wx/wx.h>
 #include <wx/xrc/xmlres.h>
-#include <wx/notifmsg.h>
-
-#include <thread>
-#include <ranges>
-
-#include "StatusItem.h"
+#include <wx/clipbrd.h>
 
 #include <cpp_utils/match_expected.h>
 
+#include "StatusItem.h"
+
 #include "http/HttpConnection.h"
-#include "preferences/settings/Config.h"
 #include "preferences/PreferencesWindow.h"
+#include "preferences/settings/Config.h"
 #include "pull_requests/PullRequestService.h"
 #include "webrequests/CurrentUserRequest.h"
 #include "webrequests/PullRequestsRequest.h"
-#include "wx/clipbrd.h"
-#include "wx/osx/clipbrd.h"
 
 enum
 {

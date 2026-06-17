@@ -1,4 +1,3 @@
-#include <memory>
 #include <wx/app.h>
 #include <wx/filesys.h>
 #include <wx/fs_mem.h>
@@ -8,8 +7,6 @@
 #include "StatusItem.h"
 
 extern void InitXmlResource();
-
-wxIMPLEMENT_APP(App);
 
 App::App()
 {

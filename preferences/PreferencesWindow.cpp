@@ -11,6 +11,7 @@
 #include <set>
 #include <cpp_utils/ranges.h>
 
+#include "version.h"
 #include "cpp_utils/wx_string_join.h"
 #include "settings/Config.h"
 #include "wizard/SetupWizard.h"
@@ -29,6 +30,8 @@ PreferencesWindow::PreferencesWindow() :
 #endif
 
     m_pHelpText->SetFont(m_pHelpText->GetFont().Scale(0.8));
+    m_pVersionText->SetFont(m_pVersionText->GetFont().Scale(0.8));
+    m_pVersionText->SetLabelText(std::format("Version: {}", APP_VERSION));
 
     Bind(wxEVT_SHOW, &PreferencesWindow::OnShowWindow, this);
     Bind(wxEVT_CLOSE_WINDOW, &PreferencesWindow::OnCloseWindow, this);
