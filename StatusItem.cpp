@@ -186,6 +186,8 @@ void StatusItem::ShowErrorNotification(const wxString& message) const
 
 void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 {
+    m_pMenu->Enable(MENU_ITEM_UPDATE_ID, false);
+
     const auto repositories = Config::GetRepositories();
 
     UpdateCreatePullRequestsMenu(repositories);
@@ -260,6 +262,7 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
             }
 
             m_pTimer->StartOnce(fiveMinutes);
+            m_pMenu->Enable(MENU_ITEM_UPDATE_ID, true);
         });
     }).detach();
 }
