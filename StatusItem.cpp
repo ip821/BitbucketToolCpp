@@ -325,7 +325,7 @@ void StatusItem::SetStatusItemTitle(const wxString& title)
 #if defined(__WXOSX__)
     SetTitle(title);
 #else
-    wxUnusedVar(title);
+    SetIcon(m_bitmapBundle, std::format(wxS("Pull requests: {}"), title));
 #endif
 }
 
