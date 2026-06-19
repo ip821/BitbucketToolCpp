@@ -325,7 +325,8 @@ void StatusItem::SetStatusItemTitle(const wxString& title)
 #if defined(__WXOSX__)
     SetTitle(title);
 #else
-    SetIcon(m_bitmapBundle, std::format(wxS("Pull requests: {}"), title));
+    auto tooltipTitle = title.IsEmpty() ? wxS("none") : title;
+    SetIcon(m_bitmapBundle, std::format(wxS("Pull requests: {}"), tooltipTitle));
 #endif
 }
 
