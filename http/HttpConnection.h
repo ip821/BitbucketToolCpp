@@ -2,6 +2,8 @@
 #include <expected>
 #include <wx/string.h>
 
+#include "CurlHandle.h"
+
 struct Success
 {
     wxString responseBody;
@@ -17,6 +19,8 @@ using HttpResult = std::expected<Success, Error>;
 
 class HttpConnection
 {
+    CurlHandle m_handle;
+
 public:
     HttpConnection();
     ~HttpConnection();

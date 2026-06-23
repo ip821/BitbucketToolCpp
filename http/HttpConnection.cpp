@@ -1,61 +1,58 @@
 #include <format>
-#include <wx/webrequest.h>
-#include <cpp_utils/wx_string_format.h>
 
 #include "HttpConnection.h"
 
+#include "CurlSList.h"
 #include "../preferences/Credentials.h"
 
 HttpConnection::HttpConnection()
 {
+    curl_global_init(CURL_GLOBAL_DEFAULT);
 }
 
 HttpConnection::~HttpConnection()
 {
+    curl_global_cleanup();
 }
 
 HttpResult HttpConnection::HttpGet(const wxString& url) const
 {
-    auto requestUrl = url;
+    const auto credentialsBase64 = Credentials::GetCredentialsBase64();
 
-    auto redirectCount = 3;
-    while (redirectCount > 0)
+    CurlSList headersList;
+    headersList.Append("Accept: application/json");
+    headersList.Append("Authorization: Basic " + credentialsBase64);
+
+    const auto curl = m_handle.GetHandle();
+
+    const auto headers = headersList.Get();
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    curl_easy_setopt(curl, CURLOPT_URL, url.ToUTF8().data());
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
+    curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+
+    std::string responseBody;
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responseBody);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, +[](const char* ptr, const size_t size, const size_t nmemb, void* userdata)
+                     {
+                     auto* out = static_cast<std::string*>(userdata);
+                     out->append(ptr, size * nmemb);
+                     return size * nmemb;
+                     });
+
+    if (const CURLcode rc = curl_easy_perform(curl);
+        rc == CURLE_OK)
     {
-        wxWebRequestSync webRequest = wxWebSessionSync::GetDefault().CreateRequest(requestUrl);
-        webRequest.SetMethod(wxS("GET"));
-
-        const auto credentialsBase64 = Credentials::GetCredentialsBase64();
-        webRequest.SetHeader(wxS("Accept"), wxS("application/json"));
-        webRequest.SetHeader(wxS("Authorization"), wxS("Basic ") + wxString::FromUTF8(credentialsBase64));
-
-        const auto result = webRequest.Execute();
-        const auto response = webRequest.GetResponse();
-        const auto responseBody = response.AsString();
-
-        if (!result)
-        {
-            const auto responseUrl = response.GetURL();
-            if (response.GetStatus() == 404 && responseUrl != requestUrl)
-            {
-                // On macOS redirection occurs without attaching proper Authentication headers to the forthcoming requests
-                // So I repeat the request to the redirected URL manually
-                redirectCount--;
-                requestUrl = responseUrl;
-                continue;
-            }
-        }
-
-        if (!result)
-        {
-            const auto httpStatus = response.GetStatus();
-            const auto errorMessage = std::format(wxS("{}: {}"), result.error, HttpStatusToString(httpStatus));
-            return std::unexpected(Error{errorMessage, responseBody});
-        }
-
-        return Success{responseBody};
+        const wxString strBody = wxString::FromUTF8(responseBody);
+        return Success{strBody};
+    } else
+    {
+        const wxString strError = HttpStatusToString(rc);
+        return std::unexpected(Error{strError, responseBody});
     }
-
-    return std::unexpected(Error{wxS("Redirect count is exceeded."), {}});
 }
 
 wxString HttpConnection::HttpStatusToString(int code)

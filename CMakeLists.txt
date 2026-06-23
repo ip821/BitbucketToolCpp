@@ -3,13 +3,14 @@ project(PRToolForBitbucket2 LANGUAGES CXX)
 
 include(FetchContent)
 
-set(BITBACKETTOOL_APP_VERSION 1.5)
+set(BITBACKETTOOL_APP_VERSION 1.6)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(WX_WIDGETS_VERSION v3.3.2)
 set(wxBUILD_SHARED OFF)
+set(wxUSE_WEBREQUEST OFF)
 set(wxUSE_STC OFF CACHE BOOL "" FORCE)
 
 if (APPLE)
@@ -29,6 +30,13 @@ else ()
     )
 endif ()
 FetchContent_MakeAvailable(wxWidgets)
+
+FetchContent_Declare(
+        curl
+        GIT_REPOSITORY https://github.com/curl/curl.git
+        GIT_TAG curl-8_19_0
+)
+FetchContent_MakeAvailable(curl)
 
 FetchContent_Declare(
         json
@@ -100,6 +108,8 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         main.cpp
         webrequests/ServerResponse.h
         webrequests/BitbucketUrlBuilder.h
+        http/CurlSList.h
+        http/CurlHandle.h
 )
 configure_file(
         ${CMAKE_SOURCE_DIR}/version.h.in
@@ -114,7 +124,7 @@ target_compile_options(PRToolForBitbucket2 PRIVATE
 target_link_libraries(PRToolForBitbucket2 PRIVATE
         wx::core
         wx::xrc
-        wx::net
+        libcurl
         nlohmann_json::nlohmann_json
         cpp_utils::cpp_utils)
 
