@@ -16,8 +16,15 @@ std::vector<Repository> Config::GetRepositories()
     if (const auto jsonString = config.Read(keyRepositories);
         !jsonString.IsEmpty())
     {
-        const auto jObject = nlohmann::json::parse(jsonString.ToUTF8().data());
-        return jObject.get<std::vector<Repository> >();
+        try
+        {
+            const auto jObject = nlohmann::json::parse(jsonString.ToUTF8().data());
+            return jObject.get<std::vector<Repository> >();
+        }
+        catch (nlohmann::json::exception&)
+        {
+            return {};
+        }
     }
 
     return {};

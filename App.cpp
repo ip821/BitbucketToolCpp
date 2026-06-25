@@ -5,6 +5,7 @@
 
 #include "App.h"
 #include "StatusItem.h"
+#include "curl/curl.h"
 
 extern void InitXmlResource();
 
@@ -29,6 +30,6 @@ bool App::OnInit()
   InitXmlResource();
 #endif
 
-  m_pStatusItem = new StatusItem();
+  m_pStatusItem = std::make_unique<StatusItem>();
   return true;
 }

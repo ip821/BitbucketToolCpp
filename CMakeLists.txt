@@ -3,7 +3,7 @@ project(PRToolForBitbucket2 LANGUAGES CXX)
 
 include(FetchContent)
 
-set(BITBACKETTOOL_APP_VERSION 1.7)
+set(BITBACKETTOOL_APP_VERSION 1.8)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -118,6 +118,7 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         webrequests/BitbucketUrlBuilder.h
         http/CurlSList.h
         http/CurlHandle.h
+        http/CurlGlobalInit.h
 )
 configure_file(
         ${CMAKE_SOURCE_DIR}/version.h.in

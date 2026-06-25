@@ -3,7 +3,9 @@
 #include <wx/taskbar.h>
 #include <wx/bmpbndl.h>
 #include <wx/timer.h>
+#include <wx/wx.h>
 
+#include "preferences/PreferencesWindow.h"
 #include "pull_requests/PullRequestInfo.h"
 #include "webrequests/Repository.h"
 
@@ -18,16 +20,13 @@ struct IdAndIndex
     int index{};
 };
 
-class PreferencesWindow;
-
 class StatusItem : public wxTaskBarIcon
 {
     PreferencesWindow *m_pDialog{};
-    wxMenu *m_pMenu{};
+    std::unique_ptr<wxMenu> m_pMenu;
     wxMenu *m_pCreatePullRequestsMenu{};
-    wxTimer *m_pTimer{};
+    std::unique_ptr<wxTimer> m_pTimer;
 
-    std::vector<Repository> m_repositories;
     std::unordered_map<int, PullRequestInfo> m_menuItemIdToPullRequest;
 
     wxMenu *GetPopupMenu() override;

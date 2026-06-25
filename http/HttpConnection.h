@@ -22,9 +22,9 @@ class HttpConnection
     CurlHandle m_handle;
 
 public:
-    HttpConnection();
-    ~HttpConnection();
+    HttpConnection() = default;
+    ~HttpConnection() = default;
 
     [[nodiscard]] HttpResult HttpGet(const wxString& url) const;
-    static wxString HttpStatusToString(int code);
+    static wxString GetHttpStatusMessage(long code);
 };

@@ -53,24 +53,23 @@ StatusItem::StatusItem() :
     }
     SetIcon(m_bitmapBundle, "Tooltip");
 #endif
-    m_pCreatePullRequestsMenu = new wxMenu;
+    m_pCreatePullRequestsMenu = new wxMenu();
     m_pCreatePullRequestsMenu->Bind(wxEVT_MENU, &StatusItem::OnCreatePullRequestMenuItemClick, this);
 
-    const auto pMenu = new wxMenu;
-    pMenu->AppendSeparator()->SetId(MENU_ITEM_LAST_SEPARATOR);
-    pMenu->AppendSubMenu(m_pCreatePullRequestsMenu, "&Create pull request");
-    pMenu->AppendSeparator();
-    pMenu->Append(MENU_ITEM_UPDATE_ID, "&Update");
-    pMenu->Append(MENU_ITEM_PREFERENCES_ID, "&Preferences...");
-    pMenu->Append(MENU_ITEM_QUIT_ID, "&Quit");
-    pMenu->Bind(wxEVT_MENU, &StatusItem::OnMenuItemClick, this);
-    m_pMenu = pMenu;
+    m_pMenu = std::make_unique<wxMenu>();
+    m_pMenu->AppendSeparator()->SetId(MENU_ITEM_LAST_SEPARATOR);
+    m_pMenu->AppendSubMenu(m_pCreatePullRequestsMenu, "&Create pull request");
+    m_pMenu->AppendSeparator();
+    m_pMenu->Append(MENU_ITEM_UPDATE_ID, "&Update");
+    m_pMenu->Append(MENU_ITEM_PREFERENCES_ID, "&Preferences...");
+    m_pMenu->Append(MENU_ITEM_QUIT_ID, "&Quit");
+    m_pMenu->Bind(wxEVT_MENU, &StatusItem::OnMenuItemClick, this);
 
 #ifdef __WXMSW__
     Bind(wxEVT_TASKBAR_LEFT_UP, &StatusItem::OnLeftButtonClick, this);
 #endif
 
-    m_pTimer = new wxTimer(this);
+    m_pTimer = std::make_unique<wxTimer>(this);
     Bind(wxEVT_TIMER, [this](wxTimerEvent&)
     {
         UpdatePullRequests({.showNotification = false});
@@ -174,8 +173,6 @@ void StatusItem::UpdateCreatePullRequestsMenu(const std::vector<Repository>& rep
     {
         m_pCreatePullRequestsMenu->Append(MENU_ITEM_CREATE_PULL_REQUEST_ID + index++, repository.full_name);
     }
-
-    m_repositories = repositories;
 }
 
 void StatusItem::ShowErrorNotification(const wxString& message) const
@@ -195,12 +192,10 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
     wxWeakRef isWindowValid(this);
     std::thread([this, args, isWindowValid]
     {
-        m_pMenu->Enable(MENU_ITEM_UPDATE_ID, false);
-
         PullRequestService pullRequestService;
         const auto pullRequestsResult = pullRequestService.GetPullRequests();
 
-        CallAfter([isWindowValid, args, this, pullRequestsResult]
+        wxTheApp->CallAfter([isWindowValid, args, this, pullRequestsResult]
         {
             if (!isWindowValid)
                 return;
@@ -317,7 +312,7 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo)
 
 wxMenu *StatusItem::GetPopupMenu()
 {
-    return m_pMenu;
+    return m_pMenu.get();
 }
 
 void StatusItem::SetStatusItemTitle(const wxString& title)
@@ -332,5 +327,5 @@ void StatusItem::SetStatusItemTitle(const wxString& title)
 
 void StatusItem::OnLeftButtonClick(wxTaskBarIconEvent&)
 {
-    PopupMenu(m_pMenu);
+    PopupMenu(m_pMenu.get());
 }

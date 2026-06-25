@@ -5,16 +5,6 @@
 #include "CurlSList.h"
 #include "../preferences/Credentials.h"
 
-HttpConnection::HttpConnection()
-{
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-}
-
-HttpConnection::~HttpConnection()
-{
-    curl_global_cleanup();
-}
-
 HttpResult HttpConnection::HttpGet(const wxString& url) const
 {
     const auto credentialsBase64 = Credentials::GetCredentialsBase64();
@@ -32,7 +22,6 @@ HttpResult HttpConnection::HttpGet(const wxString& url) const
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
-    curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
 
     std::string responseBody;
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responseBody);
@@ -44,18 +33,29 @@ HttpResult HttpConnection::HttpGet(const wxString& url) const
                      });
 
     if (const CURLcode rc = curl_easy_perform(curl);
-        rc == CURLE_OK)
+        rc != CURLE_OK)
     {
-        const wxString strBody = wxString::FromUTF8(responseBody);
-        return Success{strBody};
-    } else
-    {
-        const wxString strError = HttpStatusToString(rc);
+        const wxString strError = wxString::FromUTF8(curl_easy_strerror(rc));
         return std::unexpected(Error{strError, responseBody});
     }
+
+    long httpStatusCode{};
+    if (const CURLcode infoRc = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpStatusCode);
+        infoRc != CURLE_OK)
+    {
+        const wxString strError = wxString::FromUTF8(curl_easy_strerror(infoRc));
+        return std::unexpected(Error{strError, responseBody});
+    }
+
+    if (httpStatusCode < 200 || httpStatusCode >= 300)
+    {
+        return std::unexpected(Error{GetHttpStatusMessage(httpStatusCode), responseBody});
+    }
+
+    return Success{wxString::FromUTF8(responseBody)};
 }
 
-wxString HttpConnection::HttpStatusToString(int code)
+wxString HttpConnection::GetHttpStatusMessage(long code)
 {
     switch (code)
     {
@@ -70,6 +70,6 @@ wxString HttpConnection::HttpStatusToString(int code)
         case 503: return wxS("Service Unavailable");
         case 504: return wxS("Gateway Timeout");
         default:
-            return wxString::Format("HTTP status code %d", code);
+            return wxString::Format("HTTP status code %ld", code);
     }
 }

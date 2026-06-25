@@ -1,5 +1,7 @@
 #pragma once
 
+#include "http/CurlGlobalInit.h"
+
 class StatusItem;
 
 class App : public wxApp
@@ -9,5 +11,6 @@ public:
     bool OnInit() override;
 
 private:
-    StatusItem* m_pStatusItem{};
+    CurlGlobalInit m_curlGlobalInit;
+    std::unique_ptr<StatusItem> m_pStatusItem;
 };

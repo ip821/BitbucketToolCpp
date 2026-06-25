@@ -103,7 +103,7 @@ void WorkspacePage::StartAsyncOperation()
             );
         }
 
-        CallAfter([this, isWindowValid]
+        wxTheApp->CallAfter([this, isWindowValid]
         {
             if (!isWindowValid)
                 return;
