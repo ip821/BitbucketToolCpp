@@ -13,7 +13,8 @@ HttpResult HttpConnection::HttpGet(const wxString& url) const
     headersList.Append("Accept: application/json");
     headersList.Append("Authorization: Basic " + credentialsBase64);
 
-    const auto curl = m_handle.GetHandle();
+    const CurlHandle curlHandle;
+    const auto curl = curlHandle.GetHandle();
 
     const auto headers = headersList.Get();
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
@@ -35,16 +36,14 @@ HttpResult HttpConnection::HttpGet(const wxString& url) const
     if (const CURLcode rc = curl_easy_perform(curl);
         rc != CURLE_OK)
     {
-        const wxString strError = wxString::FromUTF8(curl_easy_strerror(rc));
-        return std::unexpected(Error{strError, responseBody});
+        return CreateHttpResultFromCurlErrorCode(rc, responseBody);
     }
 
     long httpStatusCode{};
     if (const CURLcode infoRc = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpStatusCode);
         infoRc != CURLE_OK)
     {
-        const wxString strError = wxString::FromUTF8(curl_easy_strerror(infoRc));
-        return std::unexpected(Error{strError, responseBody});
+        return CreateHttpResultFromCurlErrorCode(infoRc, responseBody);
     }
 
     if (httpStatusCode < 200 || httpStatusCode >= 300)
@@ -53,6 +52,12 @@ HttpResult HttpConnection::HttpGet(const wxString& url) const
     }
 
     return Success{wxString::FromUTF8(responseBody)};
+}
+
+HttpResult HttpConnection::CreateHttpResultFromCurlErrorCode(const CURLcode rc, const std::string& responseBody)
+{
+    const wxString strError = wxString::FromUTF8(curl_easy_strerror(rc));
+    return std::unexpected(Error{strError, responseBody});
 }
 
 wxString HttpConnection::GetHttpStatusMessage(long code)

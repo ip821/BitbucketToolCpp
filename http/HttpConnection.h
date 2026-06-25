@@ -19,12 +19,11 @@ using HttpResult = std::expected<Success, Error>;
 
 class HttpConnection
 {
-    CurlHandle m_handle;
-
 public:
     HttpConnection() = default;
     ~HttpConnection() = default;
 
     [[nodiscard]] HttpResult HttpGet(const wxString& url) const;
+    static HttpResult CreateHttpResultFromCurlErrorCode(CURLcode rc, const std::string& responseBody);
     static wxString GetHttpStatusMessage(long code);
 };
