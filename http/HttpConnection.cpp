@@ -59,17 +59,17 @@ wxString HttpConnection::HttpStatusToString(int code)
 {
     switch (code)
     {
-        case 400: return "Bad Request";
-        case 401: return "Unauthorized";
-        case 403: return "Forbidden";
-        case 404: return "Not Found";
-        case 409: return "Conflict";
-        case 429: return "Too Many Requests";
-        case 500: return "Internal Server Error";
-        case 502: return "Bad Gateway";
-        case 503: return "Service Unavailable";
-        case 504: return "Gateway Timeout";
+        case 400: return wxS("Bad Request");
+        case 401: return wxS("Unauthorized");
+        case 403: return wxS("Forbidden");
+        case 404: return wxS("Not Found");
+        case 409: return wxS("Conflict");
+        case 429: return wxS("Too Many Requests");
+        case 500: return wxS("Internal Server Error");
+        case 502: return wxS("Bad Gateway");
+        case 503: return wxS("Service Unavailable");
+        case 504: return wxS("Gateway Timeout");
         default:
-            return wxString::Format("HTTP %d", code);
+            return wxString::Format("HTTP status code %d", code);
     }
 }
