@@ -1,5 +1,7 @@
 #pragma once
 
+#include <thread>
+
 #include <wx/taskbar.h>
 #include <wx/bmpbndl.h>
 #include <wx/timer.h>
@@ -54,6 +56,8 @@ class StatusItem : public wxTaskBarIcon
     wxBitmap m_statusBitmap{};
     wxBitmapBundle m_bitmapBundle{};
 #endif
+
+    std::jthread m_thread;
 
 public:
     explicit StatusItem();

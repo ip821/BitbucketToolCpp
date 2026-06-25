@@ -190,7 +190,7 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
     UpdateCreatePullRequestsMenu(repositories);
 
     wxWeakRef isWindowValid(this);
-    std::thread([this, args, isWindowValid]
+    m_thread = std::jthread([this, args, isWindowValid]
     {
         PullRequestService pullRequestService;
         const auto pullRequestsResult = pullRequestService.GetPullRequests();
@@ -261,7 +261,7 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
                 notification.Show();
             }
         });
-    }).detach();
+    });
 }
 
 void StatusItem::InsertPullRequestTitleMenuItem(IdAndIndex& menuItemId, const PullRequestInfo& pullRequest) const

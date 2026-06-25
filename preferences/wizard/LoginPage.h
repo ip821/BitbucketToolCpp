@@ -1,5 +1,7 @@
 #pragma once
 
+#include <thread>
+
 #include <wx/wizard.h>
 
 class LoginView;
@@ -21,6 +23,8 @@ class LoginPage : public wxWizardPageSimple
     bool m_asyncOperationCompletedSuccessfully = false;
 
     LoginView* m_pLoginView;
+
+    std::jthread m_thread;
 
     void StartAsyncOperation();
 

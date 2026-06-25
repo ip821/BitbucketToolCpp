@@ -1,5 +1,7 @@
 #pragma once
 
+#include <thread>
+
 #include "SetupWizard.h"
 
 class WorkspaceView;
@@ -19,6 +21,8 @@ class WorkspacePage : public wxWizardPageSimple
     SetupWizardContext& m_context;
 
     WorkspaceView* m_pWorkspaceView;
+
+    std::jthread m_thread;
 
     bool m_asyncOperationInProgress = false;
     bool m_asyncOperationCompletedSuccessfully = false;

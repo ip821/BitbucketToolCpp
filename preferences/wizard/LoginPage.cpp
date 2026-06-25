@@ -100,7 +100,7 @@ void LoginPage::StartAsyncOperation()
     m_context.m_workspaces.clear();
 
     wxWeakRef isWindowValid(this);
-    std::thread([isWindowValid, this]
+    m_thread = std::jthread([isWindowValid, this]
     {
         const WorkspacesRequest workspacesRequest;
         const auto response = workspacesRequest.GetWorkspaces();
@@ -130,5 +130,5 @@ void LoginPage::StartAsyncOperation()
                 }
             );
         });
-    }).detach();
+    });
 }

@@ -81,19 +81,20 @@ void WorkspacePage::StartAsyncOperation()
     m_context.m_repositories.clear();
 
     wxWeakRef isWindowValid(this);
-    std::thread([this, workspaces, isWindowValid]
+    m_thread = std::jthread([this, workspaces, isWindowValid]
     {
+        std::vector<Repository> repositories;
         for (const auto& workspace: workspaces)
         {
             RepositoriesRequest repositoriesRequest;
 
             ip::match_expected(
                 repositoriesRequest.GetRepositories(workspace),
-                [this](const Values<Repository>& success)
+                [&repositories](const Values<Repository>& success)
                 {
                     for (const auto& repository: success.values)
                     {
-                        m_context.m_repositories.push_back(repository);
+                        repositories.push_back(repository);
                     }
                 },
                 [](const Error& error)
@@ -103,7 +104,7 @@ void WorkspacePage::StartAsyncOperation()
             );
         }
 
-        wxTheApp->CallAfter([this, isWindowValid]
+        wxTheApp->CallAfter([this, isWindowValid, repositories]
         {
             if (!isWindowValid)
                 return;
@@ -111,13 +112,15 @@ void WorkspacePage::StartAsyncOperation()
             StopBusyAnimation();
             m_asyncOperationInProgress = false;
 
+            m_context.m_repositories = repositories;
+
             if (!m_context.m_repositories.empty())
             {
                 m_asyncOperationCompletedSuccessfully = true;
                 m_wizard.ShowPage(GetNext());
             }
         });
-    }).detach();
+    });
 }
 
 void WorkspacePage::StartBusyAnimation()
