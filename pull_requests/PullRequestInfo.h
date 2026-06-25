@@ -12,7 +12,8 @@ struct PullRequestInfo
 
     wxString GetMainMenuItemTitle() const
     {
-        return std::format(wxS("{}"), pullRequest.title);
+        const auto draftPrefix = pullRequest.draft ? wxS("[DRAFT] - ") : wxS("");
+        return std::format(wxS("{}{}"), draftPrefix, pullRequest.title);
     }
 
     wxString GetAuthorAndBranchMenuItemTitle() const
