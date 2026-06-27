@@ -33,15 +33,15 @@ struct PullRequestInfo
                 | std::ranges::to<std::vector>();
 
         const auto buildStatus =
-                HasBuildsWithStatus(Failed)
+                HasBuildsWithStatus(StatusState::Failed)
                     ? wxS("Failed")
-                    : HasBuildsWithStatus(Stopped)
+                    : HasBuildsWithStatus(StatusState::Stopped)
                           ? wxS("Cancelled")
-                          : HasBuildsWithStatus(InProgress)
+                          : HasBuildsWithStatus(StatusState::InProgress)
                                 ? wxS("InProgress")
                                 : std::format(
                                     wxS("Success ({})"),
-                                    std::ranges::count_if(statuses, [](const auto& it) { return it.state == Successful; })
+                                    std::ranges::count_if(statuses, [](const auto& it) { return it.state == StatusState::Successful; })
                                 );
 
         return std::format(
@@ -69,9 +69,9 @@ struct PullRequestInfo
         if (approved.size() == pullRequest.participants.size())
             status = wxS("Ready for merge");
 
-        if (HasBuildsWithStatus(Failed))
+        if (HasBuildsWithStatus(StatusState::Failed))
             status = wxS("Build failed");
-        else if (HasBuildsWithStatus(InProgress))
+        else if (HasBuildsWithStatus(StatusState::InProgress))
             status = wxS("Building");
 
         return status;

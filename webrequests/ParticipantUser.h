@@ -5,7 +5,7 @@
 
 #include "User.h"
 
-enum ParticipantRole
+enum class ParticipantRole
 {
     Reviewer = 1,
     Participant,
@@ -20,7 +20,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
     }
 );
 
-enum ParticipantState
+enum class ParticipantState
 {
     None = 1,
     ChangesRequested,

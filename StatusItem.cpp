@@ -239,14 +239,14 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
                 InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetPullRequestDetailsMenuItemTitle());
 
                 const auto participants = pullRequest.pullRequest.participants
-                        | std::views::filter([](const auto& it) { return it.role == Reviewer || it.approved; })
+                        | std::views::filter([](const auto& it) { return it.role == ParticipantRole::Reviewer || it.approved; })
                         | std::ranges::to<std::vector>();
 
                 for (const auto& participant: participants)
                 {
                     const auto& symbol = participant.approved ? wxS("✔") : wxS("...");
                     wxString participantMenuItemTitle = std::format(wxS("{} {}"), symbol, participant.user.display_name);
-                    if (participant.state == ChangesRequested)
+                    if (participant.state == ParticipantState::ChangesRequested)
                         participantMenuItemTitle += wxS(" - Requested changes");
 
                     InsertSecondaryPullRequestMenuItem(idAndIndex, participantMenuItemTitle);
@@ -287,13 +287,13 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo)
 
             const auto hasFailedBuilds = std::ranges::any_of(
                 pullRequestsInfo.myPullRequests,
-                [](const auto& it) { return it.HasBuildsWithStatus(Failed); });
+                [](const auto& it) { return it.HasBuildsWithStatus(StatusState::Failed); });
 
             const auto hasSomeoneRequestedChanges = std::ranges::any_of(
                 pullRequestsInfo.myPullRequests,
                 [](const auto& it)
                 {
-                    return std::ranges::any_of(it.pullRequest.participants, [](const auto& p) { return p.state == ChangesRequested; });
+                    return std::ranges::any_of(it.pullRequest.participants, [](const auto& p) { return p.state == ParticipantState::ChangesRequested; });
                 });
 
             if (hasFailedBuilds || hasSomeoneRequestedChanges)

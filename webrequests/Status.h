@@ -1,7 +1,7 @@
 #pragma once
 #include <nlohmann/detail/macro_scope.hpp>
 
-enum StatusState
+enum class StatusState
 {
     Successful = 1,
     Failed,

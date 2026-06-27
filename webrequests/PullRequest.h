@@ -10,7 +10,7 @@
 #include "User.h"
 #include "Values.h"
 
-enum PullRequestState
+enum class PullRequestState
 {
     Merged = 1,
     Superseded,
@@ -124,5 +124,5 @@ inline bool PullRequest::IsWaitingForUserApproval(const User& user) const
 
 inline bool PullRequest::IsUserPullRequest(const User& user) const
 {
-    return author.uuid == user.uuid && state == Open;
+    return author.uuid == user.uuid && state == PullRequestState::Open;
 }
