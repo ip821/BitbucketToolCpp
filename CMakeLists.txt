@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 4.0)
-project(PRToolForBitbucket2 LANGUAGES CXX)
+project(PRToolForBitbucket2 VERSION 1.12 LANGUAGES CXX)
 
 include(FetchContent)
-
-set(BITBACKETTOOL_APP_VERSION 1.11)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -12,14 +10,6 @@ set(WX_WIDGETS_VERSION v3.3.2)
 set(wxBUILD_SHARED OFF)
 set(wxUSE_WEBREQUEST OFF)
 set(wxUSE_STC OFF CACHE BOOL "" FORCE)
-
-set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-set(CURL_USE_LIBPSL OFF CACHE BOOL "" FORCE)
-
-if (WIN32)
-    set(CURL_USE_SCHANNEL ON CACHE BOOL "" FORCE)
-endif ()
 
 if (APPLE)
     FetchContent_Declare(
@@ -40,13 +30,6 @@ endif ()
 FetchContent_MakeAvailable(wxWidgets)
 
 FetchContent_Declare(
-        curl
-        GIT_REPOSITORY https://github.com/curl/curl.git
-        GIT_TAG curl-8_19_0
-)
-FetchContent_MakeAvailable(curl)
-
-FetchContent_Declare(
         json
         GIT_REPOSITORY https://github.com/nlohmann/json.git
         GIT_TAG v3.12.0
@@ -58,6 +41,12 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/ip821/cpp-utils.git
 )
 FetchContent_MakeAvailable(cpp-utils)
+
+FetchContent_Declare(
+        cpp-curl
+        GIT_REPOSITORY https://github.com/ip821/cpp-curl.git
+)
+FetchContent_MakeAvailable(cpp-curl)
 
 add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         App.cpp
@@ -84,8 +73,6 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         preferences/settings/Config.h
         preferences/Credentials.cpp
         preferences/Credentials.h
-        http/CurlConnection.h
-        http/CurlConnection.cpp
         webrequests/WorkspacesRequest.h
         webrequests/RepositoriesRequest.h
         webrequests/PullRequestsRequest.h
@@ -116,9 +103,6 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         main.cpp
         webrequests/ServerResponse.h
         webrequests/BitbucketUrlBuilder.h
-        http/CurlSList.h
-        http/CurlHandle.h
-        http/CurlGlobalInit.h
 )
 configure_file(
         ${CMAKE_SOURCE_DIR}/version.h.in
@@ -133,8 +117,8 @@ target_compile_options(PRToolForBitbucket2 PRIVATE
 target_link_libraries(PRToolForBitbucket2 PRIVATE
         wx::core
         wx::xrc
-        libcurl
         nlohmann_json::nlohmann_json
+        cpp_curl::cpp_curl
         cpp_utils::cpp_utils)
 
 if (WIN32)

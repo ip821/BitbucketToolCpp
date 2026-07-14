@@ -12,7 +12,6 @@
 #include "WorkspacePage.h"
 #include "WorkspaceView.h"
 
-#include "../../http/CurlConnection.h"
 #include "../../webrequests/RepositoriesRequest.h"
 
 WorkspacePage::WorkspacePage(SetupWizard *pWizard, SetupWizardContext& context) :

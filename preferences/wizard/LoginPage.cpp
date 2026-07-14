@@ -12,7 +12,6 @@
 #include "SetupWizard.h"
 #include "SetupWizardContext.h"
 #include "../Credentials.h"
-#include "../../http/CurlConnection.h"
 #include "../../webrequests/WorkspacesRequest.h"
 
 LoginPage::LoginPage(wxWizard *pWindow, SetupWizardContext& context) :

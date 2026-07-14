@@ -1,4 +1,4 @@
 ﻿#pragma once
 
-#define APP_VERSION "@BITBACKETTOOL_APP_VERSION@"
+#define APP_VERSION "@PROJECT_VERSION@"
 

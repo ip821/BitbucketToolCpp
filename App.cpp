@@ -5,7 +5,6 @@
 
 #include "App.h"
 #include "StatusItem.h"
-#include "curl/curl.h"
 
 extern void InitXmlResource();
 

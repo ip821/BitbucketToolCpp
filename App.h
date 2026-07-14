@@ -1,6 +1,6 @@
 #pragma once
 
-#include "http/CurlGlobalInit.h"
+#include "cpp_curl/CurlGlobalInit.h"
 
 class StatusItem;
 

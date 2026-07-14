@@ -1,12 +1,12 @@
 #pragma once
 
 #include <expected>
+#include <cpp_curl/CurlConnection.h>
 #include <cpp_utils/match_expected.h>
 #include <cpp_utils/wx_json.h>
 #include <nlohmann/json.hpp>
 
 #include "ServerResponse.h"
-#include "../http/CurlConnection.h"
 #include "../preferences/Credentials.h"
 
 struct BitbucketError

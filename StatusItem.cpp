@@ -10,7 +10,6 @@
 
 #include "StatusItem.h"
 
-#include "http/CurlConnection.h"
 #include "preferences/PreferencesWindow.h"
 #include "preferences/settings/Config.h"
 #include "pull_requests/PullRequestService.h"
