@@ -7,14 +7,14 @@
 #include <wx/clipbrd.h>
 
 #include <cpp_utils/match_expected.h>
+#include <cpp_utils/wx_string_format.h>
 
 #include "StatusItem.h"
 
 #include "preferences/PreferencesWindow.h"
 #include "preferences/settings/Config.h"
 #include "pull_requests/PullRequestService.h"
-#include "webrequests/CurrentUserRequest.h"
-#include "webrequests/PullRequestsRequest.h"
+#include "bitbucket_api/include/bitbucket_api/Requests.h"
 
 enum
 {
@@ -244,7 +244,7 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
                 for (const auto& participant: participants)
                 {
                     const auto& symbol = participant.approved ? wxS("✔") : wxS("...");
-                    wxString participantMenuItemTitle = std::format(wxS("{} {}"), symbol, participant.user.display_name);
+                    wxString participantMenuItemTitle = std::format(wxS("{} {}"), symbol, wxString::FromUTF8(participant.user.display_name));
                     if (participant.state == ParticipantState::ChangesRequested)
                         participantMenuItemTitle += wxS(" - Requested changes");
 

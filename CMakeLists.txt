@@ -11,6 +11,8 @@ set(wxBUILD_SHARED OFF)
 set(wxUSE_WEBREQUEST OFF)
 set(wxUSE_STC OFF CACHE BOOL "" FORCE)
 
+add_subdirectory(bitbucket_api)
+
 if (APPLE)
     FetchContent_Declare(
             wxWidgets
@@ -30,23 +32,17 @@ endif ()
 FetchContent_MakeAvailable(wxWidgets)
 
 FetchContent_Declare(
-        json
-        GIT_REPOSITORY https://github.com/nlohmann/json.git
-        GIT_TAG v3.12.0
-)
-FetchContent_MakeAvailable(json)
-
-FetchContent_Declare(
         cpp-utils
         GIT_REPOSITORY https://github.com/ip821/cpp-utils.git
 )
 FetchContent_MakeAvailable(cpp-utils)
 
 FetchContent_Declare(
-        cpp-curl
-        GIT_REPOSITORY https://github.com/ip821/cpp-curl.git
+        json
+        GIT_REPOSITORY https://github.com/nlohmann/json.git
+        GIT_TAG v3.12.0
 )
-FetchContent_MakeAvailable(cpp-curl)
+FetchContent_MakeAvailable(json)
 
 add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         App.cpp
@@ -73,36 +69,17 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         preferences/settings/Config.h
         preferences/Credentials.cpp
         preferences/Credentials.h
-        webrequests/WorkspacesRequest.h
-        webrequests/RepositoriesRequest.h
-        webrequests/PullRequestsRequest.h
-        webrequests/Repository.h
-        webrequests/Workspace.h
         preferences/wizard/LoginView.cpp
         preferences/wizard/LoginView.h
         preferences/wizard/WorkspaceView.cpp
         preferences/wizard/WorkspaceView.h
         preferences/wizard/RepositoryView.cpp
         preferences/wizard/RepositoryView.h
-        webrequests/PullRequest.h
-        webrequests/User.h
-        webrequests/ParticipantUser.h
-        webrequests/Link.h
-        webrequests/CurrentUserRequest.h
-        webrequests/Values.h
         pull_requests/PullRequestService.cpp
         pull_requests/PullRequestService.h
         pull_requests/PullRequestInfo.h
-        webrequests/BitbucketRequest.h
-        webrequests/PullRequestRequest.h
-        webrequests/DiffStat.h
-        webrequests/DiffStatRequest.h
-        webrequests/Status.h
-        webrequests/StatusRequest.h
         version.h
         main.cpp
-        webrequests/ServerResponse.h
-        webrequests/BitbucketUrlBuilder.h
 )
 configure_file(
         ${CMAKE_SOURCE_DIR}/version.h.in
@@ -118,8 +95,9 @@ target_link_libraries(PRToolForBitbucket2 PRIVATE
         wx::core
         wx::xrc
         nlohmann_json::nlohmann_json
-        cpp_curl::cpp_curl
-        cpp_utils::cpp_utils)
+        cpp_utils::cpp_utils
+        bitbucket_api::bitbucket_api
+)
 
 if (WIN32)
     target_link_options(PRToolForBitbucket2 PRIVATE
@@ -132,17 +110,17 @@ if (WIN32)
     set_source_files_properties(windows/app.rc PROPERTIES LANGUAGE RC)
     get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
 
-# Uncomment for CLion MinGW 11 -- fixes static linking bug
-#    add_custom_command(TARGET PRToolForBitbucket2 POST_BUILD
-#            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#            "${MINGW_BIN_DIR}/libgcc_s_seh-1.dll"
-#            "${MINGW_BIN_DIR}/libstdc++-6.dll"
-#            "${MINGW_BIN_DIR}/libwinpthread-1.dll"
-#            "$<TARGET_FILE_DIR:PRToolForBitbucket2>"
-#            COMMENT "Copying MinGW runtime DLLs"
-#    )
+    # Uncomment for CLion MinGW 11 -- fixes static linking bug
+    #    add_custom_command(TARGET PRToolForBitbucket2 POST_BUILD
+    #            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    #            "${MINGW_BIN_DIR}/libgcc_s_seh-1.dll"
+    #            "${MINGW_BIN_DIR}/libstdc++-6.dll"
+    #            "${MINGW_BIN_DIR}/libwinpthread-1.dll"
+    #            "$<TARGET_FILE_DIR:PRToolForBitbucket2>"
+    #            COMMENT "Copying MinGW runtime DLLs"
+    #    )
 
-# Comment for CLion MinGW 11
+    # Comment for CLion MinGW 11
     target_link_options(PRToolForBitbucket2 PRIVATE
             -static
             -static-libgcc

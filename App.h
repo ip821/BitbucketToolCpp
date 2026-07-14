@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cpp_curl/CurlGlobalInit.h"
+#include "bitbucket_api/BitbucketApiGlobalInit.h"
 
 class StatusItem;
 
@@ -11,6 +11,6 @@ public:
     bool OnInit() override;
 
 private:
-    CurlGlobalInit m_curlGlobalInit;
+    BitbucketApiGlobalInit m_bitbucketApiGlobalInit;
     std::unique_ptr<StatusItem> m_pStatusItem;
 };

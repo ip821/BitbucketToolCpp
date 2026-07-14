@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "WizardPages.h"
-#include "../../webrequests/Workspace.h"
+#include "bitbucket_api/Structs.h"
 
 class WorkspaceView : public WorkspaceViewBase
 {

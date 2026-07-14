@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "WizardPages.h"
-#include "../../webrequests/Repository.h"
+#include "bitbucket_api/Structs.h"
 
 class RepositoryView : public RepositoryViewBase
 {

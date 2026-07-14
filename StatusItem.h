@@ -9,7 +9,6 @@
 
 #include "preferences/PreferencesWindow.h"
 #include "pull_requests/PullRequestInfo.h"
-#include "webrequests/Repository.h"
 
 struct OnUpdatePullRequestsArgs
 {

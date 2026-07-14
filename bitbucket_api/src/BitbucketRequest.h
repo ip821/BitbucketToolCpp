@@ -3,32 +3,29 @@
 #include <expected>
 #include <cpp_curl/CurlConnection.h>
 #include <cpp_utils/match_expected.h>
-#include <cpp_utils/wx_json.h>
 #include <nlohmann/json.hpp>
 
 #include "ServerResponse.h"
-#include "../preferences/Credentials.h"
-
-struct BitbucketError
-{
-    wxString message;
-};
+#include "bitbucket_api/BitbucketResponse.h"
 
 template<typename TResult>
 class BitbucketRequest
 {
-protected:
-    using TResponse = std::expected<TResult, BitbucketError>;
+    std::string m_requestUrl;
 
-    TResponse PerformRequest(const wxString& requestUrl) const
+public:
+    explicit BitbucketRequest(const std::string& requestUrl) : m_requestUrl(requestUrl)
+    {
+    }
+
+    BitbucketResponse<TResult> Perform(const std::string& authToken) const
     {
         const CurlConnection connection;
-        const auto credentialsBase64 = Credentials::GetCredentialsBase64();
 
         try
         {
             return ip::map_expected(
-                connection.HttpGet(requestUrl.ToUTF8().data(), credentialsBase64.ToUTF8().data()),
+                connection.HttpGet(m_requestUrl, authToken),
                 [](const auto& success)
                 {
                     const auto body = success.responseBody;
@@ -46,21 +43,19 @@ protected:
                         if (const auto& serverResponse = jObject.template get<ServerResponse>();
                             serverResponse.error.has_value())
                         {
-                            const auto errorMessage = std::format(wxS("{}: {}"), wxString(error.message), serverResponse.error.value().message);
+                            const auto errorMessage = std::format("{}: {}", error.message, serverResponse.error.value().message);
                             return BitbucketError{errorMessage};
                         }
-                    }
-                    catch (const nlohmann::json::exception&)
+                    } catch (const nlohmann::json::exception&)
                     {
                     }
-                    return BitbucketError{wxString(error.message)};
+                    return BitbucketError{error.message};
                 }
             );
-        }
-        catch (const nlohmann::json::exception& e)
+        } catch (const nlohmann::json::exception& e)
         {
             const auto exceptionMessage = e.what();
-            const auto errorMessage = std::format(wxS("Deserialization error: {}"), wxString(exceptionMessage));
+            const auto errorMessage = std::format("Deserialization error: {}", exceptionMessage);
             return std::unexpected(BitbucketError{errorMessage});
         }
     }

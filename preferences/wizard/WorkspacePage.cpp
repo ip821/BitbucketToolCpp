@@ -1,7 +1,6 @@
 #include <format>
 #include <thread>
 
-#include <nlohmann/json.hpp>
 #include <wx/activityindicator.h>
 #include <wx/base64.h>
 #include <wx/webrequest.h>
@@ -11,8 +10,10 @@
 
 #include "WorkspacePage.h"
 #include "WorkspaceView.h"
+#include "../Credentials.h"
+#include "bitbucket_api/Requests.h"
 
-#include "../../webrequests/RepositoriesRequest.h"
+#include "bitbucket_api/Structs.h"
 
 WorkspacePage::WorkspacePage(SetupWizard *pWizard, SetupWizardContext& context) :
     wxWizardPageSimple(pWizard),
@@ -85,10 +86,11 @@ void WorkspacePage::StartAsyncOperation()
         std::vector<Repository> repositories;
         for (const auto& workspace: workspaces)
         {
+            const auto credentials = Credentials::GetCredentialsBase64().ToUTF8().data();
             RepositoriesRequest repositoriesRequest;
 
             ip::match_expected(
-                repositoriesRequest.GetRepositories(workspace),
+                repositoriesRequest.GetRepositories(credentials, workspace),
                 [&repositories](const auto& success)
                 {
                     for (const auto& repository: success.values)

@@ -1,14 +1,11 @@
 #pragma once
 
 #include <optional>
-
-#include <nlohmann/detail/macro_scope.hpp>
-#include <cpp_utils/wx_json.h>
-#include <wx/string.h>
+#include <nlohmann/json.hpp>
 
 struct InternalServerError
 {
-    wxString message{};
+    std::string message{};
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(InternalServerError, message);
 

@@ -1,9 +1,6 @@
 #include <thread>
 
 #include <wx/wx.h>
-#include <wx/activityindicator.h>
-#include <wx/webrequest.h>
-#include <nlohmann/json.hpp>
 #include <cpp_utils/match_expected.h>
 
 #include "LoginPage.h"
@@ -12,7 +9,7 @@
 #include "SetupWizard.h"
 #include "SetupWizardContext.h"
 #include "../Credentials.h"
-#include "../../webrequests/WorkspacesRequest.h"
+#include "bitbucket_api/Requests.h"
 
 LoginPage::LoginPage(wxWizard *pWindow, SetupWizardContext& context) :
     wxWizardPageSimple(pWindow),
@@ -101,8 +98,10 @@ void LoginPage::StartAsyncOperation()
     wxWeakRef isWindowValid(this);
     m_thread = std::jthread([isWindowValid, this]
     {
+        const auto credentials = Credentials::GetCredentialsBase64().ToUTF8().data();
+
         const WorkspacesRequest workspacesRequest;
-        const auto response = workspacesRequest.GetWorkspaces();
+        const auto response = workspacesRequest.GetWorkspaces(credentials);
 
         wxTheApp->CallAfter([isWindowValid, response, this]
         {

@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "../../webrequests/Repository.h"
+#include "bitbucket_api/Structs.h"
 
 class wxString;
 

@@ -1,6 +1,5 @@
 #pragma once
-
-#include "../../webrequests/Repository.h"
+#include "bitbucket_api/Structs.h"
 
 class Config
 {

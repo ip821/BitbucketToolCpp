@@ -3,17 +3,19 @@
 
 #include "PullRequestService.h"
 
+#include <algorithm>
+
 #include "../preferences/settings/Config.h"
-#include "../webrequests/CurrentUserRequest.h"
-#include "../webrequests/DiffStatRequest.h"
-#include "../webrequests/PullRequestRequest.h"
-#include "../webrequests/PullRequestsRequest.h"
-#include "../webrequests/StatusRequest.h"
+#include "../bitbucket_api/include/bitbucket_api/Requests.h"
+#include "../bitbucket_api/include/bitbucket_api/Structs.h"
+#include "../preferences/Credentials.h"
 
 GetPullRequestsResult PullRequestService::GetPullRequests()
 {
+    const auto credentials = Credentials::GetCredentialsBase64().ToStdString();
+
     constexpr CurrentUserRequest currentUserRequest;
-    const auto currentUserResult = currentUserRequest.GetCurrentUser();
+    const auto currentUserResult = currentUserRequest.GetCurrentUser(credentials);
     UNWRAP_OR_RETURN_ERROR(currentUser, currentUserResult);
 
     std::vector<PullRequestInfo> waitingForMyApprovalPullRequests;
@@ -25,7 +27,7 @@ GetPullRequestsResult PullRequestService::GetPullRequests()
     constexpr StatusRequest statusRequest;
     for (const auto& repository: Config::GetRepositories())
     {
-        const auto pullRequestsResult = pullRequestsRequest.GetPullRequests(repository, currentUser.uuid);
+        const auto pullRequestsResult = pullRequestsRequest.GetPullRequests(credentials, repository, currentUser.uuid);
         UNWRAP_OR_RETURN_ERROR(pullRequestItems, pullRequestsResult);
 
         std::vector<PullRequestItem> uniquePullRequests;
@@ -39,7 +41,7 @@ GetPullRequestsResult PullRequestService::GetPullRequests()
 
         for (const auto& pullRequestItem: uniquePullRequests)
         {
-            const auto pullRequestResult = pullRequestRequest.GetPullRequest(repository, pullRequestItem.id);
+            const auto pullRequestResult = pullRequestRequest.GetPullRequest(credentials, repository, pullRequestItem.id);
             UNWRAP_OR_RETURN_ERROR(pullRequest, pullRequestResult);
 
             if (
@@ -49,10 +51,10 @@ GetPullRequestsResult PullRequestService::GetPullRequests()
                 continue;
             }
 
-            const auto statusesResult = statusRequest.GetStatuses(repository, pullRequestItem.id);
+            const auto statusesResult = statusRequest.GetStatuses(credentials, repository, pullRequestItem.id);
             UNWRAP_OR_RETURN_ERROR(statuses, statusesResult);
 
-            const auto diffStatResult = diffStatRequest.GetDiffStat(repository, pullRequestItem.id);
+            const auto diffStatResult = diffStatRequest.GetDiffStat(credentials, repository, pullRequestItem.id);
             UNWRAP_OR_RETURN_ERROR(diffStat, diffStatResult);
 
             if (pullRequest.IsWaitingForUserApproval(currentUser))

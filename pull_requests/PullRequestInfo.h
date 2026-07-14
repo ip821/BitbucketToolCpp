@@ -1,8 +1,11 @@
 #pragma once
 
-#include "../webrequests/DiffStat.h"
-#include "../webrequests/PullRequest.h"
-#include "../webrequests/Status.h"
+#include <ranges>
+#include <wx/wx.h>
+#include <cpp_utils/wx_string_format.h>
+
+#include "../bitbucket_api/include/bitbucket_api/PullRequest.h"
+#include "../bitbucket_api/include/bitbucket_api/Status.h"
 
 struct PullRequestInfo
 {
@@ -13,17 +16,17 @@ struct PullRequestInfo
     wxString GetMainMenuItemTitle() const
     {
         const auto draftPrefix = pullRequest.draft ? wxS("[DRAFT] - ") : wxS("");
-        return std::format(wxS("{}{}"), draftPrefix, pullRequest.title);
+        return std::format(wxS("{}{}"), draftPrefix, wxString::FromUTF8(pullRequest.title));
     }
 
     wxString GetAuthorAndBranchMenuItemTitle() const
     {
         return std::format(
             wxS("[{}] [{}] [{}] → [{}]"),
-            pullRequest.destination.repository.name,
-            pullRequest.author.display_name,
-            pullRequest.source.branch.name,
-            pullRequest.destination.branch.name);
+            wxString::FromUTF8(pullRequest.destination.repository.name),
+            wxString::FromUTF8(pullRequest.author.display_name),
+            wxString::FromUTF8(pullRequest.source.branch.name),
+            wxString::FromUTF8(pullRequest.destination.branch.name));
     }
 
     wxString GetPullRequestDetailsMenuItemTitle() const
@@ -82,8 +85,8 @@ struct PullRequestInfo
         return std::format(
             wxS("[{}] [{}] → [{}]"),
             GetStatus(),
-            pullRequest.source.branch.name,
-            pullRequest.destination.branch.name
+            wxString::FromUTF8(pullRequest.source.branch.name),
+            wxString::FromUTF8(pullRequest.destination.branch.name)
         );
     }
 };

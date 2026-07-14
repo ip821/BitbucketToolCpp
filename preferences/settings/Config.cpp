@@ -2,10 +2,9 @@
 #include <wx/config.h>
 
 #include <nlohmann/json.hpp>
+#include <bitbucket_api/StructsSerialization.h>
 
 #include "Config.h"
-
-#include "../../webrequests/Repository.h"
 
 const wxString keyRepositories = "repositories5";
 
