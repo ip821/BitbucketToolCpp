@@ -6,13 +6,13 @@
 #include "BitbucketRequest.h"
 #include "BitbucketUrlBuilder.h"
 #include "Values.h"
-#include "../http/HttpConnection.h"
+#include "../http/CurlConnection.h"
 #include "../preferences/wizard/SetupWizardContext.h"
 
 class WorkspacesRequest : public BitbucketRequest<Values<WorkspaceAccess> >
 {
 public:
-    [[nodiscard]] std::expected<std::vector<Workspace>, Error> GetWorkspaces() const
+    [[nodiscard]] std::expected<std::vector<Workspace>, BitbucketError> GetWorkspaces() const
     {
         const auto result = PerformRequest(BitbucketUrlBuilder::GetWorkspacesUrl());
         UNWRAP_OR_RETURN_ERROR(repositories, result);

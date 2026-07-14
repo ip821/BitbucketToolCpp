@@ -84,8 +84,8 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         preferences/settings/Config.h
         preferences/Credentials.cpp
         preferences/Credentials.h
-        http/HttpConnection.h
-        http/HttpConnection.cpp
+        http/CurlConnection.h
+        http/CurlConnection.cpp
         webrequests/WorkspacesRequest.h
         webrequests/RepositoriesRequest.h
         webrequests/PullRequestsRequest.h

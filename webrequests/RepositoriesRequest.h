@@ -5,7 +5,7 @@
 #include "BitbucketRequest.h"
 #include "BitbucketUrlBuilder.h"
 #include "Values.h"
-#include "../http/HttpConnection.h"
+#include "../http/CurlConnection.h"
 #include "../preferences/wizard/SetupWizardContext.h"
 
 class RepositoriesRequest : public BitbucketRequest<Values<Repository> >

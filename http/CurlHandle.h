@@ -18,5 +18,5 @@ public:
             curl_easy_cleanup(m_pCurl);
     }
 
-    [[nodiscard]] CURL* GetHandle() const { return m_pCurl; }
+    [[nodiscard]] CURL* Get() const { return m_pCurl; }
 };

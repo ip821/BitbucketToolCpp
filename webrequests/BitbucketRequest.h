@@ -6,39 +6,39 @@
 #include <nlohmann/json.hpp>
 
 #include "ServerResponse.h"
-#include "../http/HttpConnection.h"
+#include "../http/CurlConnection.h"
+#include "../preferences/Credentials.h"
+
+struct BitbucketError
+{
+    wxString message;
+};
 
 template<typename TResult>
 class BitbucketRequest
 {
-    static std::string GetResponseBodyAsStdString(const wxString& responseBody)
-    {
-        const wxString bodyUtf8 = responseBody.ToUTF8();
-        const auto body = bodyUtf8.ToStdString();
-        return body;
-    }
-
 protected:
-    using TResponse = std::expected<TResult, Error>;
+    using TResponse = std::expected<TResult, BitbucketError>;
 
-    std::expected<TResult, Error> PerformRequest(const wxString& requestUrl) const
+    TResponse PerformRequest(const wxString& requestUrl) const
     {
-        const HttpConnection connection;
+        const CurlConnection connection;
+        const auto credentialsBase64 = Credentials::GetCredentialsBase64();
 
         try
         {
             return ip::map_expected(
-                connection.HttpGet(requestUrl),
+                connection.HttpGet(requestUrl.ToUTF8().data(), credentialsBase64.ToUTF8().data()),
                 [](const auto& success)
                 {
-                    const auto body = GetResponseBodyAsStdString(success.responseBody);
+                    const auto body = success.responseBody;
                     const auto jObject = nlohmann::json::parse(body);
                     const auto& response = jObject.template get<TResult>();
                     return response;
                 },
                 [](const auto& error)
                 {
-                    const auto body = GetResponseBodyAsStdString(error.responseBody);
+                    const auto body = error.responseBody;
                     try
                     {
                         const auto jObject = nlohmann::json::parse(body);
@@ -46,22 +46,22 @@ protected:
                         if (const auto& serverResponse = jObject.template get<ServerResponse>();
                             serverResponse.error.has_value())
                         {
-                            const auto errorMessage = std::format(wxS("{}: {}"), error.message, serverResponse.error.value().message);
-                            return Error{errorMessage, error.responseBody};
+                            const auto errorMessage = std::format(wxS("{}: {}"), wxString(error.message), serverResponse.error.value().message);
+                            return BitbucketError{errorMessage};
                         }
                     }
                     catch (const nlohmann::json::exception&)
                     {
                     }
-                    return error;
+                    return BitbucketError{wxString(error.message)};
                 }
             );
         }
         catch (const nlohmann::json::exception& e)
         {
-            const auto exceptionMessage = wxString::FromUTF8(e.what());
-            const auto errorMessage = std::format(wxS("Deserialization error: {}"), exceptionMessage);
-            return std::unexpected(Error{errorMessage, wxS("")});
+            const auto exceptionMessage = e.what();
+            const auto errorMessage = std::format(wxS("Deserialization error: {}"), wxString(exceptionMessage));
+            return std::unexpected(BitbucketError{errorMessage});
         }
     }
 };

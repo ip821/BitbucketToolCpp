@@ -12,7 +12,7 @@
 #include "WorkspacePage.h"
 #include "WorkspaceView.h"
 
-#include "../../http/HttpConnection.h"
+#include "../../http/CurlConnection.h"
 #include "../../webrequests/RepositoriesRequest.h"
 
 WorkspacePage::WorkspacePage(SetupWizard *pWizard, SetupWizardContext& context) :
@@ -90,14 +90,14 @@ void WorkspacePage::StartAsyncOperation()
 
             ip::match_expected(
                 repositoriesRequest.GetRepositories(workspace),
-                [&repositories](const Values<Repository>& success)
+                [&repositories](const auto& success)
                 {
                     for (const auto& repository: success.values)
                     {
                         repositories.push_back(repository);
                     }
                 },
-                [](const Error& error)
+                [](const auto& error)
                 {
                     wxLogError("Failed to get repositories: %s", error.message);
                 }

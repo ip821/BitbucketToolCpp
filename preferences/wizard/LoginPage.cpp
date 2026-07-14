@@ -12,7 +12,7 @@
 #include "SetupWizard.h"
 #include "SetupWizardContext.h"
 #include "../Credentials.h"
-#include "../../http/HttpConnection.h"
+#include "../../http/CurlConnection.h"
 #include "../../webrequests/WorkspacesRequest.h"
 
 LoginPage::LoginPage(wxWizard *pWindow, SetupWizardContext& context) :
@@ -115,7 +115,7 @@ void LoginPage::StartAsyncOperation()
 
             ip::match_expected(
                 response,
-                [this](const std::vector<Workspace>& workspaces)
+                [this](const auto& workspaces)
                 {
                     for (const auto& workspace: workspaces)
                     {
@@ -124,7 +124,7 @@ void LoginPage::StartAsyncOperation()
                     m_asyncOperationCompletedSuccessfully = true;
                     m_wizard.ShowPage(GetNext());
                 },
-                [this](const Error& error)
+                [this](const auto& error)
                 {
                     ShowErrorMessage(error.message);
                 }

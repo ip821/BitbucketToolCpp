@@ -3,9 +3,9 @@
 #include <expected>
 
 #include "PullRequestInfo.h"
-#include "../http/HttpConnection.h"
+#include "../webrequests/BitbucketRequest.h"
 
-using GetPullRequestsResult = std::expected<PullRequestsInfo, Error>;
+using GetPullRequestsResult = std::expected<PullRequestsInfo, BitbucketError>;
 
 class PullRequestService
 {

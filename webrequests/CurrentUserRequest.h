@@ -5,9 +5,7 @@
 #include "BitbucketRequest.h"
 #include "BitbucketUrlBuilder.h"
 #include "User.h"
-#include "../http/HttpConnection.h"
-
-using CurrentUserResult = std::expected<User, Error>;
+#include "../http/CurlConnection.h"
 
 class CurrentUserRequest : public BitbucketRequest<User>
 {
