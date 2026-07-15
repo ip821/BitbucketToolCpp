@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Strings.h"
 #include "bitbucket_api/Structs.h"
 
@@ -36,8 +37,8 @@ public:
     static std::string GetQueryPullRequestsUrl(const Repository& repository, const std::string& userUuid)
     {
         auto userId = userUuid;
-        replace_all(userId, "{", "");
-        replace_all(userId, "}", "");
+        std_string_replace_all(userId, "{", "");
+        std_string_replace_all(userId, "}", "");
 
         return
                 GetPullRequestsUrl(repository)

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <thread>
-
 #include <wx/wizard.h>
 
 class LoginView;

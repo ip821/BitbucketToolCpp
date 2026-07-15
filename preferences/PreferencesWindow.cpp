@@ -1,16 +1,14 @@
-#include <ranges>
+#include "../preferences/PreferencesWindow.h"
+
 #include <set>
-
-#include <wx/wizard.h>
-#include <wx/wx.h>
-
 #include <cpp_utils/ranges.h>
 #include <cpp_utils/wx_string_join.h>
+#include <wx/wizard.h>
+#include <wx/wx.h>
 
 #include "version.h"
 #include "settings/Config.h"
 #include "wizard/SetupWizard.h"
-#include "../preferences/PreferencesWindow.h"
 
 extern "C" void ShowDockIcon();
 extern "C" void HideDockIcon();

@@ -1,4 +1,6 @@
 #pragma once
+
+#include <vector>
 #include "bitbucket_api/Structs.h"
 
 class Config

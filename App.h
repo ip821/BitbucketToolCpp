@@ -1,5 +1,7 @@
 #pragma once
 
+#include <wx/wx.h>
+
 #include "bitbucket_api/BitbucketApiGlobalInit.h"
 
 class StatusItem;

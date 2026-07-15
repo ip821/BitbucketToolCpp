@@ -1,20 +1,17 @@
+#include "StatusItem.h"
+
 #include <ranges>
 #include <thread>
-
+#include <cpp_utils/wx_string_format.h>
+#include <wx/clipbrd.h>
 #include <wx/notifmsg.h>
 #include <wx/wx.h>
 #include <wx/xrc/xmlres.h>
-#include <wx/clipbrd.h>
 
-#include <cpp_utils/match_expected.h>
-#include <cpp_utils/wx_string_format.h>
-
-#include "StatusItem.h"
-
+#include "bitbucket_api/include/bitbucket_api/Requests.h"
 #include "preferences/PreferencesWindow.h"
 #include "preferences/settings/Config.h"
 #include "pull_requests/PullRequestService.h"
-#include "bitbucket_api/include/bitbucket_api/Requests.h"
 
 enum
 {

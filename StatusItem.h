@@ -1,9 +1,8 @@
 #pragma once
 
 #include <thread>
-
-#include <wx/taskbar.h>
 #include <wx/bmpbndl.h>
+#include <wx/taskbar.h>
 #include <wx/timer.h>
 #include <wx/wx.h>
 

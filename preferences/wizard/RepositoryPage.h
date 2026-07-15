@@ -1,5 +1,7 @@
 #pragma once
 
+#include <wx/wizard.h>
+
 class RepositoryView;
 struct SetupWizardContext;
 class SetupWizard;

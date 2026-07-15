@@ -1,7 +1,8 @@
-#include <wx/wx.h>
-#include <wx/wizard.h>
-
 #include "RepositoryPage.h"
+
+#include <wx/wizard.h>
+#include <wx/wx.h>
+
 #include "RepositoryView.h"
 #include "SetupWizard.h"
 #include "../settings/Config.h"

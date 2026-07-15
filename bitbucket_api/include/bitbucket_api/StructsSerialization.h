@@ -2,11 +2,11 @@
 
 #include <nlohmann/json.hpp>
 
-#include "Structs.h"
-#include "Values.h"
-#include "Status.h"
 #include "ParticipantUser.h"
 #include "PullRequest.h"
+#include "Status.h"
+#include "Structs.h"
+#include "Values.h"
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Link, href);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DiffStat, size);
@@ -33,19 +33,12 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
         {PullRequestState::Declined, "DECLINED"},
     }
 );
-
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PullRequestLinks, self, html);
-
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Branch, name);
-
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DestinationRepository, name);
-
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Destination, branch, repository);
-
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Source, branch);
-
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PullRequestItem, id, title, author, links, created_on);
-
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PullRequest,
                                    id,
                                    title,
@@ -66,7 +59,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
     {ParticipantRole::Author, "AUTHOR"},
     }
 );
-
 NLOHMANN_JSON_SERIALIZE_ENUM(
     ParticipantState,
     {
@@ -75,9 +67,9 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
     {ParticipantState::Approved, "approved"}
     }
 );
-
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ParticipantUser, state, role, approved, user);
 
+// Values<T>
 template<typename T>
 void to_json(nlohmann::json& j, const Values<T>& obj)
 {

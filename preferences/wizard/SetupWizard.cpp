@@ -1,6 +1,7 @@
+#include "SetupWizard.h"
+
 #include <wx/wx.h>
 
-#include "SetupWizard.h"
 #include "LoginPage.h"
 #include "RepositoryPage.h"
 #include "WorkspacePage.h"

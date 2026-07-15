@@ -1,7 +1,7 @@
 #include "wx/base64.h"
-#include "wx/wx.h"
 #include "wx/log.h"
 #include "wx/secretstore.h"
+#include "wx/wx.h"
 
 #include "Credentials.h"
 

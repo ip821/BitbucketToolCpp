@@ -1,18 +1,16 @@
+#include "WorkspacePage.h"
+
 #include <format>
 #include <thread>
-
+#include <cpp_utils/match_expected.h>
 #include <wx/activityindicator.h>
 #include <wx/base64.h>
-#include <wx/webrequest.h>
 #include <wx/wizard.h>
 #include <wx/wx.h>
-#include <cpp_utils/match_expected.h>
 
-#include "WorkspacePage.h"
 #include "WorkspaceView.h"
 #include "../Credentials.h"
 #include "bitbucket_api/Requests.h"
-
 #include "bitbucket_api/Structs.h"
 
 WorkspacePage::WorkspacePage(SetupWizard *pWizard, SetupWizardContext& context) :

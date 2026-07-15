@@ -1,7 +1,8 @@
 #pragma once
+
 #include <string>
 
-void replace_all(std::string& text, const std::string& from, const std::string& to)
+inline void std_string_replace_all(std::string& text, const std::string& from, const std::string& to)
 {
     if (from.empty())
         return;

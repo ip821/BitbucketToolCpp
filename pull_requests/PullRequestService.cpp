@@ -1,14 +1,12 @@
+#include <algorithm>
 #include <unordered_set>
 #include <cpp_utils/macros_expected.h>
 
 #include "PullRequestService.h"
-
-#include <algorithm>
-
-#include "../preferences/settings/Config.h"
 #include "../bitbucket_api/include/bitbucket_api/Requests.h"
 #include "../bitbucket_api/include/bitbucket_api/Structs.h"
 #include "../preferences/Credentials.h"
+#include "../preferences/settings/Config.h"
 
 GetPullRequestsResult PullRequestService::GetPullRequests()
 {

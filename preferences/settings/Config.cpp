@@ -1,10 +1,9 @@
-#include <wx/wx.h>
-#include <wx/config.h>
-
-#include <nlohmann/json.hpp>
-#include <bitbucket_api/StructsSerialization.h>
-
 #include "Config.h"
+
+#include <bitbucket_api/StructsSerialization.h>
+#include <nlohmann/json.hpp>
+#include <wx/config.h>
+#include <wx/wx.h>
 
 const wxString keyRepositories = "repositories5";
 

@@ -1,9 +1,10 @@
+#include "App.h"
+
 #include <wx/app.h>
 #include <wx/filesys.h>
 #include <wx/fs_mem.h>
 #include <wx/xrc/xmlres.h>
 
-#include "App.h"
 #include "StatusItem.h"
 
 extern void InitXmlResource();

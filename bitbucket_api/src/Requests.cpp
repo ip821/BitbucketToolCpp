@@ -1,11 +1,9 @@
 #include <string>
-
-#include "BitbucketRequest.h"
-#include "BitbucketUrlBuilder.h"
-#include "../include/bitbucket_api/Requests.h"
-
 #include <cpp_utils/macros_expected.h>
 
+#include "bitbucket_api/Requests.h"
+#include "BitbucketRequest.h"
+#include "BitbucketUrlBuilder.h"
 #include "bitbucket_api/Structs.h"
 #include "bitbucket_api/StructsSerialization.h"
 

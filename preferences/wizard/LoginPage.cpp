@@ -1,11 +1,10 @@
-#include <thread>
-
-#include <wx/wx.h>
-#include <cpp_utils/match_expected.h>
-
 #include "LoginPage.h"
-#include "LoginView.h"
 
+#include <thread>
+#include <cpp_utils/match_expected.h>
+#include <wx/wx.h>
+
+#include "LoginView.h"
 #include "SetupWizard.h"
 #include "SetupWizardContext.h"
 #include "../Credentials.h"

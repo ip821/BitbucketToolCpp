@@ -1,8 +1,7 @@
-#pragma once
+#include "bitbucket_api/PullRequest.h"
 
 #include <ranges>
 #include <nlohmann/json.hpp>
-#include "bitbucket_api/PullRequest.h"
 
 std::optional<ParticipantUser> PullRequest::GetParticipantForUser(const User& user) const
 {
