@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Strings.h"
+#include "cpp_utils/strings.h"
 #include "bitbucket_api/Structs.h"
 
 const std::string BitBucketApiBaseUrl = "https://api.bitbucket.org/2.0";
@@ -37,8 +37,8 @@ public:
     static std::string GetQueryPullRequestsUrl(const Repository& repository, const std::string& userUuid)
     {
         auto userId = userUuid;
-        std_string_replace_all(userId, "{", "");
-        std_string_replace_all(userId, "}", "");
+        ip::strings::replace_all(userId, "{", "");
+        ip::strings::replace_all(userId, "}", "");
 
         return
                 GetPullRequestsUrl(repository)

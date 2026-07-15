@@ -18,7 +18,6 @@ if (APPLE)
             wxWidgets
             GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
             GIT_TAG ${WX_WIDGETS_VERSION}
-            GIT_SHALLOW ON
             PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets-3_3_2.patch"
     )
 else ()
@@ -26,7 +25,6 @@ else ()
             wxWidgets
             GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
             GIT_TAG ${WX_WIDGETS_VERSION}
-            GIT_SHALLOW ON
     )
 endif ()
 FetchContent_MakeAvailable(wxWidgets)
