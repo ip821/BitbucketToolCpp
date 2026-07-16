@@ -21,6 +21,8 @@
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/icon.h>
+#include <wx/statbox.h>
+#include <wx/checkbox.h>
 #include <wx/dialog.h>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -39,11 +41,13 @@ class PreferencesWindowBase : public wxDialog
 		wxStaticText* m_repositoryText;
 		wxStaticText* m_pHelpText;
 		wxButton* m_pButtonSetup;
+		wxCheckBox* m_pCheckBoxHideChangesRequested;
 		wxStaticText* m_pVersionText;
 
 		// Virtual event handlers, override them in your derived class
 		virtual void OnInitDialog( wxInitDialogEvent& event ) = 0;
 		virtual void OnSetupClicked( wxCommandEvent& event ) = 0;
+		virtual void OnHideChangesRequestedChanged( wxCommandEvent& event ) = 0;
 
 
 	public:

@@ -6,6 +6,7 @@
 #include <wx/wx.h>
 
 const wxString keyRepositories = "repositories5";
+const wxString keyHideChangesRequestedPullRequests = "hideChangesRequestedPullRequests";
 
 std::vector<Repository> Config::GetRepositories()
 {
@@ -33,4 +34,16 @@ void Config::SetRepositories(const std::vector<Repository>& repositories)
     wxConfig config;
     const nlohmann::json jObject = repositories;
     config.Write(keyRepositories, wxString(jObject.dump()));
+}
+
+bool Config::GetHideChangesRequestedPullRequests()
+{
+    const wxConfig config;
+    return config.ReadBool(keyHideChangesRequestedPullRequests, true);
+}
+
+void Config::SetHideChangesRequestedPullRequests(const bool hide)
+{
+    wxConfig config;
+    config.Write(keyHideChangesRequestedPullRequests, hide);
 }

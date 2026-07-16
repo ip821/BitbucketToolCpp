@@ -20,6 +20,12 @@ struct IdAndIndex
     int index{};
 };
 
+struct RebuildMenuArgs
+{
+    const PullRequestsInfo& pullRequests;
+    const bool showAll;
+};
+
 class StatusItem : public wxTaskBarIcon
 {
     PreferencesWindow *m_pDialog{};
@@ -27,6 +33,8 @@ class StatusItem : public wxTaskBarIcon
     wxMenu *m_pCreatePullRequestsMenu{};
     std::unique_ptr<wxTimer> m_pTimer;
 
+    PullRequestsInfo m_pullRequestsInfo;
+    bool m_showAllPullRequests{};
     std::unordered_map<int, PullRequestInfo> m_menuItemIdToPullRequest;
 
     wxMenu *GetPopupMenu() override;
@@ -39,12 +47,14 @@ class StatusItem : public wxTaskBarIcon
 
     void RemoveAllPrMenuItems();
     void ShowPreferencesDialog() const;
+    void RefreshMenu();
     void UpdateCreatePullRequestsMenu(const std::vector<Repository>& repositories);
     void ShowErrorNotification(const wxString& message) const;
+    void RebuildMenu(const RebuildMenuArgs& args);
     void UpdatePullRequests(const OnUpdatePullRequestsArgs& args);
     void InsertPullRequestTitleMenuItem(IdAndIndex& menuItemId, const PullRequestInfo& pullRequest) const;
     void InsertSecondaryPullRequestMenuItem(IdAndIndex& menuItemId, const wxString& title) const;
-    void UpdateTitle(const PullRequestsInfo& pullRequestsInfo);
+    void UpdateTitle(const PullRequestsInfo& pullRequestsInfo, int hiddenPullRequestsCount);
 
 #ifdef __WXOSX__
     wxBitmapBundle m_bitmapBundle = wxBitmapBundle::FromResources("status32@2x");
@@ -59,4 +69,5 @@ class StatusItem : public wxTaskBarIcon
 
 public:
     explicit StatusItem();
+    void ConfigChanged();
 };

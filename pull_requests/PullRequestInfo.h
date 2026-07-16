@@ -89,11 +89,21 @@ struct PullRequestInfo
             wxString::FromUTF8(pullRequest.destination.branch.name)
         );
     }
+
+    wxString GetParticipantMenuItemTitle(const ParticipantUser& participant) const
+    {
+        const auto& symbol = participant.approved ? wxS("✔") : wxS("...");
+        wxString participantMenuItemTitle = std::format(wxS("{} {}"), symbol, wxString::FromUTF8(participant.user.display_name));
+        if (participant.state == ParticipantState::ChangesRequested)
+            participantMenuItemTitle += wxS(" - Requested changes");
+
+        return participantMenuItemTitle;
+    }
 };
 
 struct PullRequestsInfo
 {
-    const User currentUser{};
-    const std::vector<PullRequestInfo> waitingForMyApprovalPullRequests{};
-    const std::vector<PullRequestInfo> myPullRequests{};
+    User currentUser{};
+    std::vector<PullRequestInfo> waitingForMyApprovalPullRequests{};
+    std::vector<PullRequestInfo> myPullRequests{};
 };

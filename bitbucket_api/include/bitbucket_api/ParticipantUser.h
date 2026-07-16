@@ -22,4 +22,7 @@ struct ParticipantUser
     ParticipantRole role{};
     bool approved{};
     User user{};
+
+    bool AreChangesRequested() const { return state == ParticipantState::ChangesRequested; };
+
 };

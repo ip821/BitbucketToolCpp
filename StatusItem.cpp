@@ -16,6 +16,7 @@
 enum
 {
     MENU_ITEM_PREFERENCES_ID = 10000,
+    MENU_ITEM_SHOW_ALL,
     MENU_ITEM_QUIT_ID,
     MENU_ITEM_UPDATE_ID,
     MENU_ITEM_CREATE_PULL_REQUEST_ID = MENU_ITEM_PREFERENCES_ID + 100,
@@ -28,7 +29,7 @@ constexpr auto fiveMinutes = 5 * 60 * 1000;
 StatusItem::StatusItem() :
     wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM)
 {
-    m_pDialog = new PreferencesWindow();
+    m_pDialog = new PreferencesWindow(this);
 
 #if defined(__WXOSX__)
     SetIcon("status32@2x");
@@ -56,6 +57,7 @@ StatusItem::StatusItem() :
     m_pMenu->AppendSeparator()->SetId(MENU_ITEM_LAST_SEPARATOR);
     m_pMenu->AppendSubMenu(m_pCreatePullRequestsMenu, "&Create pull request");
     m_pMenu->AppendSeparator();
+    m_pMenu->Append(MENU_ITEM_SHOW_ALL, "&Show hidden items");
     m_pMenu->Append(MENU_ITEM_UPDATE_ID, "&Update");
     m_pMenu->Append(MENU_ITEM_PREFERENCES_ID, "&Preferences...");
     m_pMenu->Append(MENU_ITEM_QUIT_ID, "&Quit");
@@ -70,6 +72,8 @@ StatusItem::StatusItem() :
     {
         UpdatePullRequests({.showNotification = false});
     });
+
+    ConfigChanged();
 
 #if defined(WXDEBUG)
     wxUnusedVar(tenSeconds);
@@ -87,6 +91,11 @@ void StatusItem::ShowPreferencesDialog() const
     m_pDialog->Raise();
 }
 
+void StatusItem::RefreshMenu()
+{
+    RebuildMenu({.pullRequests = m_pullRequestsInfo, .showAll = !m_showAllPullRequests});
+}
+
 void StatusItem::OnMenuItemClick(wxCommandEvent& e)
 {
     switch (e.GetId())
@@ -101,6 +110,10 @@ void StatusItem::OnMenuItemClick(wxCommandEvent& e)
 
         case MENU_ITEM_QUIT_ID:
             wxExit();
+            return;
+
+        case MENU_ITEM_SHOW_ALL:
+            RefreshMenu();
             return;
 
         default:
@@ -177,6 +190,76 @@ void StatusItem::ShowErrorNotification(const wxString& message) const
     notification.Show();
 }
 
+void StatusItem::RebuildMenu(const RebuildMenuArgs& args)
+{
+    const auto& [pullRequestsInfo, showAll] = args;
+    m_showAllPullRequests = showAll;
+
+    const auto hideChangesRequestedPullRequests = !showAll && Config::GetHideChangesRequestedPullRequests();
+
+    RemoveAllPrMenuItems();
+
+    m_menuItemIdToPullRequest.clear();
+
+    IdAndIndex idAndIndex = {.id = MENU_ITEM_LAST_SEPARATOR + 1, .index = 0};
+    const auto pFirstMenuItem = m_pMenu->Insert(idAndIndex.index++, idAndIndex.id++, "Pull requests to review");
+    pFirstMenuItem->Enable(false);
+
+    auto hiddenPullRequestsCount = 0;
+    for (const auto& pullRequest: pullRequestsInfo.waitingForMyApprovalPullRequests)
+    {
+        const auto participantsRequestedChanges = pullRequest.pullRequest.participants
+                | std::views::filter([](const auto& it) { return it.AreChangesRequested(); })
+                | std::ranges::to<std::vector>();
+
+        if (hideChangesRequestedPullRequests && !participantsRequestedChanges.empty())
+        {
+            ++hiddenPullRequestsCount;
+            continue;
+        }
+
+        m_menuItemIdToPullRequest[idAndIndex.id] = pullRequest;
+        InsertPullRequestTitleMenuItem(idAndIndex, pullRequest);
+
+        InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetAuthorAndBranchMenuItemTitle());
+        InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetPullRequestDetailsMenuItemTitle());
+
+        for (const auto& participant: participantsRequestedChanges)
+        {
+            InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetParticipantMenuItemTitle(participant));
+        }
+    }
+
+    if (hiddenPullRequestsCount)
+    {
+        const auto firstMenuItemTitle = std::format(wxS("{} [{} hidden]"), pFirstMenuItem->GetItemLabel(), hiddenPullRequestsCount);
+        pFirstMenuItem->SetItemLabel(firstMenuItemTitle);
+    }
+
+    m_pMenu->InsertSeparator(idAndIndex.index++)->SetId(idAndIndex.id++);
+    m_pMenu->Insert(idAndIndex.index++, idAndIndex.id++, "Your pull requests")->Enable(false);
+
+    for (const auto& pullRequest: pullRequestsInfo.myPullRequests)
+    {
+        m_menuItemIdToPullRequest[idAndIndex.id] = pullRequest;
+        InsertPullRequestTitleMenuItem(idAndIndex, pullRequest);
+
+        InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetMyPullRequestBranchMenuItemTitle());
+        InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetPullRequestDetailsMenuItemTitle());
+
+        const auto participants = pullRequest.pullRequest.participants
+                | std::views::filter([](const auto& it) { return it.role == ParticipantRole::Reviewer || it.approved; })
+                | std::ranges::to<std::vector>();
+
+        for (const auto& participant: participants)
+        {
+            InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetParticipantMenuItemTitle(participant));
+        }
+    }
+
+    UpdateTitle(pullRequestsInfo, hiddenPullRequestsCount);
+}
+
 void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 {
     m_pMenu->Enable(MENU_ITEM_UPDATE_ID, false);
@@ -205,51 +288,10 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
                 return;
             }
 
-            const auto pullRequestsInfo = pullRequestsResult.value();
+            const auto& pullRequestsInfo = pullRequestsResult.value();
+            m_pullRequestsInfo = pullRequestsInfo;
 
-            RemoveAllPrMenuItems();
-
-            m_menuItemIdToPullRequest.clear();
-
-            IdAndIndex idAndIndex = {.id = MENU_ITEM_LAST_SEPARATOR + 1, .index = 0};
-            m_pMenu->Insert(idAndIndex.index++, idAndIndex.id++, "Pull requests to review")->Enable(false);
-
-            for (const auto& pullRequest: pullRequestsInfo.waitingForMyApprovalPullRequests)
-            {
-                m_menuItemIdToPullRequest[idAndIndex.id] = pullRequest;
-                InsertPullRequestTitleMenuItem(idAndIndex, pullRequest);
-
-                InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetAuthorAndBranchMenuItemTitle());
-                InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetPullRequestDetailsMenuItemTitle());
-            }
-
-            m_pMenu->InsertSeparator(idAndIndex.index++)->SetId(idAndIndex.id++);
-            m_pMenu->Insert(idAndIndex.index++, idAndIndex.id++, "Your pull requests")->Enable(false);
-
-            for (const auto& pullRequest: pullRequestsInfo.myPullRequests)
-            {
-                m_menuItemIdToPullRequest[idAndIndex.id] = pullRequest;
-                InsertPullRequestTitleMenuItem(idAndIndex, pullRequest);
-
-                InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetMyPullRequestBranchMenuItemTitle());
-                InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetPullRequestDetailsMenuItemTitle());
-
-                const auto participants = pullRequest.pullRequest.participants
-                        | std::views::filter([](const auto& it) { return it.role == ParticipantRole::Reviewer || it.approved; })
-                        | std::ranges::to<std::vector>();
-
-                for (const auto& participant: participants)
-                {
-                    const auto& symbol = participant.approved ? wxS("✔") : wxS("...");
-                    wxString participantMenuItemTitle = std::format(wxS("{} {}"), symbol, wxString::FromUTF8(participant.user.display_name));
-                    if (participant.state == ParticipantState::ChangesRequested)
-                        participantMenuItemTitle += wxS(" - Requested changes");
-
-                    InsertSecondaryPullRequestMenuItem(idAndIndex, participantMenuItemTitle);
-                }
-            }
-
-            UpdateTitle(pullRequestsInfo);
+            RebuildMenu({.pullRequests = pullRequestsInfo, .showAll = false});
 
             if (args.showNotification)
             {
@@ -271,9 +313,9 @@ void StatusItem::InsertSecondaryPullRequestMenuItem(IdAndIndex& menuItemId, cons
     m_pMenu->Insert(menuItemId.index++, menuItemId.id++, secondLineTitle)->Enable(false);
 }
 
-void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo)
+void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int hiddenPullRequestsCount)
 {
-    const auto waitingCount = pullRequestsInfo.waitingForMyApprovalPullRequests.size();
+    const auto waitingCount = pullRequestsInfo.waitingForMyApprovalPullRequests.size() - hiddenPullRequestsCount;
     const auto myCount = pullRequestsInfo.myPullRequests.size();
     if (waitingCount || myCount)
     {
@@ -304,6 +346,12 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo)
     {
         SetStatusItemTitle(wxS(""));
     }
+}
+
+void StatusItem::ConfigChanged()
+{
+    m_showAllPullRequests = Config::GetHideChangesRequestedPullRequests();
+    RefreshMenu();
 }
 
 wxMenu *StatusItem::GetPopupMenu()

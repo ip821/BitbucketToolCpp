@@ -7,14 +7,16 @@
 #include <wx/wx.h>
 
 #include "version.h"
+#include "../StatusItem.h"
 #include "settings/Config.h"
 #include "wizard/SetupWizard.h"
 
 extern "C" void ShowDockIcon();
 extern "C" void HideDockIcon();
 
-PreferencesWindow::PreferencesWindow() :
-    PreferencesWindowBase(nullptr)
+PreferencesWindow::PreferencesWindow(StatusItem* pStatusItem) :
+    PreferencesWindowBase(nullptr),
+    m_pStatusItem(pStatusItem)
 {
 #if !defined(__WXOSX__)
     const auto statusBitmap = wxXmlResource::Get()->LoadBitmap("status32");
@@ -27,6 +29,7 @@ PreferencesWindow::PreferencesWindow() :
     m_pVersionText->SetFont(m_pVersionText->GetFont().Scale(0.8));
     m_pVersionText->SetLabelText(std::format("Version: {}", APP_VERSION));
 
+    m_pCheckBoxHideChangesRequested->SetValue(Config::GetHideChangesRequestedPullRequests());
     Bind(wxEVT_SHOW, &PreferencesWindow::OnShow, this);
     Bind(wxEVT_CLOSE_WINDOW, &PreferencesWindow::OnClose, this);
 }
@@ -41,6 +44,12 @@ void PreferencesWindow::OnSetupClicked(wxCommandEvent& WXUNUSED(event))
     SetupWizard setupWizard(this);
     setupWizard.Run();
     UpdateTextBoxes();
+}
+
+void PreferencesWindow::OnHideChangesRequestedChanged(wxCommandEvent& event)
+{
+    Config::SetHideChangesRequestedPullRequests(event.IsChecked());
+    m_pStatusItem->ConfigChanged();
 }
 
 void PreferencesWindow::UpdateTextBoxes()
