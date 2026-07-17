@@ -70,7 +70,10 @@ PreferencesWindowBase::PreferencesWindowBase( wxWindow* parent, wxWindowID id, c
 	sbSizer2 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, _("Options") ), wxVERTICAL );
 
 	m_pCheckBoxHideChangesRequested = new wxCheckBox( sbSizer2->GetStaticBox(), wxID_ANY, _("Hide PR with \"Changes requested\""), wxDefaultPosition, wxDefaultSize, 0 );
-	sbSizer2->Add( m_pCheckBoxHideChangesRequested, 0, wxALIGN_CENTER|wxALL, 5 );
+	sbSizer2->Add( m_pCheckBoxHideChangesRequested, 0, wxALL, 5 );
+
+	m_pCheckBoxUseTwoColumnLayout = new wxCheckBox( sbSizer2->GetStaticBox(), wxID_ANY, _("Use two column layout (Windows only)"), wxDefaultPosition, wxDefaultSize, 0 );
+	sbSizer2->Add( m_pCheckBoxUseTwoColumnLayout, 0, wxALL, 5 );
 
 
 	bSizer2->Add( sbSizer2, 1, wxEXPAND, 5 );
@@ -99,6 +102,7 @@ PreferencesWindowBase::PreferencesWindowBase( wxWindow* parent, wxWindowID id, c
 	this->Connect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( PreferencesWindowBase::OnInitDialog ) );
 	m_pButtonSetup->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PreferencesWindowBase::OnSetupClicked ), NULL, this );
 	m_pCheckBoxHideChangesRequested->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PreferencesWindowBase::OnHideChangesRequestedChanged ), NULL, this );
+	m_pCheckBoxUseTwoColumnLayout->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PreferencesWindowBase::OnUseTwoColumnLayoutChanged ), NULL, this );
 }
 
 PreferencesWindowBase::~PreferencesWindowBase()

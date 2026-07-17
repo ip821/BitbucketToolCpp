@@ -42,12 +42,14 @@ class PreferencesWindowBase : public wxDialog
 		wxStaticText* m_pHelpText;
 		wxButton* m_pButtonSetup;
 		wxCheckBox* m_pCheckBoxHideChangesRequested;
+		wxCheckBox* m_pCheckBoxUseTwoColumnLayout;
 		wxStaticText* m_pVersionText;
 
 		// Virtual event handlers, override them in your derived class
 		virtual void OnInitDialog( wxInitDialogEvent& event ) = 0;
 		virtual void OnSetupClicked( wxCommandEvent& event ) = 0;
 		virtual void OnHideChangesRequestedChanged( wxCommandEvent& event ) = 0;
+		virtual void OnUseTwoColumnLayoutChanged( wxCommandEvent& event ) = 0;
 
 
 	public:

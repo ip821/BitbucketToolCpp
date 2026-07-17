@@ -196,6 +196,7 @@ void StatusItem::RebuildMenu(const RebuildMenuArgs& args)
     m_showAllPullRequests = showAll;
 
     const auto hideChangesRequestedPullRequests = !showAll && Config::GetHideChangesRequestedPullRequests();
+    const auto useTwoColumnLayout = Config::GetUseTwoColumnLayout();
 
     RemoveAllPrMenuItems();
 
@@ -237,6 +238,10 @@ void StatusItem::RebuildMenu(const RebuildMenuArgs& args)
     }
 
     m_pMenu->InsertSeparator(idAndIndex.index++)->SetId(idAndIndex.id++);
+
+    if (useTwoColumnLayout)
+        m_pMenu->Break();
+
     m_pMenu->Insert(idAndIndex.index++, idAndIndex.id++, "Your pull requests")->Enable(false);
 
     for (const auto& pullRequest: pullRequestsInfo.myPullRequests)
@@ -351,6 +356,7 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int
 void StatusItem::ConfigChanged()
 {
     m_showAllPullRequests = Config::GetHideChangesRequestedPullRequests();
+    m_useTwoColumnLayout = Config::GetUseTwoColumnLayout();
     RefreshMenu();
 }
 

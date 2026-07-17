@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(PRToolForBitbucket2 VERSION 1.14 LANGUAGES CXX)
+project(PRToolForBitbucket2 VERSION 1.15 LANGUAGES CXX)
 
 include(FetchContent)
 
@@ -107,18 +107,6 @@ if (WIN32)
     )
     set_source_files_properties(windows/app.rc PROPERTIES LANGUAGE RC)
     get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
-
-    # Uncomment for CLion MinGW 11 -- fixes static linking bug
-    #    add_custom_command(TARGET PRToolForBitbucket2 POST_BUILD
-    #            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    #            "${MINGW_BIN_DIR}/libgcc_s_seh-1.dll"
-    #            "${MINGW_BIN_DIR}/libstdc++-6.dll"
-    #            "${MINGW_BIN_DIR}/libwinpthread-1.dll"
-    #            "$<TARGET_FILE_DIR:PRToolForBitbucket2>"
-    #            COMMENT "Copying MinGW runtime DLLs"
-    #    )
-
-    # Comment for CLion MinGW 11
     target_link_options(PRToolForBitbucket2 PRIVATE
             -static
             -static-libgcc
