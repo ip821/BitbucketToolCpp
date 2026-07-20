@@ -8,6 +8,7 @@
 
 #include "preferences/PreferencesWindow.h"
 #include "pull_requests/PullRequestInfo.h"
+#include "pull_requests/PullRequestsInfo.h"
 
 struct OnUpdatePullRequestsArgs
 {

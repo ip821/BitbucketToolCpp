@@ -48,6 +48,7 @@ struct PullRequestItem
     User author{};
     PullRequestLinks links{};
     std::string created_on{};
+    std::string updated_on{};
 };
 
 struct PullRequest
@@ -56,6 +57,7 @@ struct PullRequest
     std::string title{};
     User author{};
     std::string created_on{};
+    std::string updated_on{};
     int comment_count{};
     PullRequestState state{};
     std::vector<ParticipantUser> participants{};

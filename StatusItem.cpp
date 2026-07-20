@@ -277,7 +277,7 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
     m_thread = std::jthread([this, args, isWindowValid]
     {
         PullRequestService pullRequestService;
-        const auto pullRequestsResult = pullRequestService.GetPullRequests();
+        const auto pullRequestsResult = pullRequestService.GetPullRequests(m_pullRequestsInfo);
 
         wxTheApp->CallAfter([isWindowValid, args, this, pullRequestsResult]
         {

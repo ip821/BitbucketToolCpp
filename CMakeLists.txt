@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(PRToolForBitbucket2 VERSION 1.15 LANGUAGES CXX)
+project(PRToolForBitbucket2 VERSION 1.16 LANGUAGES CXX)
 
 include(FetchContent)
 
@@ -78,6 +78,7 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         pull_requests/PullRequestInfo.h
         version.h
         main.cpp
+        pull_requests/PullRequestsInfo.h
 )
 configure_file(
         ${CMAKE_SOURCE_DIR}/version.h.in

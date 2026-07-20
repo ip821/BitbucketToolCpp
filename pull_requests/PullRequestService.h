@@ -3,6 +3,7 @@
 #include <expected>
 
 #include "PullRequestInfo.h"
+#include "PullRequestsInfo.h"
 #include "bitbucket_api/BitbucketResponse.h"
 
 using GetPullRequestsResult = std::expected<PullRequestsInfo, BitbucketError>;
@@ -10,5 +11,5 @@ using GetPullRequestsResult = std::expected<PullRequestsInfo, BitbucketError>;
 class PullRequestService
 {
 public:
-    GetPullRequestsResult GetPullRequests();
+    GetPullRequestsResult GetPullRequests(const PullRequestsInfo& previousPullRequests);
 };

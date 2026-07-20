@@ -32,20 +32,20 @@ struct PullRequestInfo
     wxString GetPullRequestDetailsMenuItemTitle() const
     {
         const auto approved = pullRequest.participants
-                | std::views::filter([](const auto& it) { return it.approved; })
-                | std::ranges::to<std::vector>();
+        | std::views::filter([](const auto& it) { return it.approved; })
+        | std::ranges::to<std::vector>();
 
         const auto buildStatus =
-                HasBuildsWithStatus(StatusState::Failed)
-                    ? wxS("Failed")
-                    : HasBuildsWithStatus(StatusState::Stopped)
-                          ? wxS("Cancelled")
-                          : HasBuildsWithStatus(StatusState::InProgress)
-                                ? wxS("InProgress")
-                                : std::format(
-                                    wxS("Success ({})"),
-                                    std::ranges::count_if(statuses, [](const auto& it) { return it.state == StatusState::Successful; })
-                                );
+        HasBuildsWithStatus(StatusState::Failed)
+            ? wxS("Failed")
+            : HasBuildsWithStatus(StatusState::Stopped)
+                  ? wxS("Cancelled")
+                  : HasBuildsWithStatus(StatusState::InProgress)
+                        ? wxS("InProgress")
+                        : std::format(
+                            wxS("Success ({})"),
+                            std::ranges::count_if(statuses, [](const auto& it) { return it.state == StatusState::Successful; })
+                        );
 
         return std::format(
             wxS("[Files: {}] [Comments: {}] [Approvals: {}] [Builds: {}]"),
@@ -66,8 +66,8 @@ struct PullRequestInfo
         auto status = wxS("Waiting for approve");
 
         const auto approved = pullRequest.participants
-                | std::views::filter([](const auto& it) { return it.approved; })
-                | std::ranges::to<std::vector>();
+        | std::views::filter([](const auto& it) { return it.approved; })
+        | std::ranges::to<std::vector>();
 
         if (approved.size() == pullRequest.participants.size())
             status = wxS("Ready for merge");
@@ -101,9 +101,3 @@ struct PullRequestInfo
     }
 };
 
-struct PullRequestsInfo
-{
-    User currentUser{};
-    std::vector<PullRequestInfo> waitingForMyApprovalPullRequests{};
-    std::vector<PullRequestInfo> myPullRequests{};
-};
