@@ -13,6 +13,7 @@
 struct OnUpdatePullRequestsArgs
 {
     bool showNotification{};
+    bool fullReload{};
 };
 
 struct IdAndIndex

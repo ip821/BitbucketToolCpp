@@ -27,25 +27,17 @@ struct PullRequestsInfo
                           });
     }
 
-    const PullRequestInfo *GetPullRequestOrNull(int id) const
+    std::optional<const PullRequestInfo*> GetSkippedPullRequestOrNull(int id) const
     {
         const auto findById = [id](const PullRequestInfo& info)
         {
             return info.pullRequest.id == id;
         };
 
-        if (const auto it = std::ranges::find_if(waitingForMyApprovalPullRequests, findById);
-            it != waitingForMyApprovalPullRequests.end())
-            return &*it;
-
-        if (const auto it = std::ranges::find_if(myPullRequests, findById);
-            it != myPullRequests.end())
-            return &*it;
-
         if (const auto it = std::ranges::find_if(skippedPullRequests, findById);
             it != skippedPullRequests.end())
             return &*it;
 
-        return nullptr;
+        return std::nullopt;
     }
 };

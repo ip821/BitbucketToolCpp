@@ -98,10 +98,12 @@ void StatusItem::RefreshMenu()
 
 void StatusItem::OnMenuItemClick(wxCommandEvent& e)
 {
+    const bool isAltPressed = wxGetKeyState(WXK_ALT);
+
     switch (e.GetId())
     {
         case MENU_ITEM_UPDATE_ID:
-            UpdatePullRequests({.showNotification = true});
+            UpdatePullRequests({.showNotification = true, .fullReload = isAltPressed});
             return;
 
         case MENU_ITEM_PREFERENCES_ID:
@@ -124,7 +126,7 @@ void StatusItem::OnMenuItemClick(wxCommandEvent& e)
         it != m_menuItemIdToPullRequest.end())
     {
         const auto href = it->second.pullRequest.links.html.href;
-        if (wxGetKeyState(WXK_ALT))
+        if (isAltPressed)
         {
             if (wxTheClipboard->Open())
             {
@@ -276,8 +278,12 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
     wxWeakRef isWindowValid(this);
     m_thread = std::jthread([this, args, isWindowValid]
     {
+        auto& existingPullRequests = m_pullRequestsInfo;
+        if (args.fullReload)
+            existingPullRequests = {};
+
         PullRequestService pullRequestService;
-        const auto pullRequestsResult = pullRequestService.GetPullRequests(m_pullRequestsInfo);
+        const auto pullRequestsResult = pullRequestService.GetPullRequests(existingPullRequests);
 
         wxTheApp->CallAfter([isWindowValid, args, this, pullRequestsResult]
         {

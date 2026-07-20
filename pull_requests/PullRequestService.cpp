@@ -32,10 +32,11 @@ GetPullRequestsResult PullRequestService::GetPullRequests(const PullRequestsInfo
         {
             PullRequestInfo pullRequestInfo;
 
-            if (const auto pPreviousPullRequest = previousPullRequests.GetPullRequestOrNull(pullRequestItem.id);
-                pPreviousPullRequest && pPreviousPullRequest->pullRequest.updated_on >= pullRequestItem.updated_on)
+            if (const auto pPreviousPullRequest = previousPullRequests.GetSkippedPullRequestOrNull(pullRequestItem.id);
+                pPreviousPullRequest.has_value()
+                && pPreviousPullRequest.value()->pullRequest.updated_on >= pullRequestItem.updated_on)
             {
-                pullRequestInfo = *pPreviousPullRequest;
+                pullRequestInfo = *pPreviousPullRequest.value();
             }
             else
             {
