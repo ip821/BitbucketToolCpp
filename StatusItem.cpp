@@ -25,6 +25,7 @@ enum
 
 constexpr auto tenSeconds = 10 * 1000;
 constexpr auto fiveMinutes = 5 * 60 * 1000;
+constexpr auto fullReloadInterval = 10;
 
 StatusItem::StatusItem() :
     wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM)
@@ -275,15 +276,18 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 
     UpdateCreatePullRequestsMenu(repositories);
 
-    wxWeakRef isWindowValid(this);
-    m_thread = std::jthread([this, args, isWindowValid]
-    {
-        auto& existingPullRequests = m_pullRequestsInfo;
-        if (args.fullReload)
-            existingPullRequests = {};
+    const bool fullReload = args.fullReload || ++m_requestCount >= fullReloadInterval;
+    if (fullReload)
+        m_requestCount = 0;
 
+    static const PullRequestsInfo emptyPullRequestsInfo{};
+    const auto& previousPullRequests = fullReload ? emptyPullRequestsInfo : m_pullRequestsInfo;
+
+    wxWeakRef isWindowValid(this);
+    m_thread = std::jthread([this, args, isWindowValid, &previousPullRequests]
+    {
         PullRequestService pullRequestService;
-        const auto pullRequestsResult = pullRequestService.GetPullRequests(existingPullRequests);
+        const auto pullRequestsResult = pullRequestService.GetPullRequests(previousPullRequests);
 
         wxTheApp->CallAfter([isWindowValid, args, this, pullRequestsResult]
         {
