@@ -94,11 +94,12 @@ struct PullRequestInfo
 
     wxString GetParticipantMenuItemTitle(const ParticipantUser& participant) const
     {
-        const auto& symbol = participant.approved ? wxS("✔") : wxS("...");
+        const auto& symbol = participant.approved
+                                 ? wxS("✔")
+                                 : participant.AreChangesRequested()
+                                       ? wxS("✘")
+                                       : wxS("...");
         wxString participantMenuItemTitle = std::format(wxS("{} {}"), symbol, wxString::FromUTF8(participant.user.display_name));
-        if (participant.state == ParticipantState::ChangesRequested)
-            participantMenuItemTitle += wxS(" - Requested changes");
-
         return participantMenuItemTitle;
     }
 
