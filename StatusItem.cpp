@@ -209,14 +209,14 @@ void StatusItem::RebuildMenu(const RebuildMenuArgs& args)
     const auto pFirstMenuItem = m_pMenu->Insert(idAndIndex.index++, idAndIndex.id++, "Pull requests to review");
     pFirstMenuItem->Enable(false);
 
+    const auto& currentUser = pullRequestsInfo.currentUser;
+
     auto hiddenPullRequestsCount = 0;
     for (const auto& pullRequest: pullRequestsInfo.waitingForMyApprovalPullRequests)
     {
-        const auto participantsRequestedChanges = pullRequest.pullRequest.participants
-                | std::views::filter([](const auto& it) { return it.AreChangesRequested(); })
-                | std::ranges::to<std::vector>();
+        const auto participantsRequestedChangesWithoutCurrentUser = pullRequest.GetParticipantsRequestedChangesWithout(currentUser);
 
-        if (hideChangesRequestedPullRequests && !participantsRequestedChanges.empty())
+        if (hideChangesRequestedPullRequests && !participantsRequestedChangesWithoutCurrentUser.empty())
         {
             ++hiddenPullRequestsCount;
             continue;
@@ -228,6 +228,7 @@ void StatusItem::RebuildMenu(const RebuildMenuArgs& args)
         InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetAuthorAndBranchMenuItemTitle());
         InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetPullRequestDetailsMenuItemTitle());
 
+        const auto participantsRequestedChanges = pullRequest.GetParticipantsRequestedChanges();
         for (const auto& participant: participantsRequestedChanges)
         {
             InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetParticipantMenuItemTitle(participant));

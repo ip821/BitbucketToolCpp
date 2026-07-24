@@ -1,6 +1,8 @@
 #pragma once
 
 #include <ranges>
+#include <ranges>
+#include <ranges>
 #include <wx/wx.h>
 #include <cpp_utils/wx_string_format.h>
 
@@ -32,20 +34,20 @@ struct PullRequestInfo
     wxString GetPullRequestDetailsMenuItemTitle() const
     {
         const auto approved = pullRequest.participants
-        | std::views::filter([](const auto& it) { return it.approved; })
-        | std::ranges::to<std::vector>();
+            | std::views::filter([](const auto& it) { return it.approved; })
+            | std::ranges::to<std::vector>();
 
         const auto buildStatus =
-        HasBuildsWithStatus(StatusState::Failed)
-            ? wxS("Failed")
-            : HasBuildsWithStatus(StatusState::Stopped)
-                  ? wxS("Cancelled")
-                  : HasBuildsWithStatus(StatusState::InProgress)
-                        ? wxS("InProgress")
-                        : std::format(
-                            wxS("Success ({})"),
-                            std::ranges::count_if(statuses, [](const auto& it) { return it.state == StatusState::Successful; })
-                        );
+            HasBuildsWithStatus(StatusState::Failed)
+                ? wxS("Failed")
+                : HasBuildsWithStatus(StatusState::Stopped)
+                      ? wxS("Cancelled")
+                      : HasBuildsWithStatus(StatusState::InProgress)
+                            ? wxS("InProgress")
+                            : std::format(
+                                wxS("Success ({})"),
+                                std::ranges::count_if(statuses, [](const auto& it) { return it.state == StatusState::Successful; })
+                            );
 
         return std::format(
             wxS("[Files: {}] [Comments: {}] [Approvals: {}] [Builds: {}]"),
@@ -66,8 +68,8 @@ struct PullRequestInfo
         auto status = wxS("Waiting for approve");
 
         const auto approved = pullRequest.participants
-        | std::views::filter([](const auto& it) { return it.approved; })
-        | std::ranges::to<std::vector>();
+            | std::views::filter([](const auto& it) { return it.approved; })
+            | std::ranges::to<std::vector>();
 
         if (approved.size() == pullRequest.participants.size())
             status = wxS("Ready for merge");
@@ -99,5 +101,18 @@ struct PullRequestInfo
 
         return participantMenuItemTitle;
     }
-};
 
+    std::vector<ParticipantUser> GetParticipantsRequestedChanges() const
+    {
+        return pullRequest.participants
+            | std::views::filter([](const auto& it) { return it.AreChangesRequested(); })
+            | std::ranges::to<std::vector>();
+    }
+
+    std::vector<ParticipantUser> GetParticipantsRequestedChangesWithout(const User& user) const
+    {
+        return GetParticipantsRequestedChanges()
+            | std::views::filter([&user](const auto& it) { return it.user.uuid != user.uuid; })
+            | std::ranges::to<std::vector>();
+    }
+};

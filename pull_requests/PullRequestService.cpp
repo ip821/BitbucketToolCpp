@@ -16,7 +16,7 @@ GetPullRequestsResult PullRequestService::GetPullRequests(const PullRequestsInfo
     const auto currentUserResult = currentUserRequest.GetCurrentUser(credentials);
     UNWRAP_OR_RETURN_ERROR(currentUser, currentUserResult);
 
-    PullRequestsInfo result{};
+    PullRequestsInfo result{.currentUser = currentUser};
 
     constexpr PullRequestsRequest pullRequestsRequest;
     constexpr PullRequestRequest pullRequestRequest;
