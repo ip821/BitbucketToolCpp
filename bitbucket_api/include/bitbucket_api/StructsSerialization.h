@@ -27,10 +27,10 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Status, state);
 NLOHMANN_JSON_SERIALIZE_ENUM(
     PullRequestState,
     {
-        {PullRequestState::Merged, "MERGED"},
-        {PullRequestState::Superseded, "SUPERSEDED"},
-        {PullRequestState::Open, "OPEN"},
-        {PullRequestState::Declined, "DECLINED"},
+    {PullRequestState::Merged, "MERGED"},
+    {PullRequestState::Superseded, "SUPERSEDED"},
+    {PullRequestState::Open, "OPEN"},
+    {PullRequestState::Declined, "DECLINED"},
     }
 );
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PullRequestLinks, self, html);
@@ -74,7 +74,8 @@ template<typename T>
 void to_json(nlohmann::json& j, const Values<T>& obj)
 {
     j = nlohmann::json{
-                {"values", obj.values}
+        {"values", obj.values},
+        {"next", obj.next},
     };
 }
 
@@ -82,4 +83,8 @@ template<typename T>
 void from_json(const nlohmann::json& j, Values<T>& obj)
 {
     j.at("values").get_to(obj.values);
+    if (j.contains("next") && !j.at("next").is_null())
+        obj.next = j.at("next").get<std::string>();
+    else
+        obj.next = std::nullopt;
 }

@@ -22,10 +22,13 @@ GetPullRequestsResult PullRequestService::GetPullRequests(const PullRequestsInfo
     constexpr PullRequestRequest pullRequestRequest;
     constexpr DiffStatRequest diffStatRequest;
     constexpr StatusRequest statusRequest;
+    size_t fetchedPullRequestsCount = 0;
     for (const auto& repository: Config::GetRepositories())
     {
         const auto pullRequestsResult = pullRequestsRequest.GetPullRequests(credentials, repository, currentUser.uuid);
         UNWRAP_OR_RETURN_ERROR(pullRequestItems, pullRequestsResult);
+
+        fetchedPullRequestsCount += pullRequestItems.values.size();
 
         for (const auto uniquePullRequests = pullRequestItems.DistinctById();
              const auto& pullRequestItem: uniquePullRequests)
@@ -68,6 +71,7 @@ GetPullRequestsResult PullRequestService::GetPullRequests(const PullRequestsInfo
         }
     }
 
+    result.fetchedPullRequestsCount = fetchedPullRequestsCount;
     result.Sort();
 
     return result;

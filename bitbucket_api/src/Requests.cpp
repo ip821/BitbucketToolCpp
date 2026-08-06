@@ -27,8 +27,23 @@ BitbucketResponse<PullRequest> PullRequestRequest::GetPullRequest(const std::str
 
 BitbucketResponse<Values<PullRequestItem> > PullRequestsRequest::GetPullRequests(const std::string& authToken, const Repository& repository, const std::string& userUuid) const
 {
-    const BitbucketRequest<Values<PullRequestItem> > request(BitbucketUrlBuilder::GetQueryPullRequestsUrl(repository, userUuid));
-    return request.Perform(authToken);
+    auto url = BitbucketUrlBuilder::GetQueryPullRequestsUrl(repository, userUuid);
+    std::vector<PullRequestItem> allPullRequests;
+
+    while (url != "")
+    {
+        const BitbucketRequest<Values<PullRequestItem> > request(url);
+        const auto response = request.Perform(authToken);
+        UNWRAP_OR_RETURN_ERROR(pullRequests, response);
+        allPullRequests.append_range(pullRequests.values);
+
+        if (pullRequests.next.has_value())
+            url = pullRequests.next.value();
+        else
+            url = "";
+    }
+
+    return Values{.values = allPullRequests};
 }
 
 BitbucketResponse<Values<Repository> > RepositoriesRequest::GetRepositories(const std::string& authToken, const Workspace& workspace) const
@@ -45,14 +60,14 @@ BitbucketResponse<Values<Status> > StatusRequest::GetStatuses(const std::string&
 
 BitbucketResponse<std::vector<Workspace> > WorkspacesRequest::GetWorkspaces(const std::string& authToken) const
 {
-    const BitbucketRequest<Values<WorkspaceAccess>> request(BitbucketUrlBuilder::GetWorkspacesUrl());
+    const BitbucketRequest<Values<WorkspaceAccess> > request(BitbucketUrlBuilder::GetWorkspacesUrl());
     const auto result = request.Perform(authToken);
     UNWRAP_OR_RETURN_ERROR(repositories, result);
 
     const auto workspaces = repositories.values
-                            | std::views::transform([](const auto& it) { return it.workspace; })
-                            | std::views::filter([](const auto& it) { return !it.slug.empty(); })
-                            | std::ranges::to<std::vector>();
+        | std::views::transform([](const auto& it) { return it.workspace; })
+        | std::views::filter([](const auto& it) { return !it.slug.empty(); })
+        | std::ranges::to<std::vector>();
 
     return workspaces;
 }

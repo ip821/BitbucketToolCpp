@@ -56,6 +56,7 @@ class StatusItem : public wxTaskBarIcon
     void ShowErrorNotification(const wxString& message) const;
     void RebuildMenu(const RebuildMenuArgs& args);
     void UpdatePullRequests(const OnUpdatePullRequestsArgs& args);
+    void UpdateStatistics(bool fullReload, size_t fetchedPullRequestsCount, std::chrono::seconds elapsedTime);
     void InsertPullRequestTitleMenuItem(IdAndIndex& menuItemId, const PullRequestInfo& pullRequest) const;
     void InsertSecondaryPullRequestMenuItem(IdAndIndex& menuItemId, const wxString& title) const;
     void UpdateTitle(const PullRequestsInfo& pullRequestsInfo, int hiddenPullRequestsCount);

@@ -12,7 +12,8 @@ concept HasId = requires(const T& item)
 template<typename TItem>
 struct Values
 {
-    std::vector<TItem> values;
+    std::vector<TItem> values{};
+    std::optional<std::string> next{};
 
     std::vector<TItem> DistinctById() const
         requires HasId<TItem>

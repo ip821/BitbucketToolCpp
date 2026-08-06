@@ -12,15 +12,22 @@
 #include "preferences/PreferencesWindow.h"
 #include "preferences/settings/Config.h"
 #include "pull_requests/PullRequestService.h"
+#include "Stopwatch.h"
 
 enum
 {
-    MENU_ITEM_PREFERENCES_ID = 10000,
+    MENU_ITEM_FIRST_STATIC_ID = 10000,
+
+    MENU_ITEM_STATISTICS,
+    MENU_ITEM_PREFERENCES_ID,
     MENU_ITEM_SHOW_ALL,
     MENU_ITEM_QUIT_ID,
     MENU_ITEM_UPDATE_ID,
-    MENU_ITEM_CREATE_PULL_REQUEST_ID = MENU_ITEM_PREFERENCES_ID + 100,
-    MENU_ITEM_LAST_SEPARATOR = MENU_ITEM_PREFERENCES_ID + 1000 - 1,
+    MENU_ITEM_LAST_SEPARATOR,
+
+    MENU_ITEM_CREATE_PULL_REQUEST_ID,
+    MENU_ITEM_LAST_PULL_REQUEST_ID = MENU_ITEM_CREATE_PULL_REQUEST_ID + 100,
+    MENU_ITEM_LAST_STATIC_ID,
 };
 
 constexpr auto tenSeconds = 10 * 1000;
@@ -58,6 +65,7 @@ StatusItem::StatusItem() :
     m_pMenu->AppendSeparator()->SetId(MENU_ITEM_LAST_SEPARATOR);
     m_pMenu->AppendSubMenu(m_pCreatePullRequestsMenu, "&Create pull request");
     m_pMenu->AppendSeparator();
+    m_pMenu->Append(MENU_ITEM_STATISTICS, "Statistics")->Enable(false);
     m_pMenu->Append(MENU_ITEM_SHOW_ALL, "&Show hidden items");
     m_pMenu->Append(MENU_ITEM_UPDATE_ID, "&Update");
     m_pMenu->Append(MENU_ITEM_PREFERENCES_ID, "&Preferences...");
@@ -165,7 +173,7 @@ void StatusItem::RemoveAllPrMenuItems()
     for (const auto menuItems = m_pMenu->GetMenuItems();
          const auto& item: menuItems)
     {
-        if (item->GetId() > MENU_ITEM_LAST_SEPARATOR)
+        if (item->GetId() > MENU_ITEM_LAST_STATIC_ID)
         {
             m_pMenu->Delete(item);
         }
@@ -205,7 +213,7 @@ void StatusItem::RebuildMenu(const RebuildMenuArgs& args)
 
     m_menuItemIdToPullRequest.clear();
 
-    IdAndIndex idAndIndex = {.id = MENU_ITEM_LAST_SEPARATOR + 1, .index = 0};
+    IdAndIndex idAndIndex = {.id = MENU_ITEM_LAST_STATIC_ID + 1, .index = 0};
     const auto pFirstMenuItem = m_pMenu->Insert(idAndIndex.index++, idAndIndex.id++, "Pull requests to review");
     pFirstMenuItem->Enable(false);
 
@@ -277,7 +285,10 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 
     UpdateCreatePullRequestsMenu(repositories);
 
-    const bool fullReload = args.fullReload || ++m_requestCount >= fullReloadInterval;
+    const bool fullReload = args.fullReload
+        || ++m_requestCount >= fullReloadInterval
+        || m_pullRequestsInfo.fetchedPullRequestsCount == 0;
+
     if (fullReload)
         m_requestCount = 0;
 
@@ -285,12 +296,15 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
     const auto& previousPullRequests = fullReload ? emptyPullRequestsInfo : m_pullRequestsInfo;
 
     wxWeakRef isWindowValid(this);
-    m_thread = std::jthread([this, args, isWindowValid, &previousPullRequests]
+    m_thread = std::jthread([this, args, fullReload, isWindowValid, &previousPullRequests]
     {
+        const Stopwatch fetchStopwatch;
+
         PullRequestService pullRequestService;
         const auto pullRequestsResult = pullRequestService.GetPullRequests(previousPullRequests);
+        const auto elapsedTime = fetchStopwatch.GetElapsed();
 
-        wxTheApp->CallAfter([isWindowValid, args, this, pullRequestsResult]
+        wxTheApp->CallAfter([isWindowValid, args, fullReload, elapsedTime, this, pullRequestsResult]
         {
             if (!isWindowValid)
                 return;
@@ -307,6 +321,7 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
             const auto& pullRequestsInfo = pullRequestsResult.value();
             m_pullRequestsInfo = pullRequestsInfo;
 
+            UpdateStatistics(fullReload, pullRequestsInfo.fetchedPullRequestsCount, elapsedTime);
             RebuildMenu({.pullRequests = pullRequestsInfo, .showAll = false});
 
             if (args.showNotification)
@@ -316,6 +331,21 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
             }
         });
     });
+}
+
+void StatusItem::UpdateStatistics(bool fullReload, size_t fetchedPullRequestsCount, std::chrono::seconds elapsedTime)
+{
+    const auto elapsedSeconds = elapsedTime.count();
+    const auto nextUpdate = wxDateTime::Now() + wxTimeSpan::Milliseconds(fiveMinutes);
+    m_pMenu->SetLabel(
+        MENU_ITEM_STATISTICS,
+        std::format(
+            wxS("{}: {} PRs. Update took: {:02}:{:02}. Next update at: {}"),
+            fullReload ? wxS("Full") : wxS("Partial"),
+            fetchedPullRequestsCount,
+            elapsedSeconds / 60,
+            elapsedSeconds % 60,
+            nextUpdate.Format(wxS("%d.%m.%Y %H:%M"))));
 }
 
 void StatusItem::InsertPullRequestTitleMenuItem(IdAndIndex& menuItemId, const PullRequestInfo& pullRequest) const

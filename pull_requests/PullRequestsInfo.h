@@ -7,6 +7,7 @@
 
 struct PullRequestsInfo
 {
+    size_t fetchedPullRequestsCount{};
     User currentUser{};
     std::vector<PullRequestInfo> skippedPullRequests{};
     std::vector<PullRequestInfo> waitingForMyApprovalPullRequests{};

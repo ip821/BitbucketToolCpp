@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(PRToolForBitbucket2 VERSION 1.19 LANGUAGES CXX)
+project(PRToolForBitbucket2 VERSION 1.21 LANGUAGES CXX)
 
 include(FetchContent)
 
@@ -51,6 +51,8 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         preferences/PreferencesWindow.h
         StatusItem.cpp
         StatusItem.h
+        Stopwatch.cpp
+        Stopwatch.h
         preferences/wizard/WizardPages.cpp
         preferences/wizard/WizardPages.h
         preferences/wizard/SetupWizard.cpp
