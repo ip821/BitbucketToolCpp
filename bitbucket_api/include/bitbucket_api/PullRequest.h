@@ -1,7 +1,5 @@
 #pragma once
 
-#include <optional>
-
 #include "bitbucket_api/ParticipantUser.h"
 #include "bitbucket_api/Structs.h"
 #include "bitbucket_api/Values.h"
@@ -49,6 +47,12 @@ struct PullRequestItem
     PullRequestLinks links{};
     std::string created_on{};
     std::string updated_on{};
+    PullRequestState state{};
+    std::vector<ParticipantUser> participants{};
+    bool draft{};
+
+    [[nodiscard]] bool IsWaitingForUserApproval(const User& user) const;
+    [[nodiscard]] bool IsUserPullRequest(const User& user) const;
 };
 
 struct PullRequest
@@ -65,8 +69,4 @@ struct PullRequest
     Destination destination{};
     Source source{};
     bool draft{};
-
-    [[nodiscard]] std::optional<ParticipantUser> GetParticipantForUser(const User& user) const;
-    [[nodiscard]] bool IsWaitingForUserApproval(const User& user) const;
-    [[nodiscard]] bool IsUserPullRequest(const User& user) const;
 };

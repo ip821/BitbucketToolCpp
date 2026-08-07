@@ -11,5 +11,5 @@ using GetPullRequestsResult = std::expected<PullRequestsInfo, BitbucketError>;
 class PullRequestService
 {
 public:
-    GetPullRequestsResult GetPullRequests(const PullRequestsInfo& previousPullRequests);
+    GetPullRequestsResult GetPullRequests();
 };

@@ -39,7 +39,6 @@ class StatusItem : public wxTaskBarIcon
     bool m_showAllPullRequests{};
     bool m_useTwoColumnLayout{};
     std::unordered_map<int, PullRequestInfo> m_menuItemIdToPullRequest;
-    int m_requestCount{};
 
     wxMenu *GetPopupMenu() override;
 
@@ -56,7 +55,7 @@ class StatusItem : public wxTaskBarIcon
     void ShowErrorNotification(const wxString& message) const;
     void RebuildMenu(const RebuildMenuArgs& args);
     void UpdatePullRequests(const OnUpdatePullRequestsArgs& args);
-    void UpdateStatistics(bool fullReload, size_t fetchedPullRequestsCount, std::chrono::seconds elapsedTime);
+    void UpdateStatistics(size_t processedPullRequestsCount, size_t fetchedPullRequestsCount, std::chrono::seconds elapsedTime);
     void InsertPullRequestTitleMenuItem(IdAndIndex& menuItemId, const PullRequestInfo& pullRequest) const;
     void InsertSecondaryPullRequestMenuItem(IdAndIndex& menuItemId, const wxString& title) const;
     void UpdateTitle(const PullRequestsInfo& pullRequestsInfo, int hiddenPullRequestsCount);

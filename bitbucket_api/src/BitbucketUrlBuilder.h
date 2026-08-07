@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cpp_curl/CurlUrl.h>
+
 #include "cpp_utils/strings.h"
 #include "bitbucket_api/Structs.h"
 
@@ -40,9 +42,15 @@ public:
         ip::strings::replace_all(userId, "{", "");
         ip::strings::replace_all(userId, "}", "");
 
-        return
-                GetPullRequestsUrl(repository)
-                + std::format("?pagelen=50&q=state%3D%22open%22%20AND%20(reviewers.uuid%3D%22{0}%22%20OR%20author.uuid%3D%22{0}%22)", userId);
+        const auto query = std::format(
+            R"(state="open" AND ((reviewers.uuid="{0}" AND draft=false) OR author.uuid="{0}"))",
+            userId);
+
+        CurlUrl url(GetPullRequestsUrl(repository));
+        url.AppendQueryParameter("pagelen", "50");
+        url.AppendQueryParameter("q", query);
+        url.AppendQueryParameter("fields", "+values.participants");
+        return url.GetUrl();
     }
 
     static std::string GetRepositoriesUrl(const Workspace& workspace)

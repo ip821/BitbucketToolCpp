@@ -8,8 +8,8 @@
 struct PullRequestsInfo
 {
     size_t fetchedPullRequestsCount{};
+    size_t processedPullRequestsCount{};
     User currentUser{};
-    std::vector<PullRequestInfo> skippedPullRequests{};
     std::vector<PullRequestInfo> waitingForMyApprovalPullRequests{};
     std::vector<PullRequestInfo> myPullRequests{};
 
@@ -26,19 +26,5 @@ struct PullRequestsInfo
                           {
                               return a.pullRequest.created_on < b.pullRequest.created_on;
                           });
-    }
-
-    std::optional<const PullRequestInfo*> GetSkippedPullRequestOrNull(int id) const
-    {
-        const auto findById = [id](const PullRequestInfo& info)
-        {
-            return info.pullRequest.id == id;
-        };
-
-        if (const auto it = std::ranges::find_if(skippedPullRequests, findById);
-            it != skippedPullRequests.end())
-            return &*it;
-
-        return std::nullopt;
     }
 };

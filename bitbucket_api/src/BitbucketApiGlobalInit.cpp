@@ -2,6 +2,14 @@
 
 #include <cpp_curl/CurlGlobalInit.h>
 
-BitbucketApiGlobalInit::BitbucketApiGlobalInit() : m_pCurlGlobalInit(std::make_shared<CurlGlobalInit>())
+class BitbucketApiGlobalInit::Impl
+{
+    CurlGlobalInit m_curlGlobalInit;
+};
+
+BitbucketApiGlobalInit::BitbucketApiGlobalInit()
+    : m_pImpl(std::make_unique<Impl>())
 {
 }
+
+BitbucketApiGlobalInit::~BitbucketApiGlobalInit() = default;

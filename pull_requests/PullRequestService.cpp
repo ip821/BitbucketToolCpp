@@ -8,7 +8,7 @@
 #include "../preferences/Credentials.h"
 #include "../preferences/settings/Config.h"
 
-GetPullRequestsResult PullRequestService::GetPullRequests(const PullRequestsInfo& previousPullRequests)
+GetPullRequestsResult PullRequestService::GetPullRequests()
 {
     const auto credentials = Credentials::GetCredentialsBase64().ToStdString();
 
@@ -23,6 +23,7 @@ GetPullRequestsResult PullRequestService::GetPullRequests(const PullRequestsInfo
     constexpr DiffStatRequest diffStatRequest;
     constexpr StatusRequest statusRequest;
     size_t fetchedPullRequestsCount = 0;
+    size_t processedPullRequestsCount = 0;
     for (const auto& repository: Config::GetRepositories())
     {
         const auto pullRequestsResult = pullRequestsRequest.GetPullRequests(credentials, repository, currentUser.uuid);
@@ -33,45 +34,33 @@ GetPullRequestsResult PullRequestService::GetPullRequests(const PullRequestsInfo
         for (const auto uniquePullRequests = pullRequestItems.DistinctById();
              const auto& pullRequestItem: uniquePullRequests)
         {
-            PullRequestInfo pullRequestInfo;
-
-            if (const auto pPreviousPullRequest = previousPullRequests.GetSkippedPullRequestOrNull(pullRequestItem.id);
-                pPreviousPullRequest.has_value()
-                && pPreviousPullRequest.value()->pullRequest.updated_on >= pullRequestItem.updated_on)
-            {
-                pullRequestInfo = *pPreviousPullRequest.value();
-            }
-            else
-            {
-                const auto pullRequestResult = pullRequestRequest.GetPullRequest(credentials, repository, pullRequestItem.id);
-                UNWRAP_OR_RETURN_ERROR(pullRequest, pullRequestResult);
-
-                const auto diffStatResult = diffStatRequest.GetDiffStat(credentials, repository, pullRequestItem.id);
-                UNWRAP_OR_RETURN_ERROR(diffStat, diffStatResult);
-
-                pullRequestInfo = {.pullRequest = pullRequest, .statuses = {}, .diffStat = diffStat};
-            }
-
-            if (
-                !pullRequestInfo.pullRequest.IsWaitingForUserApproval(currentUser)
-                && !pullRequestInfo.pullRequest.IsUserPullRequest(currentUser))
-            {
-                result.skippedPullRequests.push_back(pullRequestInfo);
+            const auto isWaitingForUserApproval = pullRequestItem.IsWaitingForUserApproval(currentUser);
+            const auto isUserPullRequest = pullRequestItem.IsUserPullRequest(currentUser);
+            if (!isWaitingForUserApproval && !isUserPullRequest)
                 continue;
-            }
+
+            processedPullRequestsCount++;
+            const auto pullRequestResult = pullRequestRequest.GetPullRequest(credentials, repository, pullRequestItem.id);
+            UNWRAP_OR_RETURN_ERROR(pullRequest, pullRequestResult);
+
+            const auto diffStatResult = diffStatRequest.GetDiffStat(credentials, repository, pullRequestItem.id);
+            UNWRAP_OR_RETURN_ERROR(diffStat, diffStatResult);
+
+            PullRequestInfo pullRequestInfo{.pullRequest = pullRequest, .statuses = {}, .diffStat = diffStat};
 
             const auto statusesResult = statusRequest.GetStatuses(credentials, repository, pullRequestItem.id);
             UNWRAP_OR_RETURN_ERROR(statuses, statusesResult);
             pullRequestInfo.statuses = statuses.values;
 
-            if (pullRequestInfo.pullRequest.IsWaitingForUserApproval(currentUser))
+            if (isWaitingForUserApproval)
                 result.waitingForMyApprovalPullRequests.push_back(pullRequestInfo);
-            else if (pullRequestInfo.pullRequest.IsUserPullRequest(currentUser))
+            else if (isUserPullRequest)
                 result.myPullRequests.push_back(pullRequestInfo);
         }
     }
 
     result.fetchedPullRequestsCount = fetchedPullRequestsCount;
+    result.processedPullRequestsCount = processedPullRequestsCount;
     result.Sort();
 
     return result;

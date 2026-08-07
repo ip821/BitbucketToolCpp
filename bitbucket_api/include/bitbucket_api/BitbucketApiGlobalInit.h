@@ -2,11 +2,15 @@
 
 #include <memory>
 
-class CurlGlobalInit;
-
 class BitbucketApiGlobalInit
 {
-    std::shared_ptr<CurlGlobalInit> m_pCurlGlobalInit;
+    class Impl;
+    std::unique_ptr<Impl> m_pImpl;
+
 public:
-    explicit BitbucketApiGlobalInit();
+    BitbucketApiGlobalInit();
+    ~BitbucketApiGlobalInit();
+
+    BitbucketApiGlobalInit(const BitbucketApiGlobalInit&) = delete;
+    BitbucketApiGlobalInit& operator=(const BitbucketApiGlobalInit&) = delete;
 };

@@ -32,7 +32,6 @@ enum
 
 constexpr auto tenSeconds = 10 * 1000;
 constexpr auto fiveMinutes = 5 * 60 * 1000;
-constexpr auto fullReloadInterval = 10;
 
 StatusItem::StatusItem() :
     wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM)
@@ -285,26 +284,16 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 
     UpdateCreatePullRequestsMenu(repositories);
 
-    const bool fullReload = args.fullReload
-        || ++m_requestCount >= fullReloadInterval
-        || m_pullRequestsInfo.fetchedPullRequestsCount == 0;
-
-    if (fullReload)
-        m_requestCount = 0;
-
-    static const PullRequestsInfo emptyPullRequestsInfo{};
-    const auto& previousPullRequests = fullReload ? emptyPullRequestsInfo : m_pullRequestsInfo;
-
     wxWeakRef isWindowValid(this);
-    m_thread = std::jthread([this, args, fullReload, isWindowValid, &previousPullRequests]
+    m_thread = std::jthread([this, args, isWindowValid]
     {
         const Stopwatch fetchStopwatch;
 
         PullRequestService pullRequestService;
-        const auto pullRequestsResult = pullRequestService.GetPullRequests(previousPullRequests);
+        const auto pullRequestsResult = pullRequestService.GetPullRequests();
         const auto elapsedTime = fetchStopwatch.GetElapsed();
 
-        wxTheApp->CallAfter([isWindowValid, args, fullReload, elapsedTime, this, pullRequestsResult]
+        wxTheApp->CallAfter([isWindowValid, args, elapsedTime, this, pullRequestsResult]
         {
             if (!isWindowValid)
                 return;
@@ -321,7 +310,7 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
             const auto& pullRequestsInfo = pullRequestsResult.value();
             m_pullRequestsInfo = pullRequestsInfo;
 
-            UpdateStatistics(fullReload, pullRequestsInfo.fetchedPullRequestsCount, elapsedTime);
+            UpdateStatistics(pullRequestsInfo.processedPullRequestsCount, pullRequestsInfo.fetchedPullRequestsCount, elapsedTime);
             RebuildMenu({.pullRequests = pullRequestsInfo, .showAll = false});
 
             if (args.showNotification)
@@ -333,15 +322,15 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
     });
 }
 
-void StatusItem::UpdateStatistics(bool fullReload, size_t fetchedPullRequestsCount, std::chrono::seconds elapsedTime)
+void StatusItem::UpdateStatistics(size_t processedPullRequestsCount, size_t fetchedPullRequestsCount, std::chrono::seconds elapsedTime)
 {
     const auto elapsedSeconds = elapsedTime.count();
     const auto nextUpdate = wxDateTime::Now() + wxTimeSpan::Milliseconds(fiveMinutes);
     m_pMenu->SetLabel(
         MENU_ITEM_STATISTICS,
         std::format(
-            wxS("{}: {} PRs. Update took: {:02}:{:02}. Next update at: {}"),
-            fullReload ? wxS("Full") : wxS("Partial"),
+            wxS("PRs fetched: {}/{}. Update took: {:02}:{:02}. Next update at: {}"),
+            processedPullRequestsCount,
             fetchedPullRequestsCount,
             elapsedSeconds / 60,
             elapsedSeconds % 60,
