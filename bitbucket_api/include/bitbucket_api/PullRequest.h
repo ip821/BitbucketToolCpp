@@ -39,22 +39,6 @@ struct Source
     Branch branch{};
 };
 
-struct PullRequestItem
-{
-    int id{};
-    std::string title{};
-    User author{};
-    PullRequestLinks links{};
-    std::string created_on{};
-    std::string updated_on{};
-    PullRequestState state{};
-    std::vector<ParticipantUser> participants{};
-    bool draft{};
-
-    [[nodiscard]] bool IsWaitingForUserApproval(const User& user) const;
-    [[nodiscard]] bool IsUserPullRequest(const User& user) const;
-};
-
 struct PullRequest
 {
     int id{};
@@ -69,4 +53,7 @@ struct PullRequest
     Destination destination{};
     Source source{};
     bool draft{};
+
+    [[nodiscard]] bool IsWaitingForUserApproval(const User& user) const;
+    [[nodiscard]] bool IsUserPullRequest(const User& user) const;
 };

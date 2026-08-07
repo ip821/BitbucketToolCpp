@@ -28,7 +28,7 @@ public:
 class PullRequestsRequest
 {
 public:
-    [[nodiscard]] BitbucketResponse<Values<PullRequestItem>> GetPullRequests(const std::string& authToken, const Repository& repository, const std::string& userUuid) const;
+    [[nodiscard]] BitbucketResponse<Values<PullRequest>> GetPullRequests(const std::string& authToken, const Repository& repository, const std::string& userUuid) const;
 };
 
 class RepositoriesRequest

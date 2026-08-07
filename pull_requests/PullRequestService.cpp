@@ -19,7 +19,6 @@ GetPullRequestsResult PullRequestService::GetPullRequests()
     PullRequestsInfo result{.currentUser = currentUser};
 
     constexpr PullRequestsRequest pullRequestsRequest;
-    constexpr PullRequestRequest pullRequestRequest;
     constexpr DiffStatRequest diffStatRequest;
     constexpr StatusRequest statusRequest;
     size_t fetchedPullRequestsCount = 0;
@@ -27,28 +26,25 @@ GetPullRequestsResult PullRequestService::GetPullRequests()
     for (const auto& repository: Config::GetRepositories())
     {
         const auto pullRequestsResult = pullRequestsRequest.GetPullRequests(credentials, repository, currentUser.uuid);
-        UNWRAP_OR_RETURN_ERROR(pullRequestItems, pullRequestsResult);
+        UNWRAP_OR_RETURN_ERROR(pullRequests, pullRequestsResult);
 
-        fetchedPullRequestsCount += pullRequestItems.values.size();
+        fetchedPullRequestsCount += pullRequests.values.size();
 
-        for (const auto uniquePullRequests = pullRequestItems.DistinctById();
-             const auto& pullRequestItem: uniquePullRequests)
+        for (const auto uniquePullRequests = pullRequests.DistinctById();
+             const auto& pullRequest: uniquePullRequests)
         {
-            const auto isWaitingForUserApproval = pullRequestItem.IsWaitingForUserApproval(currentUser);
-            const auto isUserPullRequest = pullRequestItem.IsUserPullRequest(currentUser);
+            const auto isWaitingForUserApproval = pullRequest.IsWaitingForUserApproval(currentUser);
+            const auto isUserPullRequest = pullRequest.IsUserPullRequest(currentUser);
             if (!isWaitingForUserApproval && !isUserPullRequest)
                 continue;
 
             processedPullRequestsCount++;
-            const auto pullRequestResult = pullRequestRequest.GetPullRequest(credentials, repository, pullRequestItem.id);
-            UNWRAP_OR_RETURN_ERROR(pullRequest, pullRequestResult);
-
-            const auto diffStatResult = diffStatRequest.GetDiffStat(credentials, repository, pullRequestItem.id);
+            const auto diffStatResult = diffStatRequest.GetDiffStat(credentials, repository, pullRequest.id);
             UNWRAP_OR_RETURN_ERROR(diffStat, diffStatResult);
 
             PullRequestInfo pullRequestInfo{.pullRequest = pullRequest, .statuses = {}, .diffStat = diffStat};
 
-            const auto statusesResult = statusRequest.GetStatuses(credentials, repository, pullRequestItem.id);
+            const auto statusesResult = statusRequest.GetStatuses(credentials, repository, pullRequest.id);
             UNWRAP_OR_RETURN_ERROR(statuses, statusesResult);
             pullRequestInfo.statuses = statuses.values;
 

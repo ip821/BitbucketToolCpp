@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-bool PullRequestItem::IsWaitingForUserApproval(const User& user) const
+bool PullRequest::IsWaitingForUserApproval(const User& user) const
 {
     const auto userParticipant = std::ranges::find_if(
         participants,
@@ -15,7 +15,7 @@ bool PullRequestItem::IsWaitingForUserApproval(const User& user) const
         && !userParticipant->approved;
 }
 
-bool PullRequestItem::IsUserPullRequest(const User& user) const
+bool PullRequest::IsUserPullRequest(const User& user) const
 {
     return author.uuid == user.uuid && state == PullRequestState::Open;
 }

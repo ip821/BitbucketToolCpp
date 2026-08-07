@@ -31,7 +31,7 @@ add_library(bitbucket_api
         include/bitbucket_api/Structs.h
         include/bitbucket_api/BitbucketApiGlobalInit.h
         include/bitbucket_api/StructsSerialization.h
-        src/PullRequestItem.cpp
+        src/PullRequest.cpp
         src/Structs.cpp
         src/BitbucketRequest.h
         src/BitbucketUrlBuilder.h

@@ -25,14 +25,14 @@ BitbucketResponse<PullRequest> PullRequestRequest::GetPullRequest(const std::str
     return request.Perform(authToken);
 }
 
-BitbucketResponse<Values<PullRequestItem> > PullRequestsRequest::GetPullRequests(const std::string& authToken, const Repository& repository, const std::string& userUuid) const
+BitbucketResponse<Values<PullRequest> > PullRequestsRequest::GetPullRequests(const std::string& authToken, const Repository& repository, const std::string& userUuid) const
 {
     auto url = BitbucketUrlBuilder::GetQueryPullRequestsUrl(repository, userUuid);
-    std::vector<PullRequestItem> allPullRequests;
+    std::vector<PullRequest> allPullRequests;
 
     while (url != "")
     {
-        const BitbucketRequest<Values<PullRequestItem> > request(url);
+        const BitbucketRequest<Values<PullRequest> > request(url);
         const auto response = request.Perform(authToken);
         UNWRAP_OR_RETURN_ERROR(pullRequests, response);
         allPullRequests.append_range(pullRequests.values);

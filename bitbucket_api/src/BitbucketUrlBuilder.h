@@ -49,7 +49,9 @@ public:
         CurlUrl url(GetPullRequestsUrl(repository));
         url.AppendQueryParameter("pagelen", "50");
         url.AppendQueryParameter("q", query);
-        url.AppendQueryParameter("fields", "+values.participants");
+        url.AppendQueryParameter(
+            "fields",
+            "+values.participants,+values.comment_count,+values.source,+values.destination");
         return url.GetUrl();
     }
 

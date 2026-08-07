@@ -38,16 +38,6 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Branch, name);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DestinationRepository, name);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Destination, branch, repository);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Source, branch);
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PullRequestItem,
-                                   id,
-                                   title,
-                                   author,
-                                   links,
-                                   created_on,
-                                   updated_on,
-                                   state,
-                                   participants,
-                                   draft);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PullRequest,
                                    id,
                                    title,
