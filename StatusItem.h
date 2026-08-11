@@ -39,6 +39,7 @@ class StatusItem : public wxTaskBarIcon
     bool m_showAllPullRequests{};
     bool m_useTwoColumnLayout{};
     std::unordered_map<int, PullRequestInfo> m_menuItemIdToPullRequest;
+    std::unordered_map<int, wxString> m_menuItemIdToRepository;
 
     wxMenu *GetPopupMenu() override;
 

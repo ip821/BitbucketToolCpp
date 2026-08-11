@@ -4,7 +4,10 @@
 #include <thread>
 #include <cpp_utils/wx_string_format.h>
 #include <wx/clipbrd.h>
+#include <wx/control.h>
+#include <wx/dcmemory.h>
 #include <wx/notifmsg.h>
+#include <wx/settings.h>
 #include <wx/wx.h>
 #include <wx/xrc/xmlres.h>
 
@@ -32,6 +35,19 @@ enum
 
 constexpr auto tenSeconds = 10 * 1000;
 constexpr auto fiveMinutes = 5 * 60 * 1000;
+
+namespace
+{
+    constexpr auto maxMenuWidth = 500;
+
+    wxString FitMenuText(const wxString& text)
+    {
+        wxBitmap bitmap(1, 1);
+        wxMemoryDC dc(bitmap);
+        dc.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+        return wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, maxMenuWidth);
+    }
+}
 
 StatusItem::StatusItem() :
     wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM)
@@ -151,9 +167,11 @@ void StatusItem::OnMenuItemClick(wxCommandEvent& e)
 void StatusItem::OnCreatePullRequestMenuItemClick(wxCommandEvent& event)
 {
     const auto menuItemId = event.GetId();
-    const auto pMenuItem = m_pCreatePullRequestsMenu->FindItemByPosition(menuItemId - MENU_ITEM_CREATE_PULL_REQUEST_ID);
+    const auto repositoryIt = m_menuItemIdToRepository.find(menuItemId);
+    if (repositoryIt == m_menuItemIdToRepository.end())
+        return;
 
-    const auto repository = pMenuItem->GetItemLabel();
+    const auto& repository = repositoryIt->second;
     const auto parts = wxSplit(repository, '/');
     const auto workspace = parts[0];
     const auto repo = parts[1];
@@ -187,10 +205,14 @@ void StatusItem::UpdateCreatePullRequestsMenu(const std::vector<Repository>& rep
         m_pCreatePullRequestsMenu->Delete(item);
     }
 
+    m_menuItemIdToRepository.clear();
+
     auto index = 0;
     for (const auto& repository: repositories)
     {
-        m_pCreatePullRequestsMenu->Append(MENU_ITEM_CREATE_PULL_REQUEST_ID + index++, repository.full_name);
+        const auto menuItemId = MENU_ITEM_CREATE_PULL_REQUEST_ID + index++;
+        m_menuItemIdToRepository[menuItemId] = repository.full_name;
+        m_pCreatePullRequestsMenu->Append(menuItemId, FitMenuText(repository.full_name));
     }
 }
 
@@ -328,24 +350,25 @@ void StatusItem::UpdateStatistics(size_t processedPullRequestsCount, size_t fetc
     const auto nextUpdate = wxDateTime::Now() + wxTimeSpan::Milliseconds(fiveMinutes);
     m_pMenu->SetLabel(
         MENU_ITEM_STATISTICS,
-        std::format(
-            wxS("PRs fetched: {}/{}. Update took: {:02}:{:02}. Next update at: {}"),
-            processedPullRequestsCount,
-            fetchedPullRequestsCount,
-            elapsedSeconds / 60,
-            elapsedSeconds % 60,
-            nextUpdate.Format(wxS("%d.%m.%Y %H:%M"))));
+        FitMenuText(
+            std::format(
+                wxS("PRs fetched: {}/{}. Update took: {:02}:{:02}. Next update at: {}"),
+                processedPullRequestsCount,
+                fetchedPullRequestsCount,
+                elapsedSeconds / 60,
+                elapsedSeconds % 60,
+                nextUpdate.Format(wxS("%d.%m.%Y %H:%M")))));
 }
 
 void StatusItem::InsertPullRequestTitleMenuItem(IdAndIndex& menuItemId, const PullRequestInfo& pullRequest) const
 {
-    m_pMenu->Insert(menuItemId.index++, menuItemId.id++, pullRequest.GetMainMenuItemTitle().Left(90));
+    m_pMenu->Insert(menuItemId.index++, menuItemId.id++, FitMenuText(pullRequest.GetMainMenuItemTitle()));
 }
 
 void StatusItem::InsertSecondaryPullRequestMenuItem(IdAndIndex& menuItemId, const wxString& title) const
 {
     const auto secondLineTitle = std::format(wxS("   {}"), title);
-    m_pMenu->Insert(menuItemId.index++, menuItemId.id++, secondLineTitle)->Enable(false);
+    m_pMenu->Insert(menuItemId.index++, menuItemId.id++, FitMenuText(secondLineTitle))->Enable(false);
 }
 
 void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int hiddenPullRequestsCount)
