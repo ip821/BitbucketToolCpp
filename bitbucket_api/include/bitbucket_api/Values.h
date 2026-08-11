@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <unordered_set>
+#include <optional>
 
 template<typename T>
 concept HasId = requires(const T& item)
