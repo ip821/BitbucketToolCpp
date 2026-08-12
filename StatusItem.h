@@ -8,6 +8,7 @@
 
 #include "preferences/PreferencesWindow.h"
 #include "pull_requests/PullRequestInfo.h"
+#include "pull_requests/PullRequestService.h"
 #include "pull_requests/PullRequestsInfo.h"
 
 struct OnUpdatePullRequestsArgs
@@ -49,6 +50,7 @@ class StatusItem : public wxTaskBarIcon
     void ShowErrorNotification(const wxString& message) const;
     void RebuildMenu(const RebuildMenuArgs& args);
     void UpdatePullRequests(const OnUpdatePullRequestsArgs& args);
+    void UpdateProgress(const PullRequestUpdateProgressArgs& progress);
     void UpdateStatistics(size_t processedPullRequestsCount, size_t fetchedPullRequestsCount, std::chrono::seconds elapsedTime);
     void UpdateTitle(const PullRequestsInfo& pullRequestsInfo, int hiddenPullRequestsCount);
 

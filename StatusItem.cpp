@@ -2,6 +2,7 @@
 
 #include <ranges>
 #include <thread>
+#include <cpp_utils/match_variant.h>
 #include <cpp_utils/wx_string_format.h>
 #include <wx/clipbrd.h>
 #include <wx/control.h>
@@ -236,19 +237,28 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
     m_pMenu->Enable(MENU_ITEM_UPDATE_ID, false);
 
     const auto repositories = Config::GetRepositories();
+    const auto statisticsLabel = m_pMenu->GetLabel(MENU_ITEM_STATISTICS);
 
     UpdateCreatePullRequestsMenu(repositories);
 
     wxWeakRef isWindowValid(this);
-    m_thread = std::jthread([this, args, isWindowValid]
+    m_thread = std::jthread([this, args, isWindowValid, repositories, statisticsLabel]
     {
         const Stopwatch fetchStopwatch;
 
         PullRequestService pullRequestService;
-        const auto pullRequestsResult = pullRequestService.GetPullRequests();
+        const auto progressCallback = [this, isWindowValid](const PullRequestUpdateProgressArgs& progressArgs)
+        {
+            wxTheApp->CallAfter([this, isWindowValid, progressArgs]
+            {
+                if (isWindowValid)
+                    UpdateProgress(progressArgs);
+            });
+        };
+        const auto pullRequestsResult = pullRequestService.GetPullRequests(repositories, progressCallback);
         const auto elapsedTime = fetchStopwatch.GetElapsed();
 
-        wxTheApp->CallAfter([isWindowValid, args, elapsedTime, this, pullRequestsResult]
+        wxTheApp->CallAfter([isWindowValid, args, elapsedTime, this, pullRequestsResult, statisticsLabel]
         {
             if (!isWindowValid)
                 return;
@@ -258,7 +268,12 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 
             if (!pullRequestsResult)
             {
-                ShowErrorNotification(pullRequestsResult.error().message);
+                const auto message = pullRequestsResult.error().message;
+                m_pMenu->SetLabel(
+                    MENU_ITEM_STATISTICS,
+                    FitMenuText(std::format("Update failed: {}", message))
+                );
+                ShowErrorNotification(message);
                 return;
             }
 
@@ -275,6 +290,27 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
             }
         });
     });
+}
+
+void StatusItem::UpdateProgress(const PullRequestUpdateProgressArgs& progressArgs)
+{
+    const wxString label = ip::match_variant(
+        progressArgs,
+        [](const FetchingRepositoryPullRequests& args)
+        {
+            return wxS("Querying [") + wxString::FromUTF8(args.repositoryName) + wxS("]");
+        },
+        [](const FetchingPullRequestDetails& args)
+        {
+            const auto percentage = args.totalPullRequests == 0
+                ? 0
+                : args.currentPullRequest * 100 / args.totalPullRequests;
+
+            return wxString(std::format(wxS("Fetching — {}%"), percentage));
+        }
+    );
+
+    m_pMenu->SetLabel(MENU_ITEM_STATISTICS, FitMenuText(label));
 }
 
 void StatusItem::UpdateStatistics(size_t processedPullRequestsCount, size_t fetchedPullRequestsCount, std::chrono::seconds elapsedTime)
