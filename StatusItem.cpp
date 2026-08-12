@@ -270,10 +270,14 @@ void StatusItem::RebuildMenu(const RebuildMenuArgs& args)
         pFirstMenuItem->SetItemLabel(firstMenuItemTitle);
     }
 
-    m_pMenu->InsertSeparator(idAndIndex.index++)->SetId(idAndIndex.id++);
-
     if (useTwoColumnLayout)
+    {
+        idAndIndex.index = static_cast<int>(m_pMenu->GetMenuItemCount());
         m_pMenu->Break();
+    } else
+    {
+        m_pMenu->InsertSeparator(idAndIndex.index++)->SetId(idAndIndex.id++);
+    }
 
     m_pMenu->Insert(idAndIndex.index++, idAndIndex.id++, "Your pull requests")->Enable(false);
 
