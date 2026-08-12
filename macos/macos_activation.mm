@@ -17,4 +17,9 @@ extern "C" void HideDockIcon()
     });
 }
 
+extern "C" void ActivateAppWithoutDockIcon()
+{
+    [NSApp activateIgnoringOtherApps:YES];
+}
+
 #endif

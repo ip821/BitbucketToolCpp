@@ -72,7 +72,7 @@ PreferencesWindowBase::PreferencesWindowBase( wxWindow* parent, wxWindowID id, c
 	m_pCheckBoxHideChangesRequested = new wxCheckBox( sbSizer2->GetStaticBox(), wxID_ANY, _("Hide PR with \"Changes requested\""), wxDefaultPosition, wxDefaultSize, 0 );
 	sbSizer2->Add( m_pCheckBoxHideChangesRequested, 0, wxALL, 5 );
 
-	m_pCheckBoxUseTwoColumnLayout = new wxCheckBox( sbSizer2->GetStaticBox(), wxID_ANY, _("Use two column layout (Windows only)"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_pCheckBoxUseTwoColumnLayout = new wxCheckBox( sbSizer2->GetStaticBox(), wxID_ANY, _("Use two column layout"), wxDefaultPosition, wxDefaultSize, 0 );
 	sbSizer2->Add( m_pCheckBoxUseTwoColumnLayout, 0, wxALL, 5 );
 
 

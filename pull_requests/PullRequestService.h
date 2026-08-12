@@ -1,6 +1,7 @@
 #pragma once
 
 #include <expected>
+#include <functional>
 
 #include "PullRequestInfo.h"
 #include "PullRequestsInfo.h"
@@ -8,8 +9,17 @@
 
 using GetPullRequestsResult = std::expected<PullRequestsInfo, BitbucketError>;
 
+struct PullRequestUpdateProgress
+{
+    bool isFetchingDetails{};
+    size_t completed{};
+    size_t total{};
+};
+
+using PullRequestUpdateProgressCallback = std::function<void(const PullRequestUpdateProgress&)>;
+
 class PullRequestService
 {
 public:
-    GetPullRequestsResult GetPullRequests();
+    GetPullRequestsResult GetPullRequests(const PullRequestUpdateProgressCallback& progressCallback = {});
 };

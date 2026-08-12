@@ -8,8 +8,15 @@
 #include "../preferences/Credentials.h"
 #include "../preferences/settings/Config.h"
 
-GetPullRequestsResult PullRequestService::GetPullRequests()
+GetPullRequestsResult PullRequestService::GetPullRequests(const PullRequestUpdateProgressCallback& progressCallback)
 {
+    const auto reportProgress = [&progressCallback](const PullRequestUpdateProgress& progress)
+    {
+        if (progressCallback)
+            progressCallback(progress);
+    };
+
+    reportProgress({});
     const auto credentials = Credentials::GetCredentialsBase64().ToStdString();
 
     constexpr CurrentUserRequest currentUserRequest;
@@ -23,6 +30,7 @@ GetPullRequestsResult PullRequestService::GetPullRequests()
     constexpr StatusRequest statusRequest;
     size_t fetchedPullRequestsCount = 0;
     size_t processedPullRequestsCount = 0;
+    std::vector<std::pair<Repository, PullRequest>> pullRequestsToProcess;
     for (const auto& repository: Config::GetRepositories())
     {
         const auto pullRequestsResult = pullRequestsRequest.GetPullRequests(credentials, repository, currentUser.uuid);
@@ -30,31 +38,43 @@ GetPullRequestsResult PullRequestService::GetPullRequests()
 
         fetchedPullRequestsCount += pullRequests.values.size();
 
-        for (const auto uniquePullRequests = pullRequests.DistinctById();
-             const auto& pullRequest: uniquePullRequests)
+        for (const auto& pullRequest: pullRequests.DistinctById())
         {
             const auto isWaitingForUserApproval = pullRequest.IsWaitingForUserApproval(currentUser);
             const auto isUserPullRequest = pullRequest.IsUserPullRequest(currentUser);
             if (!isWaitingForUserApproval && !isUserPullRequest)
                 continue;
 
-            processedPullRequestsCount++;
-            const auto diffStatResult = diffStatRequest.GetDiffStat(credentials, repository, pullRequest.id);
-            UNWRAP_OR_RETURN_ERROR(diffStat, diffStatResult);
-
-            PullRequestInfo pullRequestInfo{.pullRequest = pullRequest, .statuses = {}, .diffStat = diffStat};
-
-            const auto statusesResult = statusRequest.GetStatuses(credentials, repository, pullRequest.id);
-            UNWRAP_OR_RETURN_ERROR(statuses, statusesResult);
-            pullRequestInfo.statuses = statuses.values;
-
-            if (isWaitingForUserApproval)
-                result.waitingForMyApprovalPullRequests.push_back(pullRequestInfo);
-            else if (isUserPullRequest)
-                result.myPullRequests.push_back(pullRequestInfo);
+            pullRequestsToProcess.emplace_back(repository, pullRequest);
         }
     }
 
+    reportProgress({.isFetchingDetails = true, .completed = 0, .total = pullRequestsToProcess.size()});
+    for (const auto& [repository, pullRequest]: pullRequestsToProcess)
+    {
+        const auto diffStatResult = diffStatRequest.GetDiffStat(credentials, repository, pullRequest.id);
+        UNWRAP_OR_RETURN_ERROR(diffStat, diffStatResult);
+
+        PullRequestInfo pullRequestInfo{.pullRequest = pullRequest, .statuses = {}, .diffStat = diffStat};
+
+        const auto statusesResult = statusRequest.GetStatuses(credentials, repository, pullRequest.id);
+        UNWRAP_OR_RETURN_ERROR(statuses, statusesResult);
+        pullRequestInfo.statuses = statuses.values;
+
+        if (pullRequest.IsWaitingForUserApproval(currentUser))
+            result.waitingForMyApprovalPullRequests.push_back(pullRequestInfo);
+        else if (pullRequest.IsUserPullRequest(currentUser))
+            result.myPullRequests.push_back(pullRequestInfo);
+
+        ++processedPullRequestsCount;
+        reportProgress({
+            .isFetchingDetails = true,
+            .completed = processedPullRequestsCount,
+            .total = pullRequestsToProcess.size(),
+        });
+    }
+
+    reportProgress({});
     result.fetchedPullRequestsCount = fetchedPullRequestsCount;
     result.processedPullRequestsCount = processedPullRequestsCount;
     result.Sort();

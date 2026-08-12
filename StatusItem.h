@@ -1,14 +1,18 @@
 #pragma once
 
 #include <thread>
+#include <vector>
+
 #include <wx/bmpbndl.h>
 #include <wx/taskbar.h>
 #include <wx/timer.h>
 #include <wx/wx.h>
 
-#include "preferences/PreferencesWindow.h"
-#include "pull_requests/PullRequestInfo.h"
+#include "bitbucket_api/include/bitbucket_api/Structs.h"
 #include "pull_requests/PullRequestsInfo.h"
+
+class PreferencesWindow;
+class PullRequestsWindow;
 
 struct OnUpdatePullRequestsArgs
 {
@@ -16,63 +20,49 @@ struct OnUpdatePullRequestsArgs
     bool fullReload{};
 };
 
-struct IdAndIndex
-{
-    int id{};
-    int index{};
-};
-
-struct RebuildMenuArgs
-{
-    const PullRequestsInfo& pullRequests;
-    const bool showAll;
-};
-
 class StatusItem : public wxTaskBarIcon
 {
-    PreferencesWindow *m_pDialog{};
-    std::unique_ptr<wxMenu> m_pMenu;
-    wxMenu *m_pCreatePullRequestsMenu{};
+public:
+    explicit StatusItem();
+    ~StatusItem() override;
+
+    void ConfigChanged();
+
+private:
+    PreferencesWindow* m_pDialog{};
+    PullRequestsWindow* m_pPullRequestsWindow{};
+    std::unique_ptr<wxMenu> m_pCommandMenu;
     std::unique_ptr<wxTimer> m_pTimer;
 
     PullRequestsInfo m_pullRequestsInfo;
+    std::vector<Repository> m_repositories;
+    bool m_hasPullRequests{};
     bool m_showAllPullRequests{};
-    bool m_useTwoColumnLayout{};
-    std::unordered_map<int, PullRequestInfo> m_menuItemIdToPullRequest;
-    std::unordered_map<int, wxString> m_menuItemIdToRepository;
 
-    wxMenu *GetPopupMenu() override;
+    wxMenu* GetPopupMenu() override;
 
     void SetStatusItemTitle(const wxString& title);
+    void ShowPullRequestsWindow();
+    void ShowPreferencesDialog() const;
+    void ShowCreatePullRequestDialog();
+    void RefreshPullRequestsWindow();
+    size_t GetHiddenPullRequestsCount() const;
 
     void OnLeftButtonClick(wxTaskBarIconEvent&);
+    void OnRightButtonClick(wxTaskBarIconEvent&);
     void OnMenuItemClick(wxCommandEvent&);
-    void OnCreatePullRequestMenuItemClick(wxCommandEvent&);
 
-    void RemoveAllPrMenuItems();
-    void ShowPreferencesDialog() const;
-    void RefreshMenu();
-    void UpdateCreatePullRequestsMenu(const std::vector<Repository>& repositories);
     void ShowErrorNotification(const wxString& message) const;
-    void RebuildMenu(const RebuildMenuArgs& args);
     void UpdatePullRequests(const OnUpdatePullRequestsArgs& args);
     void UpdateStatistics(size_t processedPullRequestsCount, size_t fetchedPullRequestsCount, std::chrono::seconds elapsedTime);
-    void InsertPullRequestTitleMenuItem(IdAndIndex& menuItemId, const PullRequestInfo& pullRequest) const;
-    void InsertSecondaryPullRequestMenuItem(IdAndIndex& menuItemId, const wxString& title) const;
-    void UpdateTitle(const PullRequestsInfo& pullRequestsInfo, int hiddenPullRequestsCount);
+    void UpdateTitle();
 
 #ifdef __WXOSX__
     wxBitmapBundle m_bitmapBundle = wxBitmapBundle::FromResources("status32@2x");
-#endif
-
-#ifndef __WXOSX__
+#else
     wxBitmap m_statusBitmap{};
     wxBitmapBundle m_bitmapBundle{};
 #endif
 
     std::jthread m_thread;
-
-public:
-    explicit StatusItem();
-    void ConfigChanged();
 };

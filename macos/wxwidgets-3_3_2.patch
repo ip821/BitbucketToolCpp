@@ -25,8 +25,8 @@ index 7941a783c5c4b398587a6a8878583ad25f9ea0dd..0624fb7f0fb72e6e0da24ac1ec792663
      virtual bool SetIcon(const wxBitmapBundle& icon, const wxString& tooltip = wxEmptyString) override;
      virtual bool RemoveIcon() override;
      virtual bool PopupMenu(wxMenu *menu) override;
-+    void SetTitle(const wxString& title);
-+    void SetIcon(const wxString& nsImageName);
++    void SetTitle(const wxString& title) override;
++    void SetIcon(const wxString& nsImageName) override;
  protected:
      NSStatusItem *m_statusItem;
      wxOSXStatusItemTarget *m_target;
@@ -64,7 +64,24 @@ index 7941a783c5c4b398587a6a8878583ad25f9ea0dd..0624fb7f0fb72e6e0da24ac1ec792663
  bool wxTaskBarIconDockImpl::RemoveIcon()
  {
      m_menuDeleter.reset();
-@@ -405,6 +432,34 @@ bool wxTaskBarIconCustomStatusItemImpl::SetIcon(const wxBitmapBundle& icon, cons
+@@ -333,6 +360,16 @@ bool wxTaskBarIconDockImpl::PopupMenu(wxMenu *WXUNUSED(menu))
+ - (void) clickedAction: (id) sender
+ {
+     wxUnusedVar(sender);
++    NSEvent* nativeEvent = [NSApp currentEvent];
++    const bool isContextClick =
++        [nativeEvent type] == NSEventTypeRightMouseDown ||
++        ([nativeEvent modifierFlags] & NSEventModifierFlagControl) != 0;
++    wxTaskBarIconEvent event(
++        isContextClick ? wxEVT_TASKBAR_RIGHT_DOWN : wxEVT_TASKBAR_LEFT_DOWN,
++        impl->GetTaskBarIcon());
++    if ( impl->GetTaskBarIcon()->SafelyProcessEvent(event) )
++        return;
++
+     wxMenu *menu = impl->GetPopupMenu();
+     if (menu)
+     {
+@@ -405,6 +442,34 @@ bool wxTaskBarIconCustomStatusItemImpl::SetIcon(const wxBitmapBundle& icon, cons
      return true;
  }
  

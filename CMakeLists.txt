@@ -78,6 +78,8 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         pull_requests/PullRequestService.cpp
         pull_requests/PullRequestService.h
         pull_requests/PullRequestInfo.h
+        pull_requests/PullRequestsWindow.cpp
+        pull_requests/PullRequestsWindow.h
         version.h
         main.cpp
         pull_requests/PullRequestsInfo.h
