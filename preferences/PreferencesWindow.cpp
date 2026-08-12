@@ -32,6 +32,10 @@ PreferencesWindow::PreferencesWindow(StatusItem* pStatusItem) :
     m_pCheckBoxHideChangesRequested->SetValue(Config::GetHideChangesRequestedPullRequests());
     m_pCheckBoxUseTwoColumnLayout->SetValue(Config::GetUseTwoColumnLayout());
 
+#if !defined(__WXMSW__)
+    m_pCheckBoxUseTwoColumnLayout->Enable(false);
+#endif
+
     Bind(wxEVT_SHOW, &PreferencesWindow::OnShow, this);
     Bind(wxEVT_CLOSE_WINDOW, &PreferencesWindow::OnClose, this);
 }
