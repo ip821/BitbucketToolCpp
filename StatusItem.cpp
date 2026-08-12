@@ -14,6 +14,7 @@
 #include "bitbucket_api/include/bitbucket_api/Requests.h"
 #include "preferences/PreferencesWindow.h"
 #include "preferences/settings/Config.h"
+#include "menu/PullRequestsMenuBuilder.h"
 #include "pull_requests/PullRequestService.h"
 #include "Stopwatch.h"
 
@@ -185,18 +186,6 @@ void StatusItem::OnCreatePullRequestMenuItemClick(wxCommandEvent& event)
     wxLaunchDefaultBrowser(url);
 }
 
-void StatusItem::RemoveAllPrMenuItems()
-{
-    for (const auto menuItems = m_pMenu->GetMenuItems();
-         const auto& item: menuItems)
-    {
-        if (item->GetId() > MENU_ITEM_LAST_STATIC_ID)
-        {
-            m_pMenu->Delete(item);
-        }
-    }
-}
-
 void StatusItem::UpdateCreatePullRequestsMenu(const std::vector<Repository>& repositories)
 {
     for (const auto menuItems = m_pCreatePullRequestsMenu->GetMenuItems();
@@ -230,75 +219,15 @@ void StatusItem::RebuildMenu(const RebuildMenuArgs& args)
     const auto hideChangesRequestedPullRequests = !showAll && Config::GetHideChangesRequestedPullRequests();
     const auto useTwoColumnLayout = Config::GetUseTwoColumnLayout();
 
-    RemoveAllPrMenuItems();
+    const PullRequestsMenuBuilder menuBuilder(*m_pMenu);
+    auto [menuItemIdToPullRequest, hiddenPullRequestsCount] = menuBuilder.Rebuild(
+        MENU_ITEM_LAST_STATIC_ID + 1,
+        pullRequestsInfo,
+        hideChangesRequestedPullRequests,
+        useTwoColumnLayout
+    );
 
-    m_menuItemIdToPullRequest.clear();
-
-    IdAndIndex idAndIndex = {.id = MENU_ITEM_LAST_STATIC_ID + 1, .index = 0};
-    const auto pFirstMenuItem = m_pMenu->Insert(idAndIndex.index++, idAndIndex.id++, "Pull requests to review");
-    pFirstMenuItem->Enable(false);
-
-    const auto& currentUser = pullRequestsInfo.currentUser;
-
-    auto hiddenPullRequestsCount = 0;
-    for (const auto& pullRequest: pullRequestsInfo.waitingForMyApprovalPullRequests)
-    {
-        const auto participantsRequestedChangesWithoutCurrentUser = pullRequest.GetParticipantsRequestedChangesWithout(currentUser);
-
-        if (hideChangesRequestedPullRequests && !participantsRequestedChangesWithoutCurrentUser.empty())
-        {
-            ++hiddenPullRequestsCount;
-            continue;
-        }
-
-        m_menuItemIdToPullRequest[idAndIndex.id] = pullRequest;
-        InsertPullRequestTitleMenuItem(idAndIndex, pullRequest);
-
-        InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetAuthorAndBranchMenuItemTitle());
-        InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetPullRequestDetailsMenuItemTitle());
-
-        const auto participantsRequestedChanges = pullRequest.GetParticipantsRequestedChanges();
-        for (const auto& participant: participantsRequestedChanges)
-        {
-            InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetParticipantMenuItemTitle(participant));
-        }
-    }
-
-    if (hiddenPullRequestsCount)
-    {
-        const auto firstMenuItemTitle = std::format(wxS("{} [{} hidden]"), pFirstMenuItem->GetItemLabel(), hiddenPullRequestsCount);
-        pFirstMenuItem->SetItemLabel(firstMenuItemTitle);
-    }
-
-    if (useTwoColumnLayout)
-    {
-        idAndIndex.index = static_cast<int>(m_pMenu->GetMenuItemCount());
-        m_pMenu->Break();
-    } else
-    {
-        m_pMenu->InsertSeparator(idAndIndex.index++)->SetId(idAndIndex.id++);
-    }
-
-    m_pMenu->Insert(idAndIndex.index++, idAndIndex.id++, "Your pull requests")->Enable(false);
-
-    for (const auto& pullRequest: pullRequestsInfo.myPullRequests)
-    {
-        m_menuItemIdToPullRequest[idAndIndex.id] = pullRequest;
-        InsertPullRequestTitleMenuItem(idAndIndex, pullRequest);
-
-        InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetMyPullRequestBranchMenuItemTitle());
-        InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetPullRequestDetailsMenuItemTitle());
-
-        const auto participants = pullRequest.pullRequest.participants
-                | std::views::filter([](const auto& it) { return it.role == ParticipantRole::Reviewer || it.approved; })
-                | std::ranges::to<std::vector>();
-
-        for (const auto& participant: participants)
-        {
-            InsertSecondaryPullRequestMenuItem(idAndIndex, pullRequest.GetParticipantMenuItemTitle(participant));
-        }
-    }
-
+    m_menuItemIdToPullRequest = std::move(menuItemIdToPullRequest);
     UpdateTitle(pullRequestsInfo, hiddenPullRequestsCount);
 }
 
@@ -362,17 +291,6 @@ void StatusItem::UpdateStatistics(size_t processedPullRequestsCount, size_t fetc
                 elapsedSeconds / 60,
                 elapsedSeconds % 60,
                 nextUpdate.Format(wxS("%d.%m.%Y %H:%M")))));
-}
-
-void StatusItem::InsertPullRequestTitleMenuItem(IdAndIndex& menuItemId, const PullRequestInfo& pullRequest) const
-{
-    m_pMenu->Insert(menuItemId.index++, menuItemId.id++, FitMenuText(pullRequest.GetMainMenuItemTitle()));
-}
-
-void StatusItem::InsertSecondaryPullRequestMenuItem(IdAndIndex& menuItemId, const wxString& title) const
-{
-    const auto secondLineTitle = std::format(wxS("   {}"), title);
-    m_pMenu->Insert(menuItemId.index++, menuItemId.id++, FitMenuText(secondLineTitle))->Enable(false);
 }
 
 void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int hiddenPullRequestsCount)

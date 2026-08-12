@@ -16,12 +16,6 @@ struct OnUpdatePullRequestsArgs
     bool fullReload{};
 };
 
-struct IdAndIndex
-{
-    int id{};
-    int index{};
-};
-
 struct RebuildMenuArgs
 {
     const PullRequestsInfo& pullRequests;
@@ -49,7 +43,6 @@ class StatusItem : public wxTaskBarIcon
     void OnMenuItemClick(wxCommandEvent&);
     void OnCreatePullRequestMenuItemClick(wxCommandEvent&);
 
-    void RemoveAllPrMenuItems();
     void ShowPreferencesDialog() const;
     void RefreshMenu();
     void UpdateCreatePullRequestsMenu(const std::vector<Repository>& repositories);
@@ -57,8 +50,6 @@ class StatusItem : public wxTaskBarIcon
     void RebuildMenu(const RebuildMenuArgs& args);
     void UpdatePullRequests(const OnUpdatePullRequestsArgs& args);
     void UpdateStatistics(size_t processedPullRequestsCount, size_t fetchedPullRequestsCount, std::chrono::seconds elapsedTime);
-    void InsertPullRequestTitleMenuItem(IdAndIndex& menuItemId, const PullRequestInfo& pullRequest) const;
-    void InsertSecondaryPullRequestMenuItem(IdAndIndex& menuItemId, const wxString& title) const;
     void UpdateTitle(const PullRequestsInfo& pullRequestsInfo, int hiddenPullRequestsCount);
 
 #ifdef __WXOSX__

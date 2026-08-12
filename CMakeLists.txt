@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(PRToolForBitbucket2 VERSION 1.24 LANGUAGES CXX)
+project(PRToolForBitbucket2 VERSION 1.25 LANGUAGES CXX)
 
 include(FetchContent)
 
@@ -45,6 +45,10 @@ FetchContent_MakeAvailable(json)
 add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         App.cpp
         App.h
+        menu/MenuBuilder.cpp
+        menu/MenuBuilder.h
+        menu/PullRequestsMenuBuilder.cpp
+        menu/PullRequestsMenuBuilder.h
         preferences/PreferencesWindowBase.cpp
         preferences/PreferencesWindowBase.h
         preferences/PreferencesWindow.cpp
