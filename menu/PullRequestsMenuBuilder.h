@@ -25,7 +25,8 @@ public:
         int firstDynamicMenuItemId,
         const PullRequestsInfo& pullRequests,
         bool hideChangesRequestedPullRequests,
-        bool useTwoColumnLayout
+        bool useTwoColumnLayout,
+        bool displayRepositoryNameLowercase
     ) const;
 
 private:

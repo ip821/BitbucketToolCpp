@@ -21,11 +21,11 @@ struct PullRequestInfo
         return std::format(wxS("{}{}"), draftPrefix, wxString::FromUTF8(pullRequest.title));
     }
 
-    wxString GetAuthorAndBranchMenuItemTitle() const
+    wxString GetAuthorAndBranchMenuItemTitle(const bool displayRepositoryNameLowercase) const
     {
         return std::format(
             wxS("[{}] [{}] [{}] → [{}]"),
-            wxString::FromUTF8(pullRequest.destination.repository.name),
+            GetRepositoryName(displayRepositoryNameLowercase),
             wxString::FromUTF8(pullRequest.author.display_name),
             wxString::FromUTF8(pullRequest.source.branch.name),
             wxString::FromUTF8(pullRequest.destination.branch.name));
@@ -82,10 +82,11 @@ struct PullRequestInfo
         return status;
     }
 
-    wxString GetMyPullRequestBranchMenuItemTitle() const
+    wxString GetMyPullRequestBranchMenuItemTitle(const bool displayRepositoryNameLowercase) const
     {
         return std::format(
-            wxS("[{}] [{}] → [{}]"),
+            wxS("[{}] [{}] [{}] → [{}]"),
+            GetRepositoryName(displayRepositoryNameLowercase),
             GetStatus(),
             wxString::FromUTF8(pullRequest.source.branch.name),
             wxString::FromUTF8(pullRequest.destination.branch.name)
@@ -115,5 +116,15 @@ struct PullRequestInfo
         return GetParticipantsRequestedChanges()
             | std::views::filter([&user](const auto& it) { return it.user.uuid != user.uuid; })
             | std::ranges::to<std::vector>();
+    }
+
+private:
+    wxString GetRepositoryName(const bool displayRepositoryNameLowercase) const
+    {
+        auto repositoryName = wxString::FromUTF8(pullRequest.destination.repository.name);
+        if (displayRepositoryNameLowercase)
+            repositoryName.MakeLower();
+
+        return repositoryName;
     }
 };

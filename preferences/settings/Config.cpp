@@ -8,6 +8,7 @@
 const wxString keyRepositories = "repositories5";
 const wxString keyHideChangesRequestedPullRequests = "hideChangesRequestedPullRequests";
 const wxString keyUseTwoColumnLayout = "useTwoColumnLayout";
+const wxString keyDisplayRepositoryNameLowercase = "displayRepositoryNameLowercase";
 
 std::vector<Repository> Config::GetRepositories()
 {
@@ -59,4 +60,16 @@ void Config::SetUseTwoColumnLayout(bool value)
 {
     wxConfig config;
     config.Write(keyUseTwoColumnLayout, value);
+}
+
+bool Config::GetDisplayRepositoryNameLowercase()
+{
+    const wxConfig config;
+    return config.ReadBool(keyDisplayRepositoryNameLowercase, false);
+}
+
+void Config::SetDisplayRepositoryNameLowercase(bool value)
+{
+    wxConfig config;
+    config.Write(keyDisplayRepositoryNameLowercase, value);
 }

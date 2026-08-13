@@ -219,13 +219,15 @@ void StatusItem::RebuildMenu(const RebuildMenuArgs& args)
 
     const auto hideChangesRequestedPullRequests = !showAll && Config::GetHideChangesRequestedPullRequests();
     const auto useTwoColumnLayout = Config::GetUseTwoColumnLayout();
+    const auto displayRepositoryNameLowercase = Config::GetDisplayRepositoryNameLowercase();
 
     const PullRequestsMenuBuilder menuBuilder(*m_pMenu);
     auto [menuItemIdToPullRequest, hiddenPullRequestsCount] = menuBuilder.Rebuild(
         MENU_ITEM_LAST_STATIC_ID + 1,
         pullRequestsInfo,
         hideChangesRequestedPullRequests,
-        useTwoColumnLayout
+        useTwoColumnLayout,
+        displayRepositoryNameLowercase
     );
 
     m_menuItemIdToPullRequest = std::move(menuItemIdToPullRequest);

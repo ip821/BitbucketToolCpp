@@ -43,7 +43,8 @@ PullRequestsMenuBuildResult PullRequestsMenuBuilder::Rebuild(
     const int firstDynamicMenuItemId,
     const PullRequestsInfo& pullRequests,
     const bool hideChangesRequestedPullRequests,
-    const bool useTwoColumnLayout
+    const bool useTwoColumnLayout,
+    const bool displayRepositoryNameLowercase
 ) const
 {
     RemoveDynamicMenuItems(firstDynamicMenuItemId);
@@ -68,7 +69,7 @@ PullRequestsMenuBuildResult PullRequestsMenuBuilder::Rebuild(
         const auto pMenuItem = InsertPullRequestTitleMenuItem(menuBuilder, pullRequest);
         result.menuItemIdToPullRequest[pMenuItem->GetId()] = pullRequest;
 
-        InsertSecondaryPullRequestMenuItem(menuBuilder, pullRequest.GetAuthorAndBranchMenuItemTitle());
+        InsertSecondaryPullRequestMenuItem(menuBuilder, pullRequest.GetAuthorAndBranchMenuItemTitle(displayRepositoryNameLowercase));
         InsertSecondaryPullRequestMenuItem(menuBuilder, pullRequest.GetPullRequestDetailsMenuItemTitle());
 
         for (const auto& participant: pullRequest.GetParticipantsRequestedChanges())
@@ -99,7 +100,7 @@ PullRequestsMenuBuildResult PullRequestsMenuBuilder::Rebuild(
         const auto pMenuItem = InsertPullRequestTitleMenuItem(menuBuilder, pullRequest);
         result.menuItemIdToPullRequest[pMenuItem->GetId()] = pullRequest;
 
-        InsertSecondaryPullRequestMenuItem(menuBuilder, pullRequest.GetMyPullRequestBranchMenuItemTitle());
+        InsertSecondaryPullRequestMenuItem(menuBuilder, pullRequest.GetMyPullRequestBranchMenuItemTitle(displayRepositoryNameLowercase));
         InsertSecondaryPullRequestMenuItem(menuBuilder, pullRequest.GetPullRequestDetailsMenuItemTitle());
 
         const auto participants = pullRequest.pullRequest.participants

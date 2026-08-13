@@ -13,4 +13,6 @@ public:
     static void SetHideChangesRequestedPullRequests(bool hide);
     static bool GetUseTwoColumnLayout();
     static void SetUseTwoColumnLayout(bool value);
+    static bool GetDisplayRepositoryNameLowercase();
+    static void SetDisplayRepositoryNameLowercase(bool value);
 };

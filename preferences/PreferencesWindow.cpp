@@ -31,6 +31,7 @@ PreferencesWindow::PreferencesWindow(StatusItem* pStatusItem) :
 
     m_pCheckBoxHideChangesRequested->SetValue(Config::GetHideChangesRequestedPullRequests());
     m_pCheckBoxUseTwoColumnLayout->SetValue(Config::GetUseTwoColumnLayout());
+    m_pCheckBoxDisplayRepositoryNameLowercase->SetValue(Config::GetDisplayRepositoryNameLowercase());
 
 #if !defined(__WXMSW__)
     m_pCheckBoxUseTwoColumnLayout->Enable(false);
@@ -61,6 +62,12 @@ void PreferencesWindow::OnHideChangesRequestedChanged(wxCommandEvent& event)
 void PreferencesWindow::OnUseTwoColumnLayoutChanged(wxCommandEvent& event)
 {
     Config::SetUseTwoColumnLayout(event.IsChecked());
+    m_pStatusItem->ConfigChanged();
+}
+
+void PreferencesWindow::OnDisplayRepositoryNameLowercaseChanged(wxCommandEvent& event)
+{
+    Config::SetDisplayRepositoryNameLowercase(event.IsChecked());
     m_pStatusItem->ConfigChanged();
 }
 

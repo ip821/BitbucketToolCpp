@@ -20,6 +20,7 @@ protected:
     void OnSetupClicked(wxCommandEvent& event) override;
     void OnHideChangesRequestedChanged(wxCommandEvent& event) override;
     void OnUseTwoColumnLayoutChanged(wxCommandEvent& event) override;
+    void OnDisplayRepositoryNameLowercaseChanged(wxCommandEvent& event) override;
     void UpdateTextBoxes();
     void OnInitDialog(wxInitDialogEvent& event) override;
 };
