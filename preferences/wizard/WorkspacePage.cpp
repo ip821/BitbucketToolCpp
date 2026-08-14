@@ -103,7 +103,7 @@ void WorkspacePage::StartAsyncOperation()
             );
         }
 
-        wxTheApp->CallAfter([this, isWindowValid, repositories]
+        this->CallAfter([this, isWindowValid, repositories]
         {
             if (!isWindowValid)
                 return;

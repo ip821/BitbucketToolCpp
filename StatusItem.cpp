@@ -251,7 +251,7 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
         PullRequestService pullRequestService;
         const auto progressCallback = [this, isWindowValid](const PullRequestUpdateProgressArgs& progressArgs)
         {
-            wxTheApp->CallAfter([this, isWindowValid, progressArgs]
+            this->CallAfter([this, isWindowValid, progressArgs]
             {
                 if (isWindowValid)
                     UpdateProgress(progressArgs);
@@ -260,7 +260,7 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
         const auto pullRequestsResult = pullRequestService.GetPullRequests(repositories, progressCallback);
         const auto elapsedTime = fetchStopwatch.GetElapsed();
 
-        wxTheApp->CallAfter([isWindowValid, args, elapsedTime, this, pullRequestsResult, statisticsLabel]
+        this->CallAfter([isWindowValid, args, elapsedTime, this, pullRequestsResult, statisticsLabel]
         {
             if (!isWindowValid)
                 return;

@@ -33,3 +33,10 @@ bool App::OnInit()
   m_pStatusItem = std::make_unique<StatusItem>();
   return true;
 }
+
+int App::OnExit()
+{
+  // Stop and join background work before wxWidgets invalidates wxTheApp.
+  m_pStatusItem.reset();
+  return wxApp::OnExit();
+}

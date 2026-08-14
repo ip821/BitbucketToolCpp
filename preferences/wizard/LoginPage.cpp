@@ -102,7 +102,7 @@ void LoginPage::StartAsyncOperation()
         const WorkspacesRequest workspacesRequest;
         const auto response = workspacesRequest.GetWorkspaces(credentials);
 
-        wxTheApp->CallAfter([isWindowValid, response, this]
+        this->CallAfter([isWindowValid, response, this]
         {
             if (!isWindowValid)
                 return;
