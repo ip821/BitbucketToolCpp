@@ -84,7 +84,7 @@ void WorkspacePage::StartAsyncOperation()
         std::vector<Repository> repositories;
         for (const auto& workspace: workspaces)
         {
-            const auto credentials = Credentials::GetCredentialsBase64().ToUTF8().data();
+            const auto credentials = Credentials::GetCredentialsBase64().ToStdString();
             RepositoriesRequest repositoriesRequest;
 
             ip::match_expected(

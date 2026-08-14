@@ -97,7 +97,7 @@ void LoginPage::StartAsyncOperation()
     wxWeakRef isWindowValid(this);
     m_thread = std::jthread([isWindowValid, this]
     {
-        const auto credentials = Credentials::GetCredentialsBase64().ToUTF8().data();
+        const auto credentials = Credentials::GetCredentialsBase64().ToStdString();
 
         const WorkspacesRequest workspacesRequest;
         const auto response = workspacesRequest.GetWorkspaces(credentials);
