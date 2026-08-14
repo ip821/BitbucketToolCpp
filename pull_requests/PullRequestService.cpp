@@ -19,13 +19,29 @@ namespace
 
 GetPullRequestsResult PullRequestService::GetPullRequests(
     const std::vector<Repository>& repositories,
-    const PullRequestUpdateProgressCallback& progressCallback)
+    const PullRequestUpdateProgressCallback& progressCallback,
+    const std::stop_token stopToken)
 {
+    const auto cancelled = [&stopToken]
+    {
+        return stopToken.stop_requested();
+    };
+    const auto cancellationError = []
+    {
+        return std::unexpected(BitbucketError{.message = "Operation cancelled"});
+    };
+
+    if (cancelled())
+        return cancellationError();
+
     const auto credentials = Credentials::GetCredentialsBase64().ToStdString();
 
     constexpr CurrentUserRequest currentUserRequest;
     const auto currentUserResult = currentUserRequest.GetCurrentUser(credentials);
     UNWRAP_OR_RETURN_ERROR(currentUser, currentUserResult);
+
+    if (cancelled())
+        return cancellationError();
 
     PullRequestsInfo result{.currentUser = currentUser};
 
@@ -38,6 +54,9 @@ GetPullRequestsResult PullRequestService::GetPullRequests(
 
     for (const auto& repository: repositories)
     {
+        if (cancelled())
+            return cancellationError();
+
         if (progressCallback)
         {
             progressCallback(FetchingRepositoryPullRequests{
@@ -47,6 +66,9 @@ GetPullRequestsResult PullRequestService::GetPullRequests(
 
         const auto pullRequestsResult = pullRequestsRequest.GetPullRequests(credentials, repository, currentUser.uuid);
         UNWRAP_OR_RETURN_ERROR(pullRequests, pullRequestsResult);
+
+        if (cancelled())
+            return cancellationError();
 
         fetchedPullRequestsCount += pullRequests.values.size();
 
@@ -65,6 +87,9 @@ GetPullRequestsResult PullRequestService::GetPullRequests(
     const auto totalPullRequests = pullRequestsToProcess.size();
     for (size_t pullRequestIndex = 0; pullRequestIndex < totalPullRequests; ++pullRequestIndex)
     {
+        if (cancelled())
+            return cancellationError();
+
         const auto& [repository, pullRequest, isWaitingForUserApproval] = pullRequestsToProcess[pullRequestIndex];
         if (progressCallback)
         {
@@ -78,10 +103,17 @@ GetPullRequestsResult PullRequestService::GetPullRequests(
         const auto diffStatResult = diffStatRequest.GetDiffStat(credentials, repository, pullRequest.id);
         UNWRAP_OR_RETURN_ERROR(diffStat, diffStatResult);
 
+        if (cancelled())
+            return cancellationError();
+
         PullRequestInfo pullRequestInfo{.pullRequest = pullRequest, .statuses = {}, .diffStat = diffStat};
 
         const auto statusesResult = statusRequest.GetStatuses(credentials, repository, pullRequest.id);
         UNWRAP_OR_RETURN_ERROR(statuses, statusesResult);
+
+        if (cancelled())
+            return cancellationError();
+
         pullRequestInfo.statuses = statuses.values;
 
         if (isWaitingForUserApproval)

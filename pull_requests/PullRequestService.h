@@ -2,6 +2,7 @@
 
 #include <expected>
 #include <functional>
+#include <stop_token>
 #include <string>
 #include <variant>
 #include <vector>
@@ -33,5 +34,6 @@ class PullRequestService
 public:
     GetPullRequestsResult GetPullRequests(
         const std::vector<Repository>& repositories,
-        const PullRequestUpdateProgressCallback& progressCallback = {});
+        const PullRequestUpdateProgressCallback& progressCallback = {},
+        std::stop_token stopToken = {});
 };

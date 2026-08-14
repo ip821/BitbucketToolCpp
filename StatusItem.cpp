@@ -244,20 +244,27 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
     UpdateCreatePullRequestsMenu(repositories);
 
     wxWeakRef isWindowValid(this);
-    m_thread = std::jthread([this, args, isWindowValid, repositories, statisticsLabel]
+    m_thread = std::jthread([this, args, isWindowValid, repositories, statisticsLabel](const std::stop_token stopToken)
     {
         const Stopwatch fetchStopwatch;
 
         PullRequestService pullRequestService;
-        const auto progressCallback = [this, isWindowValid](const PullRequestUpdateProgressArgs& progressArgs)
+        const auto progressCallback = [this, isWindowValid, stopToken](const PullRequestUpdateProgressArgs& progressArgs)
         {
+            if (stopToken.stop_requested())
+                return;
+
             this->CallAfter([this, isWindowValid, progressArgs]
             {
                 if (isWindowValid)
                     UpdateProgress(progressArgs);
             });
         };
-        const auto pullRequestsResult = pullRequestService.GetPullRequests(repositories, progressCallback);
+        const auto pullRequestsResult = pullRequestService.GetPullRequests(repositories, progressCallback, stopToken);
+
+        if (stopToken.stop_requested())
+            return;
+
         const auto elapsedTime = fetchStopwatch.GetElapsed();
 
         this->CallAfter([isWindowValid, args, elapsedTime, this, pullRequestsResult, statisticsLabel]
