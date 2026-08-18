@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(PRToolForBitbucket2 VERSION 1.28 LANGUAGES CXX)
+project(PRToolForBitbucket2 VERSION 1.29 LANGUAGES CXX)
 
 include(FetchContent)
 
@@ -111,6 +111,8 @@ if (WIN32)
     target_sources(PRToolForBitbucket2 PRIVATE
             windows/app.rc
             windows/app.manifest
+            windows/CustomIcon.cpp
+            windows/CustomIcon.h
     )
     set_source_files_properties(windows/app.rc PROPERTIES LANGUAGE RC)
     get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)

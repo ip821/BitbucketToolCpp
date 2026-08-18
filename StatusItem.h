@@ -58,8 +58,11 @@ class StatusItem : public wxTaskBarIcon
     wxBitmapBundle m_bitmapBundle = wxBitmapBundle::FromResources("status32@2x");
 #endif
 
-#ifndef __WXOSX__
+#if !defined(__WXOSX__) && !defined(__WXMSW__)
     wxBitmap m_statusBitmap{};
+#endif
+
+#ifndef __WXOSX__
     wxBitmapBundle m_bitmapBundle{};
 #endif
 

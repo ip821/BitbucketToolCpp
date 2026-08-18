@@ -1,5 +1,6 @@
 #include "StatusItem.h"
 
+#include <algorithm>
 #include <ranges>
 #include <thread>
 #include <cpp_utils/match_variant.h>
@@ -18,6 +19,10 @@
 #include "menu/PullRequestsMenuBuilder.h"
 #include "pull_requests/PullRequestService.h"
 #include "Stopwatch.h"
+
+#ifdef __WXMSW__
+#include "windows/CustomIcon.h"
+#endif
 
 enum
 {
@@ -49,6 +54,15 @@ namespace
         dc.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
         return wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, maxMenuWidth);
     }
+
+#ifdef __WXMSW__
+    wxBitmapBundle CreateReviewCountIcon(const wxString& text)
+    {
+        return wxBitmapBundle::FromBitmaps(
+            CustomIcon::CreateReviewCountBitmap(text, 16),
+            CustomIcon::CreateReviewCountBitmap(text, 32));
+    }
+#endif
 }
 
 StatusItem::StatusItem() :
@@ -58,6 +72,12 @@ StatusItem::StatusItem() :
 
 #if defined(__WXOSX__)
     SetIcon("status32@2x");
+#elif defined(__WXMSW__)
+    if (!IsAvailable())
+    {
+        wxMessageBox("System icon is not available");
+    }
+    SetStatusItemTitle(wxS("0"));
 #else
     m_statusBitmap = wxXmlResource::Get()->LoadBitmap("status32");
     if (!m_statusBitmap.IsOk())
@@ -341,6 +361,10 @@ void StatusItem::UpdateStatistics(size_t processedPullRequestsCount, size_t fetc
 void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int hiddenPullRequestsCount)
 {
     const auto waitingCount = pullRequestsInfo.waitingForMyApprovalPullRequests.size() - hiddenPullRequestsCount;
+
+#ifdef __WXMSW__
+    SetStatusItemTitle(std::format(wxS("{}"), waitingCount));
+#else
     const auto myCount = pullRequestsInfo.myPullRequests.size();
     if (waitingCount || myCount)
     {
@@ -371,6 +395,7 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int
     {
         SetStatusItemTitle(wxS(""));
     }
+#endif
 }
 
 void StatusItem::ConfigChanged()
@@ -389,6 +414,14 @@ void StatusItem::SetStatusItemTitle(const wxString& title)
 {
 #if defined(__WXOSX__)
     SetTitle(title);
+#elif defined(__WXMSW__)
+    m_bitmapBundle = CreateReviewCountIcon(title);
+    if (!m_bitmapBundle.IsOk())
+        return;
+
+    SetIcon(
+        m_bitmapBundle,
+        wxS("Pull requests to review: ") + title);
 #else
     auto tooltipTitle = title.IsEmpty() ? wxS("none") : title;
     SetIcon(m_bitmapBundle, std::format(wxS("Pull requests: {}"), tooltipTitle));
