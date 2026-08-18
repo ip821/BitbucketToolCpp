@@ -34,9 +34,11 @@ bool App::OnInit()
   return true;
 }
 
-int App::OnExit()
+int App::OnRun()
 {
-  // Stop and join background work before wxWidgets invalidates wxTheApp.
+  const auto exitCode = wxApp::OnRun();
+
+  // Destroy the taskbar icon before wxWidgets deletes all top-level windows.
   m_pStatusItem.reset();
-  return wxApp::OnExit();
+  return exitCode;
 }

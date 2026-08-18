@@ -11,7 +11,7 @@ class App : public wxApp
 public:
     explicit App();
     bool OnInit() override;
-    int OnExit() override;
+    int OnRun() override;
 
 private:
     BitbucketApiGlobalInit m_bitbucketApiGlobalInit;
