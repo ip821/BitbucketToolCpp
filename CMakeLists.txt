@@ -184,6 +184,7 @@ if (APPLE)
             ${STATUS_IMAGE_32}
             ${STATUS_IMAGE_16}
             macos/macos_activation.mm
+            macos/menubar.mm
     )
     target_compile_options(PRToolForBitbucket2 PRIVATE
             -fno-builtin-std-forward_like

@@ -5,10 +5,11 @@
 
 #include "PullRequestMenuEntry.h"
 
+extern "C" int GetSystemMenuBarHeight();
+
 class MenuMetrics
 {
-    static constexpr auto HeightAdditionValue = 40;
-    static constexpr auto menuVerticalBorderAllowance = 8;
+    static constexpr auto MenuVerticalBorderAllowance = 8;
 
 public:
     int itemHeight{};
@@ -22,19 +23,23 @@ public:
         dc.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 
         const auto textHeight = dc.GetTextExtent(wxS("Ag")).GetHeight();
+#if defined __WXOSX__
+        const auto systemMenuHeight = GetSystemMenuBarHeight();
+#else
         const auto systemMenuHeight = wxSystemSettings::GetMetric(wxSYS_MENU_Y);
+#endif
         const auto itemHeight = std::max({1, textHeight + 8, systemMenuHeight});
         const auto separatorHeight = std::max(1, itemHeight / 2);
 
         const wxDisplay display;
         const auto displayHeight = display.IsOk()
-            ? display.GetClientArea().GetHeight() + HeightAdditionValue
+            ? display.GetClientArea().GetHeight()
             : wxSystemSettings::GetMetric(wxSYS_SCREEN_Y);
 
         return {
             .itemHeight = itemHeight,
             .separatorHeight = separatorHeight,
-            .maximumHeight = std::max(itemHeight, displayHeight - menuVerticalBorderAllowance),
+            .maximumHeight = std::max(itemHeight, displayHeight - MenuVerticalBorderAllowance),
         };
     }
 
