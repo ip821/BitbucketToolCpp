@@ -8,9 +8,15 @@ MenuBuilder::MenuBuilder(wxMenu& menu, const int nextItemId) :
 {
 }
 
+MenuBuilder::MenuBuilder(wxMenu& menu, MenuBuilder& parent) :
+    m_menu(menu),
+    m_parent(&parent)
+{
+}
+
 wxMenuItem* MenuBuilder::InsertItem(const wxString& label)
 {
-    return m_menu.Insert(m_insertIndex++, m_nextItemId++, label);
+    return m_menu.Insert(m_insertIndex++, TakeNextItemId(), label);
 }
 
 wxMenuItem* MenuBuilder::InsertDisabledItem(const wxString& label)
@@ -23,21 +29,19 @@ wxMenuItem* MenuBuilder::InsertDisabledItem(const wxString& label)
 wxMenu* MenuBuilder::InsertSubMenu(const wxString& label)
 {
     auto* subMenu = new wxMenu();
-    m_menu.Insert(m_insertIndex++, m_nextItemId++, label, subMenu);
+    m_menu.Insert(m_insertIndex++, TakeNextItemId(), label, subMenu);
     return subMenu;
 }
 
 void MenuBuilder::InsertSeparator()
 {
-    m_menu.InsertSeparator(m_insertIndex++)->SetId(m_nextItemId++);
+    m_menu.InsertSeparator(m_insertIndex++)->SetId(TakeNextItemId());
 }
 
-int MenuBuilder::GetLastUsedItemId() const
+int MenuBuilder::TakeNextItemId()
 {
-    return m_nextItemId;
-}
+    if (m_parent)
+        return m_parent->TakeNextItemId();
 
-void MenuBuilder::SetLastUsedItemId(const int id)
-{
-    m_nextItemId = id;
+    return m_nextItemId++;
 }

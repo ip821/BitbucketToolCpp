@@ -10,17 +10,18 @@ class MenuBuilder
 {
 public:
     MenuBuilder(wxMenu& menu, int nextItemId);
+    MenuBuilder(wxMenu& menu, MenuBuilder& parent);
 
     wxMenuItem* InsertItem(const wxString& label);
     wxMenuItem* InsertDisabledItem(const wxString& label);
     wxMenu* InsertSubMenu(const wxString& label);
     void InsertSeparator();
 
-    [[nodiscard]] int GetLastUsedItemId() const;
-    void SetLastUsedItemId(int id);
-
 private:
     wxMenu& m_menu;
-    int m_nextItemId;
+    int m_nextItemId{};
+    MenuBuilder* m_parent{};
     std::size_t m_insertIndex{};
+
+    int TakeNextItemId();
 };

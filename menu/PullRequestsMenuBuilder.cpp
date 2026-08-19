@@ -147,14 +147,13 @@ int PullRequestsMenuBuilder::InsertEntriesWithOverflow(
         auto* overflowMenu = menuBuilder.InsertSubMenu(wxS("More..."));
         usedHeight += menuMetrics.itemHeight;
 
-        MenuBuilder overflowMenuBuilder(*overflowMenu, menuBuilder.GetLastUsedItemId());
+        MenuBuilder overflowMenuBuilder(*overflowMenu, menuBuilder);
         InsertEntriesWithOverflow(
             overflowMenuBuilder,
             entries.subspan(visibleCount),
             menuMetrics.maximumHeight,
             menuMetrics,
             result);
-        menuBuilder.SetLastUsedItemId(overflowMenuBuilder.GetLastUsedItemId());
     }
 
     return usedHeight;
