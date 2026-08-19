@@ -154,6 +154,7 @@ int PullRequestsMenuBuilder::InsertEntriesWithOverflow(
             menuMetrics.maximumHeight,
             menuMetrics,
             result);
+        menuBuilder.SetLastUsedItemId(overflowMenuBuilder.GetLastUsedItemId());
     }
 
     return usedHeight;

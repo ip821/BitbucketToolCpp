@@ -17,6 +17,7 @@ public:
     void InsertSeparator();
 
     [[nodiscard]] int GetLastUsedItemId() const;
+    void SetLastUsedItemId(int id);
 
 private:
     wxMenu& m_menu;

@@ -36,3 +36,8 @@ int MenuBuilder::GetLastUsedItemId() const
 {
     return m_nextItemId;
 }
+
+void MenuBuilder::SetLastUsedItemId(const int id)
+{
+    m_nextItemId = id;
+}
