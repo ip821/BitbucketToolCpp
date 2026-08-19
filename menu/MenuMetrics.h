@@ -43,7 +43,7 @@ public:
         };
     }
 
-    int MeasureMenuHeight(const wxMenu& menu) const
+    [[nodiscard]] int MeasureMenuHeight(const wxMenu& menu) const
     {
         auto height = 0;
         for (const auto* item: menu.GetMenuItems())
@@ -53,12 +53,12 @@ public:
         return height;
     }
 
-    int MeasureEntryHeight(const PullRequestMenuEntry& entry) const
+    [[nodiscard]] int MeasureEntryHeight(const PullRequestMenuEntry& entry) const
     {
         return static_cast<int>(entry.secondaryTitles.size() + (entry.includesTitle ? 1 : 0)) * itemHeight;
     }
 
-    std::size_t GetVisibleEntryCount(const std::span<const PullRequestMenuEntry> entries, const int availableHeight) const
+    [[nodiscard]] std::size_t GetVisibleEntryCount(const std::span<const PullRequestMenuEntry> entries, const int availableHeight) const
     {
         auto usedHeight = 0;
         std::size_t visibleCount = 0;

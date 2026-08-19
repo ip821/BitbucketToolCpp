@@ -29,6 +29,6 @@ class PullRequestMenuEntryFactory
 
 public:
     explicit PullRequestMenuEntryFactory(const PullRequestsInfo& pullRequests);
-    PullRequestMenuEntryResult GetWaitingMyApprovalMenuEntries(GetWaitingMyApprovalMenuEntriesArgs args) const;
-    PullRequestMenuEntryResult GetMyMenuEntries(bool displayRepositoryNameLowercase) const;
+    [[nodiscard]] PullRequestMenuEntryResult GetWaitingMyApprovalMenuEntries(GetWaitingMyApprovalMenuEntriesArgs args) const;
+    [[nodiscard]] PullRequestMenuEntryResult GetMyMenuEntries(bool displayRepositoryNameLowercase) const;
 };

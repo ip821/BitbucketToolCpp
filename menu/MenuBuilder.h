@@ -16,7 +16,7 @@ public:
     wxMenu* InsertSubMenu(const wxString& label);
     void InsertSeparator();
 
-    int GetLastUsedItemId() const;
+    [[nodiscard]] int GetLastUsedItemId() const;
 
 private:
     wxMenu& m_menu;
