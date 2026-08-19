@@ -1,0 +1,43 @@
+diff --git a/src/msw/rt/notifmsgrt.cpp b/src/msw/rt/notifmsgrt.cpp
+--- a/src/msw/rt/notifmsgrt.cpp
++++ b/src/msw/rt/notifmsgrt.cpp
+@@ -27,11 +27,26 @@
+ #include "wx/filename.h"
+ #include "wx/stdpaths.h"
+ 
++#ifdef __MINGW32__
++    // MinGW's generated WinRT headers define BYTE and boolean as the same
++    // underlying type and emit duplicate IReference specializations for them.
++    // This source doesn't use IReference<BYTE>, so omit that specialization.
++    #define ____FIReference_1_BYTE_INTERFACE_DEFINED__
++#endif
++
+ #include <roapi.h>
+ #include <windows.ui.notifications.h>
+ #include <functiondiscoverykeys.h>
+ #include <propvarutil.h>
+-#include <wrl/implements.h>
++
++#ifdef __MINGW32__
++    // MinGW keeps these WinRT IIDs under their fully qualified WIDL names.
++    #define IID_IToastNotificationFactory \
++        __uuidof(ABI::Windows::UI::Notifications::IToastNotificationFactory)
++    #define IID_IToastNotificationManagerStatics \
++        __uuidof(ABI::Windows::UI::Notifications::IToastNotificationManagerStatics)
++    #define IID_IXmlNode __uuidof(ABI::Windows::Data::Xml::Dom::IXmlNode)
++#endif
+ 
+ using namespace ABI::Windows::UI::Notifications;
+ using namespace ABI::Windows::Data::Xml::Dom;
+@@ -44,8 +59,10 @@ typedef ABI::Windows::Foundation::ITypedEventHandler<ToastNotification *, ToastF
+ class wxToastNotifMsgImpl;
+ 
+ class wxToastEventHandler final :
+-    public Microsoft::WRL::Implements<DesktopToastActivatedEventHandler, DesktopToastDismissedEventHandler, DesktopToastFailedEventHandler>
++    public DesktopToastActivatedEventHandler,
++    public DesktopToastDismissedEventHandler,
++    public DesktopToastFailedEventHandler
+ {
+ public:
+     explicit wxToastEventHandler(wxToastNotifMsgImpl* toastImpl) :
+         m_impl(toastImpl)

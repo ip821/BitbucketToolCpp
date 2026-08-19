@@ -78,6 +78,10 @@ StatusItem::StatusItem() :
         wxMessageBox("System icon is not available");
     }
     SetStatusItemTitle(wxS("0"));
+    wxNotificationMessage::UseTaskBarIcon(this);
+    wxNotificationMessage::MSWUseToasts(
+        wxS("PRToolForBitbucket"),
+        wxS("ip.PRToolForBitbucket"));
 #else
     m_statusBitmap = wxXmlResource::Get()->LoadBitmap("status32");
     if (!m_statusBitmap.IsOk())
@@ -126,6 +130,13 @@ StatusItem::StatusItem() :
     m_pTimer->StartOnce(1000);
 #else
     m_pTimer->StartOnce(tenSeconds);
+#endif
+}
+
+StatusItem::~StatusItem()
+{
+#ifdef __WXMSW__
+    wxNotificationMessage::UseTaskBarIcon(nullptr);
 #endif
 }
 

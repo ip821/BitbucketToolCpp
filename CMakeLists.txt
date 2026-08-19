@@ -6,10 +6,15 @@ include(FetchContent)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(WX_WIDGETS_VERSION v3.3.2)
+set(WX_WIDGETS_VERSION v3.3.3)
 set(wxBUILD_SHARED OFF)
 set(wxUSE_WEBREQUEST OFF)
+set(wxUSE_WXHTML_HELP OFF)
 set(wxUSE_STC OFF CACHE BOOL "" FORCE)
+
+if (WIN32)
+    set(wxUSE_WINRT ON CACHE BOOL "Enable native Windows toast notifications" FORCE)
+endif ()
 
 add_subdirectory(bitbucket_api)
 
@@ -19,6 +24,13 @@ if (APPLE)
             GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
             GIT_TAG ${WX_WIDGETS_VERSION}
             PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets-3_3_2.patch"
+    )
+elseif (MINGW)
+    FetchContent_Declare(
+            wxWidgets
+            GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
+            GIT_TAG ${WX_WIDGETS_VERSION}
+            PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/windows/wxwidgets-3_3_3-mingw-winrt.patch"
     )
 else ()
     FetchContent_Declare(
@@ -96,9 +108,9 @@ configure_file(
 )
 target_include_directories(PRToolForBitbucket2 PRIVATE ${CMAKE_BINARY_DIR})
 
-target_compile_options(PRToolForBitbucket2 PRIVATE
-        -Wall -Wextra -Wpedantic -Werror
-)
+    target_compile_options(PRToolForBitbucket2 PRIVATE
+            -Wall -Wextra -Wpedantic -Werror
+    )
 target_link_libraries(PRToolForBitbucket2 PRIVATE
         wx::core
         wx::xrc
@@ -108,9 +120,6 @@ target_link_libraries(PRToolForBitbucket2 PRIVATE
 )
 
 if (WIN32)
-    target_link_options(PRToolForBitbucket2 PRIVATE
-            $<$<CONFIG:Release>:-Wl,--strip-all>
-    )
     target_sources(PRToolForBitbucket2 PRIVATE
             windows/app.rc
             windows/app.manifest
@@ -121,12 +130,12 @@ if (WIN32)
     set_property(SOURCE windows/app.rc APPEND PROPERTY OBJECT_DEPENDS
             "${CMAKE_CURRENT_SOURCE_DIR}/windows/app.ico"
     )
-    get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
-    target_link_options(PRToolForBitbucket2 PRIVATE
-            -static
-            -static-libgcc
-            -static-libstdc++
-    )
+        target_link_options(PRToolForBitbucket2 PRIVATE
+                $<$<CONFIG:Release>:-Wl,--strip-all>
+                -static
+                -static-libgcc
+                -static-libstdc++
+        )
 endif ()
 
 if (NOT APPLE)

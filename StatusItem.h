@@ -69,5 +69,6 @@ class StatusItem : public wxTaskBarIcon
 
 public:
     explicit StatusItem();
+    ~StatusItem() override;
     void ConfigChanged();
 };
