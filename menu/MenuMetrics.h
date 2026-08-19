@@ -7,7 +7,7 @@
 
 class MenuMetrics
 {
-    static constexpr auto HeightAdditionValue = 30;
+    static constexpr auto HeightAdditionValue = 40;
     static constexpr auto menuVerticalBorderAllowance = 8;
 
 public:
