@@ -118,6 +118,9 @@ if (WIN32)
             windows/CustomIcon.h
     )
     set_source_files_properties(windows/app.rc PROPERTIES LANGUAGE RC)
+    set_property(SOURCE windows/app.rc APPEND PROPERTY OBJECT_DEPENDS
+            "${CMAKE_CURRENT_SOURCE_DIR}/windows/app.ico"
+    )
     get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
     target_link_options(PRToolForBitbucket2 PRIVATE
             -static
