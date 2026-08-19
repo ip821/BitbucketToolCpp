@@ -30,12 +30,8 @@ PreferencesWindow::PreferencesWindow(StatusItem* pStatusItem) :
     m_pVersionText->SetLabelText(std::format("Version: {}", APP_VERSION));
 
     m_pCheckBoxHideChangesRequested->SetValue(Config::GetHideChangesRequestedPullRequests());
-    m_pCheckBoxUseTwoColumnLayout->SetValue(Config::GetUseTwoColumnLayout());
+    m_pCheckBoxUseSubmenusOnMenuOverflow->SetValue(Config::GetUseSubmenusOnMenuOverflow());
     m_pCheckBoxDisplayRepositoryNameLowercase->SetValue(Config::GetDisplayRepositoryNameLowercase());
-
-#if !defined(__WXMSW__)
-    m_pCheckBoxUseTwoColumnLayout->Enable(false);
-#endif
 
     Bind(wxEVT_SHOW, &PreferencesWindow::OnShow, this);
     Bind(wxEVT_CLOSE_WINDOW, &PreferencesWindow::OnClose, this);
@@ -59,9 +55,9 @@ void PreferencesWindow::OnHideChangesRequestedChanged(wxCommandEvent& event)
     m_pStatusItem->ConfigChanged();
 }
 
-void PreferencesWindow::OnUseTwoColumnLayoutChanged(wxCommandEvent& event)
+void PreferencesWindow::OnUseSubmenusOnMenuOverflowChanged(wxCommandEvent& event)
 {
-    Config::SetUseTwoColumnLayout(event.IsChecked());
+    Config::SetUseSubmenusOnMenuOverflow(event.IsChecked());
     m_pStatusItem->ConfigChanged();
 }
 

@@ -238,7 +238,7 @@ void StatusItem::RebuildMenu(const RebuildMenuArgs& args)
     m_showAllPullRequests = showAll;
 
     const auto hideChangesRequestedPullRequests = !showAll && Config::GetHideChangesRequestedPullRequests();
-    const auto useTwoColumnLayout = Config::GetUseTwoColumnLayout();
+    const auto useSubmenusOnMenuOverflow = Config::GetUseSubmenusOnMenuOverflow();
     const auto displayRepositoryNameLowercase = Config::GetDisplayRepositoryNameLowercase();
 
     const PullRequestsMenuBuilder menuBuilder(*m_pMenu);
@@ -246,7 +246,7 @@ void StatusItem::RebuildMenu(const RebuildMenuArgs& args)
         MENU_ITEM_LAST_STATIC_ID + 1,
         pullRequestsInfo,
         hideChangesRequestedPullRequests,
-        useTwoColumnLayout,
+        useSubmenusOnMenuOverflow,
         displayRepositoryNameLowercase
     );
 
@@ -401,7 +401,6 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int
 void StatusItem::ConfigChanged()
 {
     m_showAllPullRequests = Config::GetHideChangesRequestedPullRequests();
-    m_useTwoColumnLayout = Config::GetUseTwoColumnLayout();
     RefreshMenu();
 }
 

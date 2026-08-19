@@ -72,8 +72,8 @@ PreferencesWindowBase::PreferencesWindowBase( wxWindow* parent, wxWindowID id, c
 	m_pCheckBoxHideChangesRequested = new wxCheckBox( sbSizer2->GetStaticBox(), wxID_ANY, _("Hide PR with \"Changes requested\""), wxDefaultPosition, wxDefaultSize, 0 );
 	sbSizer2->Add( m_pCheckBoxHideChangesRequested, 0, wxALL, 5 );
 
-	m_pCheckBoxUseTwoColumnLayout = new wxCheckBox( sbSizer2->GetStaticBox(), wxID_ANY, _("Use two column layout (Windows only)"), wxDefaultPosition, wxDefaultSize, 0 );
-	sbSizer2->Add( m_pCheckBoxUseTwoColumnLayout, 0, wxALL, 5 );
+	m_pCheckBoxUseSubmenusOnMenuOverflow = new wxCheckBox( sbSizer2->GetStaticBox(), wxID_ANY, _("Use submenus on menu overflow"), wxDefaultPosition, wxDefaultSize, 0 );
+	sbSizer2->Add( m_pCheckBoxUseSubmenusOnMenuOverflow, 0, wxALL, 5 );
 
 	m_pCheckBoxDisplayRepositoryNameLowercase = new wxCheckBox( sbSizer2->GetStaticBox(), wxID_ANY, _("Display repository name in lower case"), wxDefaultPosition, wxDefaultSize, 0 );
 	sbSizer2->Add( m_pCheckBoxDisplayRepositoryNameLowercase, 0, wxALL, 5 );
@@ -105,7 +105,7 @@ PreferencesWindowBase::PreferencesWindowBase( wxWindow* parent, wxWindowID id, c
 	this->Connect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( PreferencesWindowBase::OnInitDialog ) );
 	m_pButtonSetup->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PreferencesWindowBase::OnSetupClicked ), NULL, this );
 	m_pCheckBoxHideChangesRequested->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PreferencesWindowBase::OnHideChangesRequestedChanged ), NULL, this );
-	m_pCheckBoxUseTwoColumnLayout->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PreferencesWindowBase::OnUseTwoColumnLayoutChanged ), NULL, this );
+	m_pCheckBoxUseSubmenusOnMenuOverflow->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PreferencesWindowBase::OnUseSubmenusOnMenuOverflowChanged ), NULL, this );
 	m_pCheckBoxDisplayRepositoryNameLowercase->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PreferencesWindowBase::OnDisplayRepositoryNameLowercaseChanged ), NULL, this );
 }
 

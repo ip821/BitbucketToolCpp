@@ -2,9 +2,9 @@
 
 #include <wx/menu.h>
 
-MenuBuilder::MenuBuilder(wxMenu& menu, const int firstItemId) :
+MenuBuilder::MenuBuilder(wxMenu& menu, const int nextItemId) :
     m_menu(menu),
-    m_nextItemId(firstItemId)
+    m_nextItemId(nextItemId)
 {
 }
 
@@ -20,13 +20,19 @@ wxMenuItem* MenuBuilder::InsertDisabledItem(const wxString& label)
     return item;
 }
 
+wxMenu* MenuBuilder::InsertSubMenu(const wxString& label)
+{
+    auto* subMenu = new wxMenu();
+    m_menu.Insert(m_insertIndex++, m_nextItemId++, label, subMenu);
+    return subMenu;
+}
+
 void MenuBuilder::InsertSeparator()
 {
     m_menu.InsertSeparator(m_insertIndex++)->SetId(m_nextItemId++);
 }
 
-void MenuBuilder::StartNewColumnAtEnd()
+int MenuBuilder::GetLastUsedItemId() const
 {
-    m_insertIndex = m_menu.GetMenuItemCount();
-    m_menu.Break();
+    return m_nextItemId;
 }

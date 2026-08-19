@@ -85,6 +85,9 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         version.h
         main.cpp
         pull_requests/PullRequestsInfo.h
+        menu/MenuMetrics.h
+        menu/PullRequestMenuEntry.h
+        menu/PullRequestMenuEntry.cpp
 )
 configure_file(
         ${CMAKE_SOURCE_DIR}/version.h.in

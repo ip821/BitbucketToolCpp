@@ -1,14 +1,21 @@
 #include "PullRequestsMenuBuilder.h"
 
-#include <ranges>
+#include <algorithm>
+#include <iterator>
+#include <span>
+#include <vector>
+#include <format>
 
 #include <cpp_utils/wx_string_format.h>
 #include <wx/control.h>
 #include <wx/dcmemory.h>
+#include <wx/display.h>
 #include <wx/menu.h>
 #include <wx/settings.h>
 
 #include "MenuBuilder.h"
+#include "MenuMetrics.h"
+#include "PullRequestMenuEntry.h"
 
 namespace
 {
@@ -22,6 +29,51 @@ namespace
         return wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, maxMenuWidth);
     }
 
+    void SplitOversizedEntries(std::vector<PullRequestMenuEntry>& entries, const MenuMetrics& metrics)
+    {
+        const auto maximumRowsPerMenu = std::max(2, metrics.maximumHeight / metrics.itemHeight);
+        const auto maximumRowsPerChunk = maximumRowsPerMenu - 1;
+        const auto maximumChunkHeight = maximumRowsPerChunk * metrics.itemHeight;
+
+        std::vector<PullRequestMenuEntry> splitEntries;
+        splitEntries.reserve(entries.size());
+
+        for (auto& entry: entries)
+        {
+            if (metrics.MeasureEntryHeight(entry) <= maximumChunkHeight)
+            {
+                splitEntries.push_back(std::move(entry));
+                continue;
+            }
+
+            auto secondaryTitleIndex = std::size_t{};
+            auto includesTitle = true;
+
+            while (includesTitle || secondaryTitleIndex < entry.secondaryTitles.size())
+            {
+                const auto titleRows = includesTitle ? std::size_t{1} : std::size_t{};
+                const auto secondaryTitleCount = std::min(
+                    maximumRowsPerChunk - titleRows,
+                    entry.secondaryTitles.size() - secondaryTitleIndex);
+
+                PullRequestMenuEntry chunk{
+                    .pullRequest = entry.pullRequest,
+                    .includesTitle = includesTitle,
+                    .secondaryTitles = {},
+                };
+                chunk.secondaryTitles.insert(
+                    chunk.secondaryTitles.end(),
+                    std::make_move_iterator(entry.secondaryTitles.begin() + secondaryTitleIndex),
+                    std::make_move_iterator(entry.secondaryTitles.begin() + secondaryTitleIndex + secondaryTitleCount));
+                splitEntries.push_back(std::move(chunk));
+
+                secondaryTitleIndex += secondaryTitleCount;
+                includesTitle = false;
+            }
+        }
+
+        entries = std::move(splitEntries);
+    }
 }
 
 PullRequestsMenuBuilder::PullRequestsMenuBuilder(wxMenu& menu) : m_menu(menu)
@@ -39,78 +91,148 @@ void PullRequestsMenuBuilder::InsertSecondaryPullRequestMenuItem(MenuBuilder& me
     menuBuilder.InsertDisabledItem(FitMenuText(secondLineTitle));
 }
 
+void PullRequestsMenuBuilder::InsertEntry(
+    MenuBuilder& menuBuilder,
+    const PullRequestMenuEntry& entry,
+    PullRequestsMenuBuildResult& result
+) const
+{
+    if (entry.includesTitle)
+    {
+        const auto* pullRequest = entry.pullRequest;
+        const auto pMenuItem = InsertPullRequestTitleMenuItem(menuBuilder, *pullRequest);
+        result.menuItemIdToPullRequest[pMenuItem->GetId()] = *pullRequest;
+    }
+
+    for (const auto& title: entry.secondaryTitles)
+    {
+        InsertSecondaryPullRequestMenuItem(menuBuilder, title);
+    }
+}
+
+void PullRequestsMenuBuilder::InsertAllEntries(
+    MenuBuilder& menuBuilder,
+    const std::span<const PullRequestMenuEntry> entries,
+    PullRequestsMenuBuildResult& result
+) const
+{
+    for (const auto& entry: entries)
+    {
+        InsertEntry(menuBuilder, entry, result);
+    }
+}
+
+int PullRequestsMenuBuilder::InsertEntriesWithOverflow(
+    MenuBuilder& menuBuilder,
+    const std::span<const PullRequestMenuEntry> entries,
+    const int availableHeight,
+    const MenuMetrics& menuMetrics,
+    PullRequestsMenuBuildResult& result
+) const
+{
+    if (entries.empty())
+        return 0;
+
+    const auto visibleCount = menuMetrics.GetVisibleEntryCount(entries, availableHeight);
+
+    auto usedHeight = 0;
+    for (const auto& entry: entries.first(visibleCount))
+    {
+        InsertEntry(menuBuilder, entry, result);
+        usedHeight += menuMetrics.MeasureEntryHeight(entry);
+    }
+
+    if (visibleCount < entries.size())
+    {
+        auto* overflowMenu = menuBuilder.InsertSubMenu(wxS("More..."));
+        usedHeight += menuMetrics.itemHeight;
+
+        MenuBuilder overflowMenuBuilder(*overflowMenu, menuBuilder.GetLastUsedItemId());
+        InsertEntriesWithOverflow(
+            overflowMenuBuilder,
+            entries.subspan(visibleCount),
+            menuMetrics.maximumHeight,
+            menuMetrics,
+            result);
+    }
+
+    return usedHeight;
+}
+
 PullRequestsMenuBuildResult PullRequestsMenuBuilder::Rebuild(
     const int firstDynamicMenuItemId,
     const PullRequestsInfo& pullRequests,
     const bool hideChangesRequestedPullRequests,
-    const bool useTwoColumnLayout,
+    const bool useSubmenusOnMenuOverflow,
     const bool displayRepositoryNameLowercase
 ) const
 {
     RemoveDynamicMenuItems(firstDynamicMenuItemId);
 
+    const PullRequestMenuEntryFactory menuEntryFactory(pullRequests);
+
     PullRequestsMenuBuildResult result;
 
+    auto waitingForApprovalEntriesResult = menuEntryFactory.GetWaitingMyApprovalMenuEntries({
+        .hideChangesRequestedPullRequests = hideChangesRequestedPullRequests,
+        .displayRepositoryNameLowercase = displayRepositoryNameLowercase,
+    });
+    result.hiddenPullRequestsCount += waitingForApprovalEntriesResult.hiddenPullRequestsCount;
+    auto& waitingForApprovalMenuEntries = waitingForApprovalEntriesResult.entries;
+
+    auto myMenuEntriesResult = menuEntryFactory.GetMyMenuEntries(
+        displayRepositoryNameLowercase
+    );
+    result.hiddenPullRequestsCount += myMenuEntriesResult.hiddenPullRequestsCount;
+    auto& myMenuEntries = myMenuEntriesResult.entries;
+
+    const auto menuMetrics = MenuMetrics::Measure();
+    SplitOversizedEntries(waitingForApprovalMenuEntries, menuMetrics);
+    SplitOversizedEntries(myMenuEntries, menuMetrics);
+
     MenuBuilder menuBuilder(m_menu, firstDynamicMenuItemId);
+
     const auto pFirstMenuItem = menuBuilder.InsertDisabledItem("Pull requests to review");
 
-    const auto& currentUser = pullRequests.currentUser;
-
-    for (const auto& pullRequest: pullRequests.waitingForMyApprovalPullRequests)
+    if (useSubmenusOnMenuOverflow)
     {
-        const auto participantsRequestedChangesWithoutCurrentUser = pullRequest.GetParticipantsRequestedChangesWithout(currentUser);
+        const auto staticPartMenuHeight = menuMetrics.MeasureMenuHeight(m_menu);
 
-        if (hideChangesRequestedPullRequests && !participantsRequestedChangesWithoutCurrentUser.empty())
-        {
-            ++result.hiddenPullRequestsCount;
-            continue;
-        }
+        auto availableHeight = std::max(0, menuMetrics.maximumHeight - staticPartMenuHeight);
 
-        const auto pMenuItem = InsertPullRequestTitleMenuItem(menuBuilder, pullRequest);
-        result.menuItemIdToPullRequest[pMenuItem->GetId()] = pullRequest;
+        // Leave the room for a "More..." item in "my pull requests"
+        const auto myPullRequestsMinimumHeight = myMenuEntries.empty() ? 0 : menuMetrics.itemHeight;
+        const auto reviewAvailableHeight = std::max(0, availableHeight - myPullRequestsMinimumHeight);
 
-        InsertSecondaryPullRequestMenuItem(menuBuilder, pullRequest.GetAuthorAndBranchMenuItemTitle(displayRepositoryNameLowercase));
-        InsertSecondaryPullRequestMenuItem(menuBuilder, pullRequest.GetPullRequestDetailsMenuItemTitle());
+        availableHeight -= InsertEntriesWithOverflow(
+            menuBuilder,
+            waitingForApprovalMenuEntries,
+            reviewAvailableHeight,
+            menuMetrics,
+            result);
 
-        for (const auto& participant: pullRequest.GetParticipantsRequestedChanges())
-        {
-            InsertSecondaryPullRequestMenuItem(menuBuilder, pullRequest.GetParticipantMenuItemTitle(participant));
-        }
+        menuBuilder.InsertSeparator();
+        menuBuilder.InsertDisabledItem("Your pull requests");
+
+        InsertEntriesWithOverflow(
+            menuBuilder,
+            myMenuEntries,
+            std::max(0, availableHeight),
+            menuMetrics,
+            result);
+    }
+    else
+    {
+        InsertAllEntries(menuBuilder, waitingForApprovalMenuEntries, result);
+        menuBuilder.InsertSeparator();
+        menuBuilder.InsertDisabledItem("Your pull requests");
+        InsertAllEntries(menuBuilder, myMenuEntries, result);
     }
 
     if (result.hiddenPullRequestsCount)
     {
         const auto firstMenuItemTitle = std::format(wxS("{} [{} hidden]"), pFirstMenuItem->GetItemLabel(), result.hiddenPullRequestsCount);
         pFirstMenuItem->SetItemLabel(firstMenuItemTitle);
-    }
-
-    if (useTwoColumnLayout)
-    {
-        menuBuilder.StartNewColumnAtEnd();
-    }
-    else
-    {
-        menuBuilder.InsertSeparator();
-    }
-
-    menuBuilder.InsertDisabledItem("Your pull requests");
-
-    for (const auto& pullRequest: pullRequests.myPullRequests)
-    {
-        const auto pMenuItem = InsertPullRequestTitleMenuItem(menuBuilder, pullRequest);
-        result.menuItemIdToPullRequest[pMenuItem->GetId()] = pullRequest;
-
-        InsertSecondaryPullRequestMenuItem(menuBuilder, pullRequest.GetMyPullRequestBranchMenuItemTitle(displayRepositoryNameLowercase));
-        InsertSecondaryPullRequestMenuItem(menuBuilder, pullRequest.GetPullRequestDetailsMenuItemTitle());
-
-        const auto participants = pullRequest.pullRequest.participants
-                                  | std::views::filter([](const auto& it) { return it.role == ParticipantRole::Reviewer || it.approved; })
-                                  | std::ranges::to<std::vector>();
-
-        for (const auto& participant: participants)
-        {
-            InsertSecondaryPullRequestMenuItem(menuBuilder, pullRequest.GetParticipantMenuItemTitle(participant));
-        }
     }
 
     return result;

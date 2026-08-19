@@ -42,7 +42,7 @@ class PreferencesWindowBase : public wxDialog
 		wxStaticText* m_pHelpText;
 		wxButton* m_pButtonSetup;
 		wxCheckBox* m_pCheckBoxHideChangesRequested;
-		wxCheckBox* m_pCheckBoxUseTwoColumnLayout;
+		wxCheckBox* m_pCheckBoxUseSubmenusOnMenuOverflow;
 		wxCheckBox* m_pCheckBoxDisplayRepositoryNameLowercase;
 		wxStaticText* m_pVersionText;
 
@@ -50,7 +50,7 @@ class PreferencesWindowBase : public wxDialog
 		virtual void OnInitDialog( wxInitDialogEvent& event ) = 0;
 		virtual void OnSetupClicked( wxCommandEvent& event ) = 0;
 		virtual void OnHideChangesRequestedChanged( wxCommandEvent& event ) = 0;
-		virtual void OnUseTwoColumnLayoutChanged( wxCommandEvent& event ) = 0;
+		virtual void OnUseSubmenusOnMenuOverflowChanged( wxCommandEvent& event ) = 0;
 		virtual void OnDisplayRepositoryNameLowercaseChanged( wxCommandEvent& event ) = 0;
 
 

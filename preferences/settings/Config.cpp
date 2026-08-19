@@ -7,7 +7,7 @@
 
 const wxString keyRepositories = "repositories5";
 const wxString keyHideChangesRequestedPullRequests = "hideChangesRequestedPullRequests";
-const wxString keyUseTwoColumnLayout = "useTwoColumnLayout";
+const wxString keyUseSubmenusOnMenuOverflow = "useSubmenusOnMenuOverflow";
 const wxString keyDisplayRepositoryNameLowercase = "displayRepositoryNameLowercase";
 
 std::vector<Repository> Config::GetRepositories()
@@ -50,16 +50,16 @@ void Config::SetHideChangesRequestedPullRequests(const bool hide)
     config.Write(keyHideChangesRequestedPullRequests, hide);
 }
 
-bool Config::GetUseTwoColumnLayout()
+bool Config::GetUseSubmenusOnMenuOverflow()
 {
     const wxConfig config;
-    return config.ReadBool(keyUseTwoColumnLayout, true);
+    return config.ReadBool(keyUseSubmenusOnMenuOverflow, true);
 }
 
-void Config::SetUseTwoColumnLayout(bool value)
+void Config::SetUseSubmenusOnMenuOverflow(const bool value)
 {
     wxConfig config;
-    config.Write(keyUseTwoColumnLayout, value);
+    config.Write(keyUseSubmenusOnMenuOverflow, value);
 }
 
 bool Config::GetDisplayRepositoryNameLowercase()

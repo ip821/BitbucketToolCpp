@@ -9,12 +9,14 @@ class wxString;
 class MenuBuilder
 {
 public:
-    MenuBuilder(wxMenu& menu, int firstItemId);
+    MenuBuilder(wxMenu& menu, int nextItemId);
 
     wxMenuItem* InsertItem(const wxString& label);
     wxMenuItem* InsertDisabledItem(const wxString& label);
+    wxMenu* InsertSubMenu(const wxString& label);
     void InsertSeparator();
-    void StartNewColumnAtEnd();
+
+    int GetLastUsedItemId() const;
 
 private:
     wxMenu& m_menu;
