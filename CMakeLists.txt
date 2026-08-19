@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(PRToolForBitbucket2 VERSION 1.30 LANGUAGES CXX)
+project(PRToolForBitbucket2 VERSION 1.31 LANGUAGES CXX)
 
 include(FetchContent)
 
@@ -130,12 +130,12 @@ if (WIN32)
     set_property(SOURCE windows/app.rc APPEND PROPERTY OBJECT_DEPENDS
             "${CMAKE_CURRENT_SOURCE_DIR}/windows/app.ico"
     )
-        target_link_options(PRToolForBitbucket2 PRIVATE
-                $<$<CONFIG:Release>:-Wl,--strip-all>
-                -static
-                -static-libgcc
-                -static-libstdc++
-        )
+    target_link_options(PRToolForBitbucket2 PRIVATE
+            $<$<CONFIG:Release>:-Wl,--strip-all>
+            -static
+            -static-libgcc
+            -static-libstdc++
+    )
 endif ()
 
 if (NOT APPLE)
