@@ -13,4 +13,5 @@ public:
 
 private:
     static void DrawRoundedRectangle(wxDC& dc, const wxColour& colour, int size);
+    static void MixImages(int size, const wxImage& colourImage, const wxImage& coverageImage, wxImage& resultImage);
 };

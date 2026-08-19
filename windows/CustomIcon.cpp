@@ -12,6 +12,32 @@ void CustomIcon::DrawRoundedRectangle(wxDC& dc, const wxColour& colour, const in
     dc.DrawRoundedRectangle(0, 0, size, size, size / 4);
 }
 
+// That loop combines the two downscaled images into the final transparent icon:
+// - colourImage contains the blue/gray badge and white number rendered over black.
+// - coverageImage contains a white badge over black. After downscaling, its gray edge pixels represent partial coverage for antialiasing.
+void CustomIcon::MixImages(const int size, const wxImage& colourImage, const wxImage& coverageImage, wxImage& resultImage)
+{
+    auto *resultColour = resultImage.GetData();
+    auto *resultAlpha = resultImage.GetAlpha();
+    const auto *sourceColour = colourImage.GetData();
+    const auto *sourceCoverage = coverageImage.GetData();
+
+    for (auto pixel = 0; pixel < size * size; ++pixel)
+    {
+        const auto alpha = sourceCoverage[pixel * 3];
+        resultAlpha[pixel] = alpha;
+
+        for (auto channel = 0; channel < 3; ++channel)
+        {
+            const auto colour = sourceColour[pixel * 3 + channel];
+            resultColour[pixel * 3 + channel] = alpha == 0
+                ? 0
+                : static_cast<unsigned char>(
+                    std::min(255, (colour * 255 + alpha / 2) / alpha));
+        }
+    }
+}
+
 wxBitmap CustomIcon::CreateReviewCountBitmap(const wxString& text, const int size)
 {
     constexpr auto renderScale = 4;
@@ -69,27 +95,10 @@ wxBitmap CustomIcon::CreateReviewCountBitmap(const wxString& text, const int siz
         size,
         wxIMAGE_QUALITY_HIGH);
 
-    wxImage result(size, size, true);
-    result.InitAlpha();
-    auto *resultColour = result.GetData();
-    auto *resultAlpha = result.GetAlpha();
-    const auto *sourceColour = colourImage.GetData();
-    const auto *sourceCoverage = coverageImage.GetData();
+    wxImage resultImage(size, size, true);
+    resultImage.InitAlpha();
 
-    for (auto pixel = 0; pixel < size * size; ++pixel)
-    {
-        const auto alpha = sourceCoverage[pixel * 3];
-        resultAlpha[pixel] = alpha;
+    MixImages(size, colourImage, coverageImage, resultImage);
 
-        for (auto channel = 0; channel < 3; ++channel)
-        {
-            const auto colour = sourceColour[pixel * 3 + channel];
-            resultColour[pixel * 3 + channel] = alpha == 0
-                                                    ? 0
-                                                    : static_cast<unsigned char>(
-                                                        std::min(255, (colour * 255 + alpha / 2) / alpha));
-        }
-    }
-
-    return wxBitmap(result);
+    return wxBitmap(resultImage);
 }
