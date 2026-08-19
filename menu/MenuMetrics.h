@@ -24,7 +24,7 @@ public:
 
         const auto textHeight = dc.GetTextExtent(wxS("Ag")).GetHeight();
 #if defined __WXOSX__
-        const auto systemMenuHeight = GetSystemMenuBarHeight();
+        const int systemMenuHeight = GetSystemMenuBarHeight() * 1.15;
 #else
         const auto systemMenuHeight = wxSystemSettings::GetMetric(wxSYS_MENU_Y);
 #endif
