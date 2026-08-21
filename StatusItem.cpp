@@ -135,6 +135,10 @@ StatusItem::StatusItem() :
 
 StatusItem::~StatusItem()
 {
+    m_thread.request_stop();
+    if (m_thread.joinable())
+        m_thread.join();
+
 #ifdef __WXMSW__
     wxNotificationMessage::UseTaskBarIcon(nullptr);
 #endif
@@ -274,20 +278,19 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 
     UpdateCreatePullRequestsMenu(repositories);
 
-    wxWeakRef isWindowValid(this);
-    m_thread = std::jthread([this, args, isWindowValid, repositories, statisticsLabel](const std::stop_token stopToken)
+    m_thread = std::jthread([this, args, repositories, statisticsLabel](const std::stop_token stopToken)
     {
         const Stopwatch fetchStopwatch;
 
         PullRequestService pullRequestService;
-        const auto progressCallback = [this, isWindowValid, stopToken](const PullRequestUpdateProgressArgs& progressArgs)
+        const auto progressCallback = [this, stopToken](const PullRequestUpdateProgressArgs& progressArgs)
         {
             if (stopToken.stop_requested())
                 return;
 
-            this->CallAfter([this, isWindowValid, progressArgs]
+            this->CallAfter([this, stopToken, progressArgs]
             {
-                if (isWindowValid)
+                if (!stopToken.stop_requested())
                     UpdateProgress(progressArgs);
             });
         };
@@ -298,9 +301,9 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 
         const auto elapsedTime = fetchStopwatch.GetElapsed();
 
-        this->CallAfter([isWindowValid, args, elapsedTime, this, pullRequestsResult, statisticsLabel]
+        this->CallAfter([args, elapsedTime, this, pullRequestsResult, statisticsLabel, stopToken]
         {
-            if (!isWindowValid)
+            if (stopToken.stop_requested())
                 return;
 
             m_pTimer->StartOnce(fiveMinutes);
