@@ -12,7 +12,8 @@ SetupWizard::SetupWizard(wxWindow* pWindow) :
     wxWizard(pWindow, wxID_ANY, wxT("Setup"))
 {
     m_pLoginPage = new LoginPage(this, m_context);
-    m_pLoginPage->Chain(new WorkspacePage(this, m_context)).Chain(new RepositoryPage(this, m_context));
+    m_pWorkspacePage = new WorkspacePage(this, m_context);
+    m_pLoginPage->Chain(m_pWorkspacePage).Chain(new RepositoryPage(this, m_context));
 
     const auto sizer = GetPageAreaSizer();
     sizer->SetMinSize(300, 200);
@@ -24,6 +25,12 @@ SetupWizard::SetupWizard(wxWindow* pWindow) :
         ShowDockIcon();
 #endif
     });
+}
+
+SetupWizard::~SetupWizard()
+{
+    m_pLoginPage->StopAsyncOperation();
+    m_pWorkspacePage->StopAsyncOperation();
 }
 
 void SetupWizard::Run()

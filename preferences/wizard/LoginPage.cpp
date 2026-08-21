@@ -77,6 +77,13 @@ void LoginPage::ShowErrorMessage(const wxString& str)
     Layout();
 }
 
+void LoginPage::StopAsyncOperation()
+{
+    m_thread.request_stop();
+    if (m_thread.joinable())
+        m_thread.join();
+}
+
 void LoginPage::StartAsyncOperation()
 {
     if (m_asyncOperationInProgress)
@@ -94,17 +101,19 @@ void LoginPage::StartAsyncOperation()
 
     m_context.m_workspaces.clear();
 
-    wxWeakRef isWindowValid(this);
-    m_thread = std::jthread([isWindowValid, this]
+    m_thread = std::jthread([this](const std::stop_token stopToken)
     {
         const auto credentials = Credentials::GetCredentialsBase64().ToStdString();
 
         const WorkspacesRequest workspacesRequest;
         const auto response = workspacesRequest.GetWorkspaces(credentials);
 
-        this->CallAfter([isWindowValid, response, this]
+        if (stopToken.stop_requested())
+            return;
+
+        this->CallAfter([response, this, stopToken]
         {
-            if (!isWindowValid)
+            if (stopToken.stop_requested())
                 return;
 
             StopBusyAnimation();

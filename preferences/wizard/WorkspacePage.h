@@ -17,6 +17,8 @@ class wxActivityIndicator;
 
 class WorkspacePage : public wxWizardPageSimple
 {
+    friend class SetupWizard;
+
     SetupWizard& m_wizard;
     SetupWizardContext& m_context;
 
@@ -31,6 +33,7 @@ class WorkspacePage : public wxWizardPageSimple
     void StopBusyAnimation();
 
     void StartAsyncOperation();
+    void StopAsyncOperation();
 public:
     explicit WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context);
 };

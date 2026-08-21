@@ -57,6 +57,13 @@ WorkspacePage::WorkspacePage(SetupWizard *pWizard, SetupWizardContext& context) 
     });
 }
 
+void WorkspacePage::StopAsyncOperation()
+{
+    m_thread.request_stop();
+    if (m_thread.joinable())
+        m_thread.join();
+}
+
 void WorkspacePage::StartAsyncOperation()
 {
     if (m_asyncOperationInProgress)
@@ -78,12 +85,14 @@ void WorkspacePage::StartAsyncOperation()
 
     m_context.m_repositories.clear();
 
-    wxWeakRef isWindowValid(this);
-    m_thread = std::jthread([this, workspaces, isWindowValid]
+    m_thread = std::jthread([this, workspaces](const std::stop_token stopToken)
     {
         std::vector<Repository> repositories;
         for (const auto& workspace: workspaces)
         {
+            if (stopToken.stop_requested())
+                return;
+
             const auto credentials = Credentials::GetCredentialsBase64().ToStdString();
             RepositoriesRequest repositoriesRequest;
 
@@ -103,9 +112,12 @@ void WorkspacePage::StartAsyncOperation()
             );
         }
 
-        this->CallAfter([this, isWindowValid, repositories]
+        if (stopToken.stop_requested())
+            return;
+
+        this->CallAfter([this, repositories, stopToken]
         {
-            if (!isWindowValid)
+            if (stopToken.stop_requested())
                 return;
 
             StopBusyAnimation();

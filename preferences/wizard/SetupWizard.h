@@ -6,15 +6,18 @@
 #include "SetupWizardContext.h"
 
 class LoginPage;
+class WorkspacePage;
 
 class SetupWizard : public wxWizard
 {
 public:
     explicit SetupWizard(wxWindow* pWindow);
+    ~SetupWizard() override;
     void Run();
 
 private:
     LoginPage* m_pLoginPage;
+    WorkspacePage* m_pWorkspacePage;
     SetupWizardContext m_context;
 };
 

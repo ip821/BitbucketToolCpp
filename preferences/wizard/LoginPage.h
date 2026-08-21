@@ -26,6 +26,7 @@ class LoginPage : public wxWizardPageSimple
     std::jthread m_thread;
 
     void StartAsyncOperation();
+    void StopAsyncOperation();
 
     void HideErrorMessage();
     void ShowErrorMessage(const wxString& str);
