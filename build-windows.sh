@@ -3,7 +3,7 @@
 set -euo pipefail
 
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-build_type="${1:-Release}"
+build_type="${1:-MinSizeRel}"
 toolchain_file="${project_root}/cmake/toolchains/mingw-w64-x86_64.cmake"
 jobs="${JOBS:-$(sysctl -n hw.logicalcpu 2>/dev/null || echo 4)}"
 
