@@ -1,10 +1,23 @@
 ﻿#pragma once
 
-#include "WizardPages.h"
+#include <wx/panel.h>
+#include <wx/string.h>
 
-class LoginView : public LoginViewBase
+class wxActivityIndicator;
+class wxStaticText;
+class wxTextCtrl;
+
+class LoginView : public wxPanel
 {
+    wxTextCtrl* m_pLoginTextCtrl;
+    wxTextCtrl* m_pPasswordTextCtrl;
+    wxStaticText* m_pErrorStaticText;
+    wxActivityIndicator* m_pActivityIndicator;
+
 public:
+    wxString m_email;
+    wxString m_password;
+
     explicit LoginView(wxWindow *parent);
 
     void SetErrorMessage(const wxString& message) const;

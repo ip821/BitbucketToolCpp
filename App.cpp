@@ -26,9 +26,7 @@ bool App::OnInit()
   wxInitAllImageHandlers();
   wxXmlResource::Get()->InitAllHandlers();
 
-#ifndef __WXOSX__
   InitXmlResource();
-#endif
 
   m_pStatusItem = std::make_unique<StatusItem>();
   return true;

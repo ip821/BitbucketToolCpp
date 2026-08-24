@@ -1,10 +1,17 @@
 ﻿#pragma once
 
-#include "WizardPages.h"
+#include <wx/checklst.h>
+#include <wx/panel.h>
+
 #include "bitbucket_api/Structs.h"
 
-class WorkspaceView : public WorkspaceViewBase
+class wxActivityIndicator;
+
+class WorkspaceView : public wxPanel
 {
+    wxCheckListBox* m_pListBox;
+    wxActivityIndicator* m_pActivityIndicator;
+
 public:
     explicit WorkspaceView(wxWindow *parent);
     void SetWorkspaces(const std::vector<Workspace>& workspaces) const;

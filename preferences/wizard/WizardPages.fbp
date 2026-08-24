@@ -2,7 +2,7 @@
 <wxFormBuilder_Project>
   <FileVersion major="1" minor="18"/>
   <object class="Project" expanded="true">
-    <property name="code_generation">C++</property>
+    <property name="code_generation">XRC</property>
     <property name="cpp_class_decoration">; </property>
     <property name="cpp_disconnect_events">0</property>
     <property name="cpp_event_generation">connect</property>

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<resource xmlns="http://www.wxwidgets.org/wxxrc" version="2.5.3.0">
+  <object class="wxDialog" name="PreferencesWindowBase">
+    <style>wxDEFAULT_DIALOG_STYLE</style>
+    <title>Preferences</title>
+    <centered>1</centered>
+    <object class="wxBoxSizer" name="bSizer4">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <flag>wxEXPAND|wxLEFT|wxRIGHT</flag>
+        <border>15</border>
+        <option>1</option>
+        <object class="wxBoxSizer" name="bSizer2">
+          <orient>wxVERTICAL</orient>
+          <object class="spacer">
+            <flag>wxEXPAND</flag>
+            <border>5</border>
+            <option>0</option>
+            <size>0,10</size>
+          </object>
+          <object class="sizeritem">
+            <flag>wxEXPAND</flag>
+            <border>5</border>
+            <option>0</option>
+            <object class="wxStaticBoxSizer" name="sbSizer1">
+              <orient>wxVERTICAL</orient>
+              <label>Bitbucket</label>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>5</border>
+                <option>1</option>
+                <object class="wxFlexGridSizer" name="fgSizer3">
+                  <vgap>0</vgap>
+                  <hgap>0</hgap>
+                  <growablerows></growablerows>
+                  <growablecols>1</growablecols>
+                  <rows>0</rows>
+                  <cols>2</cols>
+                  <object class="sizeritem">
+                    <flag>wxALL|wxEXPAND</flag>
+                    <border>5</border>
+                    <option>0</option>
+                    <object class="wxStaticText" name="m_staticText4">
+                      <label>Workspace:</label>
+                      <wrap>-1</wrap>
+                    </object>
+                  </object>
+                  <object class="sizeritem">
+                    <flag>wxALIGN_RIGHT|wxALL</flag>
+                    <border>5</border>
+                    <option>0</option>
+                    <object class="wxStaticText" name="m_workspaceText">
+                      <label>test-workspace</label>
+                      <wrap>-1</wrap>
+                    </object>
+                  </object>
+                  <object class="sizeritem">
+                    <flag>wxALL</flag>
+                    <border>5</border>
+                    <option>0</option>
+                    <object class="wxStaticText" name="m_staticText6">
+                      <label>Repository:</label>
+                      <wrap>-1</wrap>
+                    </object>
+                  </object>
+                  <object class="sizeritem">
+                    <flag>wxALIGN_RIGHT|wxALL</flag>
+                    <border>5</border>
+                    <option>0</option>
+                    <object class="wxStaticText" name="m_repositoryText">
+                      <label>test-repository</label>
+                      <wrap>-1</wrap>
+                    </object>
+                  </object>
+                </object>
+              </object>
+              <object class="spacer">
+                <flag>wxEXPAND</flag>
+                <border>5</border>
+                <option>0</option>
+                <size>0,20</size>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALL|wxEXPAND</flag>
+                <border>5</border>
+                <option>0</option>
+                <object class="wxStaticText" name="m_pHelpText">
+                  <style>wxALIGN_CENTER_HORIZONTAL</style>
+                  <label>Use Setup button to enter credentials and to\nchoose Workspace and Repository to follow</label>
+                  <wrap>-1</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+                <border>5</border>
+                <option>0</option>
+                <object class="wxButton" name="m_pButtonSetup">
+                  <label>Setup...</label>
+                  <default>0</default>
+                  <auth_needed>0</auth_needed>
+                  <markup>0</markup>
+                  <bitmap/>
+                </object>
+              </object>
+            </object>
+          </object>
+          <object class="spacer">
+            <flag>wxEXPAND</flag>
+            <border>5</border>
+            <option>0</option>
+            <size>0,10</size>
+          </object>
+          <object class="sizeritem">
+            <flag>wxEXPAND</flag>
+            <border>5</border>
+            <option>1</option>
+            <object class="wxStaticBoxSizer" name="sbSizer2">
+              <orient>wxVERTICAL</orient>
+              <label>Options</label>
+              <object class="sizeritem">
+                <flag>wxALL</flag>
+                <border>5</border>
+                <option>0</option>
+                <object class="wxCheckBox" name="m_pCheckBoxHideChangesRequested">
+                  <label>Hide PR with &quot;Changes requested&quot;</label>
+                  <checked>0</checked>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALL</flag>
+                <border>5</border>
+                <option>0</option>
+                <object class="wxCheckBox" name="m_pCheckBoxUseSubmenusOnMenuOverflow">
+                  <label>Use submenus on menu overflow</label>
+                  <checked>0</checked>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALL</flag>
+                <border>5</border>
+                <option>0</option>
+                <object class="wxCheckBox" name="m_pCheckBoxDisplayRepositoryNameLowercase">
+                  <label>Display repository name in lower case</label>
+                  <checked>0</checked>
+                </object>
+              </object>
+            </object>
+          </object>
+          <object class="spacer">
+            <flag>wxEXPAND</flag>
+            <border>5</border>
+            <option>0</option>
+            <size>0,10</size>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER|wxALL</flag>
+            <border>5</border>
+            <option>0</option>
+            <object class="wxStaticText" name="m_pVersionText">
+              <label>Version X.XX</label>
+              <wrap>-1</wrap>
+            </object>
+          </object>
+          <object class="spacer">
+            <flag>wxEXPAND</flag>
+            <border>5</border>
+            <option>0</option>
+            <size>0,20</size>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
+</resource>

@@ -1,8 +1,23 @@
 ﻿#include "WorkspaceView.h"
 
+#include <stdexcept>
+#include <wx/activityindicator.h>
+#include <wx/xrc/xmlres.h>
+
 WorkspaceView::WorkspaceView(wxWindow *parent) :
-    WorkspaceViewBase(parent)
+    wxPanel()
 {
+    if (!wxXmlResource::Get()->LoadPanel(this, parent, "WorkspaceViewBase"))
+        throw std::runtime_error("Failed to load WorkspaceViewBase from XRC");
+
+    m_pListBox = XRCCTRL(*this, "m_pListBox", wxCheckListBox);
+    m_pActivityIndicator = XRCCTRL(*this, "m_pActivityIndicator", wxActivityIndicator);
+
+    if (!m_pListBox || !m_pActivityIndicator)
+        throw std::runtime_error("WorkspaceViewBase XRC is missing a required control");
+
+    m_pActivityIndicator->Hide();
+
 #ifdef __WXMSW__
     m_pActivityIndicator->SetDoubleBuffered(true);
 #endif

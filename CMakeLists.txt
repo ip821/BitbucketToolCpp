@@ -61,16 +61,12 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         menu/MenuBuilder.h
         menu/PullRequestsMenuBuilder.cpp
         menu/PullRequestsMenuBuilder.h
-        preferences/PreferencesWindowBase.cpp
-        preferences/PreferencesWindowBase.h
         preferences/PreferencesWindow.cpp
         preferences/PreferencesWindow.h
         StatusItem.cpp
         StatusItem.h
         Stopwatch.cpp
         Stopwatch.h
-        preferences/wizard/WizardPages.cpp
-        preferences/wizard/WizardPages.h
         preferences/wizard/SetupWizard.cpp
         preferences/wizard/SetupWizard.h
         preferences/wizard/LoginPage.cpp
@@ -138,89 +134,93 @@ if (WIN32)
     )
 endif ()
 
+# Resources
+set(xrc_files
+        ${CMAKE_CURRENT_SOURCE_DIR}/preferences/PreferencesWindowBase.xrc
+        ${CMAKE_CURRENT_SOURCE_DIR}/preferences/wizard/WizardPages.xrc
+)
 if (NOT APPLE)
-    # Resources
-    set(xrc_files ${CMAKE_CURRENT_SOURCE_DIR}/images/resources.xrc)
-    set(resource_cpp ${CMAKE_CURRENT_BINARY_DIR}/resources.cpp)
+    list(APPEND xrc_files ${CMAKE_CURRENT_SOURCE_DIR}/images/resources.xrc)
+endif ()
+set(resource_cpp ${CMAKE_CURRENT_BINARY_DIR}/resources.cpp)
 
-    if (CMAKE_CROSSCOMPILING)
-        set(HOST_WXRC "" CACHE FILEPATH "Path to a wxrc executable that runs on the build host")
-        set(wxrc_dependencies)
+if (CMAKE_CROSSCOMPILING)
+    set(HOST_WXRC "" CACHE FILEPATH "Path to a wxrc executable that runs on the build host")
+    set(wxrc_dependencies)
 
-        if (NOT HOST_WXRC)
-            find_program(host_wxrc_from_path NAMES wxrc-3.3 wxrc)
-            if (host_wxrc_from_path)
-                set(HOST_WXRC "${host_wxrc_from_path}" CACHE FILEPATH
-                        "Path to a wxrc executable that runs on the build host" FORCE)
-            endif ()
+    if (NOT HOST_WXRC)
+        find_program(host_wxrc_from_path NAMES wxrc-3.3 wxrc)
+        if (host_wxrc_from_path)
+            set(HOST_WXRC "${host_wxrc_from_path}" CACHE FILEPATH
+                    "Path to a wxrc executable that runs on the build host" FORCE)
         endif ()
-
-        if (HOST_WXRC)
-            execute_process(
-                    COMMAND "${HOST_WXRC}" -h
-                    RESULT_VARIABLE host_wxrc_result
-                    OUTPUT_QUIET
-                    ERROR_QUIET
-            )
-            if (NOT host_wxrc_result EQUAL 0)
-                message(FATAL_ERROR "HOST_WXRC does not run on ${CMAKE_HOST_SYSTEM_NAME}: ${HOST_WXRC}")
-            endif ()
-        else ()
-            include(ExternalProject)
-
-            find_program(host_c_compiler NAMES clang REQUIRED NO_CMAKE_FIND_ROOT_PATH)
-            find_program(host_cxx_compiler NAMES clang++ REQUIRED NO_CMAKE_FIND_ROOT_PATH)
-
-            set(host_wxrc_prefix "${CMAKE_CURRENT_BINARY_DIR}/host-wxrc")
-            set(host_wxrc_binary_dir "${host_wxrc_prefix}/build")
-            set(HOST_WXRC "${host_wxrc_binary_dir}/lib/wxrc-3.3")
-
-            ExternalProject_Add(host_wxrc
-                    PREFIX "${host_wxrc_prefix}"
-                    SOURCE_DIR "${wxwidgets_SOURCE_DIR}"
-                    BINARY_DIR "${host_wxrc_binary_dir}"
-                    DOWNLOAD_COMMAND ""
-                    UPDATE_COMMAND ""
-                    PATCH_COMMAND ""
-                    CONFIGURE_COMMAND
-                    "${CMAKE_COMMAND}"
-                    -S <SOURCE_DIR>
-                    -B <BINARY_DIR>
-                    -G "${CMAKE_GENERATOR}"
-                    -DCMAKE_BUILD_TYPE=Release
-                    -DCMAKE_C_COMPILER=${host_c_compiler}
-                    -DCMAKE_CXX_COMPILER=${host_cxx_compiler}
-                    -DwxBUILD_SHARED=OFF
-                    -DwxUSE_WEBREQUEST=OFF
-                    -DwxUSE_WXHTML_HELP=OFF
-                    -DwxUSE_STC=OFF
-                    BUILD_COMMAND
-                    "${CMAKE_COMMAND}" --build <BINARY_DIR> --target wxrc --config Release
-                    INSTALL_COMMAND ""
-                    BUILD_BYPRODUCTS "${HOST_WXRC}"
-                    USES_TERMINAL_CONFIGURE TRUE
-                    USES_TERMINAL_BUILD TRUE
-            )
-
-            list(APPEND wxrc_dependencies host_wxrc)
-        endif ()
-
-        set(wxrc "${HOST_WXRC}")
-        list(APPEND wxrc_dependencies "${HOST_WXRC}")
-    else ()
-        set(wxrc $<TARGET_FILE:wxrc>)
-        set(wxrc_dependencies wxrc)
     endif ()
 
-    add_custom_command(
-            OUTPUT ${resource_cpp}
-            COMMAND "${wxrc}" -c -o ${resource_cpp} ${xrc_files}
-            DEPENDS ${xrc_files} ${wxrc_dependencies}
-            COMMENT "Compiling XRC resources"
-    )
-    target_sources(PRToolForBitbucket2 PRIVATE ${resource_cpp})
-    # END Resources
+    if (HOST_WXRC)
+        execute_process(
+                COMMAND "${HOST_WXRC}" -h
+                RESULT_VARIABLE host_wxrc_result
+                OUTPUT_QUIET
+                ERROR_QUIET
+        )
+        if (NOT host_wxrc_result EQUAL 0)
+            message(FATAL_ERROR "HOST_WXRC does not run on ${CMAKE_HOST_SYSTEM_NAME}: ${HOST_WXRC}")
+        endif ()
+    else ()
+        include(ExternalProject)
+
+        find_program(host_c_compiler NAMES clang REQUIRED NO_CMAKE_FIND_ROOT_PATH)
+        find_program(host_cxx_compiler NAMES clang++ REQUIRED NO_CMAKE_FIND_ROOT_PATH)
+
+        set(host_wxrc_prefix "${CMAKE_CURRENT_BINARY_DIR}/host-wxrc")
+        set(host_wxrc_binary_dir "${host_wxrc_prefix}/build")
+        set(HOST_WXRC "${host_wxrc_binary_dir}/lib/wxrc-3.3")
+
+        ExternalProject_Add(host_wxrc
+                PREFIX "${host_wxrc_prefix}"
+                SOURCE_DIR "${wxwidgets_SOURCE_DIR}"
+                BINARY_DIR "${host_wxrc_binary_dir}"
+                DOWNLOAD_COMMAND ""
+                UPDATE_COMMAND ""
+                PATCH_COMMAND ""
+                CONFIGURE_COMMAND
+                "${CMAKE_COMMAND}"
+                -S <SOURCE_DIR>
+                -B <BINARY_DIR>
+                -G "${CMAKE_GENERATOR}"
+                -DCMAKE_BUILD_TYPE=Release
+                -DCMAKE_C_COMPILER=${host_c_compiler}
+                -DCMAKE_CXX_COMPILER=${host_cxx_compiler}
+                -DwxBUILD_SHARED=OFF
+                -DwxUSE_WEBREQUEST=OFF
+                -DwxUSE_WXHTML_HELP=OFF
+                -DwxUSE_STC=OFF
+                BUILD_COMMAND
+                "${CMAKE_COMMAND}" --build <BINARY_DIR> --target wxrc --config Release
+                INSTALL_COMMAND ""
+                BUILD_BYPRODUCTS "${HOST_WXRC}"
+                USES_TERMINAL_CONFIGURE TRUE
+                USES_TERMINAL_BUILD TRUE
+        )
+
+        list(APPEND wxrc_dependencies host_wxrc)
+    endif ()
+
+    set(wxrc "${HOST_WXRC}")
+    list(APPEND wxrc_dependencies "${HOST_WXRC}")
+else ()
+    set(wxrc $<TARGET_FILE:wxrc>)
+    set(wxrc_dependencies wxrc)
 endif ()
+
+add_custom_command(
+        OUTPUT ${resource_cpp}
+        COMMAND "${wxrc}" -c -o ${resource_cpp} ${xrc_files}
+        DEPENDS ${xrc_files} ${wxrc_dependencies}
+        COMMENT "Compiling XRC resources"
+)
+target_sources(PRToolForBitbucket2 PRIVATE ${resource_cpp} ${xrc_files})
+# END Resources
 
 set(STATUS_IMAGE_32_2x
         macos/status32@2x.png

@@ -1,10 +1,14 @@
 ﻿#pragma once
 
-#include "WizardPages.h"
+#include <wx/checklst.h>
+#include <wx/panel.h>
+
 #include "bitbucket_api/Structs.h"
 
-class RepositoryView : public RepositoryViewBase
+class RepositoryView : public wxPanel
 {
+    wxCheckListBox* m_pListBox;
+
 public:
     explicit RepositoryView(wxWindow *parent);
     void SetRepositories(const std::vector<Repository>& repositories) const;
