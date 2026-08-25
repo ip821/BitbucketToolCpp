@@ -294,6 +294,9 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
                 if (!stopToken.stop_requested())
                     UpdateProgress(progressArgs);
             });
+#ifdef __WXMSW__
+            wxTheApp->MSWProcessPendingEventsIfNeeded();
+#endif
         };
         const auto pullRequestsResult = pullRequestService.GetPullRequests(repositories, progressCallback, stopToken);
 
@@ -333,6 +336,9 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
                 notification.Show();
             }
         });
+#ifdef __WXMSW__
+        wxTheApp->MSWProcessPendingEventsIfNeeded();
+#endif
     });
 }
 
