@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(PRToolForBitbucket2 VERSION 1.32 LANGUAGES CXX)
+project(PRToolForBitbucket2 VERSION 1.33 LANGUAGES CXX)
 
 include(FetchContent)
 
@@ -7,10 +7,109 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(WX_WIDGETS_VERSION v3.3.3)
-set(wxBUILD_SHARED OFF)
-set(wxUSE_WEBREQUEST OFF)
-set(wxUSE_WXHTML_HELP OFF)
-set(wxUSE_STC OFF CACHE BOOL "" FORCE)
+set(wxBUILD_SHARED OFF CACHE BOOL "" FORCE)
+set(wxBUILD_MONOLITHIC OFF CACHE BOOL "" FORCE)
+set(wxBUILD_INSTALL OFF CACHE BOOL "" FORCE)
+set(wxBUILD_LOCALES OFF CACHE STRING "" FORCE)
+
+foreach(wx_option IN ITEMS
+        wxUSE_ACTIVEX
+        wxUSE_ARCHIVE_STREAMS
+        wxUSE_ARTPROVIDER_STD
+        wxUSE_ARTPROVIDER_TANGO
+        wxUSE_AUI
+        wxUSE_DATAVIEWCTRL
+        wxUSE_FS_ARCHIVE
+        wxUSE_FS_INET
+        wxUSE_FS_ZIP
+        wxUSE_GIF
+        wxUSE_GRID
+        wxUSE_HTML
+        wxUSE_IFF
+        wxUSE_JOYSTICK
+        wxUSE_MEDIACTRL
+        wxUSE_OPENGL
+        wxUSE_PCX
+        wxUSE_PNM
+        wxUSE_POSTSCRIPT
+        wxUSE_PRINTING_ARCHITECTURE
+        wxUSE_PROPGRID
+        wxUSE_PROTOCOL
+        wxUSE_PROTOCOL_FILE
+        wxUSE_PROTOCOL_FTP
+        wxUSE_PROTOCOL_HTTP
+        wxUSE_RIBBON
+        wxUSE_RICHTEXT
+        wxUSE_SOCKETS
+        wxUSE_SOUND
+        wxUSE_STC
+        wxUSE_SVG
+        wxUSE_TARSTREAM
+        wxUSE_TGA
+        wxUSE_TREELISTCTRL
+        wxUSE_URL
+        wxUSE_WEBREQUEST
+        wxUSE_WEBVIEW
+        wxUSE_WXHTML_HELP
+        wxUSE_XML
+        wxUSE_XPM
+        wxUSE_XRC
+        wxUSE_ZIPSTREAM
+)
+    set(${wx_option} OFF CACHE BOOL "" FORCE)
+endforeach()
+
+foreach(wx_library IN ITEMS
+        wxUSE_EXPAT
+        wxUSE_LIBJPEG
+        wxUSE_LIBTIFF
+        wxUSE_LIBWEBP
+        wxUSE_LUNASVG
+        wxUSE_NANOSVG
+        wxUSE_REGEX
+)
+    set(${wx_library} OFF CACHE STRING "" FORCE)
+endforeach()
+
+# PNG decoding is only needed for the embedded GTK status icon. Windows loads
+# its icon from the PE resources and macOS loads it from the application bundle.
+if (WIN32 OR APPLE)
+    set(wxUSE_LIBPNG OFF CACHE STRING "" FORCE)
+    set(wxUSE_ZLIB OFF CACHE STRING "" FORCE)
+else ()
+    set(wxUSE_LIBPNG builtin CACHE STRING "" FORCE)
+    set(wxUSE_ZLIB builtin CACHE STRING "" FORCE)
+endif ()
+
+# The Bitbucket client only performs HTTP(S) requests. Keep libcurl static and
+# avoid detecting optional Homebrew/system libraries that would add runtime
+# dependencies to the macOS bundle.
+set(HTTP_ONLY ON CACHE BOOL "" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(CURL_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
+set(CURL_USE_LIBSSH OFF CACHE BOOL "" FORCE)
+set(CURL_USE_LIBSSH2 OFF CACHE BOOL "" FORCE)
+set(CURL_USE_LIBPSL OFF CACHE BOOL "" FORCE)
+set(CURL_USE_PKGCONFIG OFF CACHE BOOL "" FORCE)
+set(CURL_BROTLI OFF CACHE STRING "" FORCE)
+set(CURL_ZLIB OFF CACHE STRING "" FORCE)
+set(CURL_ZSTD OFF CACHE STRING "" FORCE)
+set(USE_LIBIDN2 OFF CACHE BOOL "" FORCE)
+set(USE_NGHTTP2 OFF CACHE BOOL "" FORCE)
+
+if (UNIX)
+    set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
+endif ()
+
+# Put each function and datum in its own section so the final executable can
+# discard unused code from all statically linked dependencies.
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(
+            $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:-ffunction-sections>
+            $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:-fdata-sections>
+    )
+endif ()
 
 if (WIN32)
     set(wxUSE_WINRT ON CACHE BOOL "Enable native Windows toast notifications" FORCE)
@@ -107,13 +206,11 @@ configure_file(
         @ONLY
 )
 target_include_directories(PRToolForBitbucket2 PRIVATE ${CMAKE_BINARY_DIR})
-
-    target_compile_options(PRToolForBitbucket2 PRIVATE
-            -Wall -Wextra -Wpedantic -Werror
-    )
+target_compile_options(PRToolForBitbucket2 PRIVATE
+        -Wall -Wextra -Wpedantic -Werror
+)
 target_link_libraries(PRToolForBitbucket2 PRIVATE
         wx::core
-        wx::xrc
         nlohmann_json::nlohmann_json
         cpp_utils::cpp_utils
         bitbucket_api::bitbucket_api
@@ -131,95 +228,50 @@ if (WIN32)
             "${CMAKE_CURRENT_SOURCE_DIR}/windows/app.ico"
     )
     target_link_options(PRToolForBitbucket2 PRIVATE
-            $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:-Wl,--strip-all>
             -static
             -static-libgcc
             -static-libstdc++
     )
 endif ()
 
-if (NOT APPLE)
-    # Resources
-    set(xrc_files ${CMAKE_CURRENT_SOURCE_DIR}/images/resources.xrc)
-    set(resource_cpp ${CMAKE_CURRENT_BINARY_DIR}/resources.cpp)
-
-    if (CMAKE_CROSSCOMPILING)
-        set(HOST_WXRC "" CACHE FILEPATH "Path to a wxrc executable that runs on the build host")
-        set(wxrc_dependencies)
-
-        if (NOT HOST_WXRC)
-            find_program(host_wxrc_from_path NAMES wxrc-3.3 wxrc)
-            if (host_wxrc_from_path)
-                set(HOST_WXRC "${host_wxrc_from_path}" CACHE FILEPATH
-                        "Path to a wxrc executable that runs on the build host" FORCE)
-            endif ()
-        endif ()
-
-        if (HOST_WXRC)
-            execute_process(
-                    COMMAND "${HOST_WXRC}" -h
-                    RESULT_VARIABLE host_wxrc_result
-                    OUTPUT_QUIET
-                    ERROR_QUIET
-            )
-            if (NOT host_wxrc_result EQUAL 0)
-                message(FATAL_ERROR "HOST_WXRC does not run on ${CMAKE_HOST_SYSTEM_NAME}: ${HOST_WXRC}")
-            endif ()
-        else ()
-            include(ExternalProject)
-
-            find_program(host_c_compiler NAMES clang REQUIRED NO_CMAKE_FIND_ROOT_PATH)
-            find_program(host_cxx_compiler NAMES clang++ REQUIRED NO_CMAKE_FIND_ROOT_PATH)
-
-            set(host_wxrc_prefix "${CMAKE_CURRENT_BINARY_DIR}/host-wxrc")
-            set(host_wxrc_binary_dir "${host_wxrc_prefix}/build")
-            set(HOST_WXRC "${host_wxrc_binary_dir}/lib/wxrc-3.3")
-
-            ExternalProject_Add(host_wxrc
-                    PREFIX "${host_wxrc_prefix}"
-                    SOURCE_DIR "${wxwidgets_SOURCE_DIR}"
-                    BINARY_DIR "${host_wxrc_binary_dir}"
-                    DOWNLOAD_COMMAND ""
-                    UPDATE_COMMAND ""
-                    PATCH_COMMAND ""
-                    CONFIGURE_COMMAND
-                    "${CMAKE_COMMAND}"
-                    -S <SOURCE_DIR>
-                    -B <BINARY_DIR>
-                    -G "${CMAKE_GENERATOR}"
-                    -DCMAKE_BUILD_TYPE=Release
-                    -DCMAKE_C_COMPILER=${host_c_compiler}
-                    -DCMAKE_CXX_COMPILER=${host_cxx_compiler}
-                    -DwxBUILD_SHARED=OFF
-                    -DwxUSE_WEBREQUEST=OFF
-                    -DwxUSE_WXHTML_HELP=OFF
-                    -DwxUSE_STC=OFF
-                    BUILD_COMMAND
-                    "${CMAKE_COMMAND}" --build <BINARY_DIR> --target wxrc --config Release
-                    INSTALL_COMMAND ""
-                    BUILD_BYPRODUCTS "${HOST_WXRC}"
-                    USES_TERMINAL_CONFIGURE TRUE
-                    USES_TERMINAL_BUILD TRUE
-            )
-
-            list(APPEND wxrc_dependencies host_wxrc)
-        endif ()
-
-        set(wxrc "${HOST_WXRC}")
-        list(APPEND wxrc_dependencies "${HOST_WXRC}")
-    else ()
-        set(wxrc $<TARGET_FILE:wxrc>)
-        set(wxrc_dependencies wxrc)
-    endif ()
-
-    add_custom_command(
-            OUTPUT ${resource_cpp}
-            COMMAND "${wxrc}" -c -o ${resource_cpp} ${xrc_files}
-            DEPENDS ${xrc_files} ${wxrc_dependencies}
-            COMMENT "Compiling XRC resources"
+# Embed the GTK status icon directly in the executable without XRC/XML.
+if (NOT WIN32 AND NOT APPLE)
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/images/status32.png" status_image_hex HEX)
+    string(REGEX REPLACE "(..)" "0x\\1," status_image_data "${status_image_hex}")
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/generated")
+    configure_file(
+            images/EmbeddedStatusImage.h.in
+            "${CMAKE_CURRENT_BINARY_DIR}/generated/EmbeddedStatusImage.h"
+            @ONLY
     )
-    target_sources(PRToolForBitbucket2 PRIVATE ${resource_cpp})
-    # END Resources
+    target_sources(PRToolForBitbucket2 PRIVATE
+            images/StatusImage.cpp
+            images/StatusImage.h
+    )
+endif ()
+
+# Discard unused release sections using each platform linker's native spelling.
+if (APPLE)
+    target_link_options(PRToolForBitbucket2 PRIVATE
+            $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:LINKER:-dead_strip>
+    )
+else ()
+    target_link_options(PRToolForBitbucket2 PRIVATE
+            $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:LINKER:--gc-sections>
+    )
+endif ()
+
+if (CMAKE_STRIP)
+    # Run the platform strip tool after linking Release and MinSizeRel builds.
+    add_custom_command(TARGET PRToolForBitbucket2 POST_BUILD
+            COMMAND "${CMAKE_COMMAND}"
+                    "-DSTRIP_COMMAND=${CMAKE_STRIP}"
+                    "-DEXECUTABLE=$<TARGET_FILE:PRToolForBitbucket2>"
+                    "-DCONFIGURATION=$<CONFIG>"
+                    -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/StripExecutable.cmake"
+            COMMENT "Stripping release executable"
+            VERBATIM
+    )
 endif ()
 
 set(STATUS_IMAGE_32_2x

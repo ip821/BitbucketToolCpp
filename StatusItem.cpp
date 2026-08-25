@@ -11,7 +11,6 @@
 #include <wx/notifmsg.h>
 #include <wx/settings.h>
 #include <wx/wx.h>
-#include <wx/xrc/xmlres.h>
 
 #include "bitbucket_api/include/bitbucket_api/Requests.h"
 #include "preferences/PreferencesWindow.h"
@@ -22,6 +21,8 @@
 
 #ifdef __WXMSW__
 #include "windows/CustomIcon.h"
+#elif !defined(__WXOSX__)
+#include "images/StatusImage.h"
 #endif
 
 enum
@@ -83,7 +84,7 @@ StatusItem::StatusItem() :
         wxS("PRToolForBitbucket"),
         wxS("ip.PRToolForBitbucket"));
 #else
-    m_statusBitmap = wxXmlResource::Get()->LoadBitmap("status32");
+    m_statusBitmap = LoadEmbeddedStatusBitmap();
     if (!m_statusBitmap.IsOk())
     {
         wxMessageBox("Bitmap was loaded incorrectly");

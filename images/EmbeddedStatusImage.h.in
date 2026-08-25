@@ -1,0 +1,8 @@
+#pragma once
+
+namespace EmbeddedStatusImage
+{
+inline constexpr unsigned char Png[] = {
+    @status_image_data@
+};
+}

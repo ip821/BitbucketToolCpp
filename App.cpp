@@ -1,13 +1,12 @@
 #include "App.h"
 
 #include <wx/app.h>
-#include <wx/filesys.h>
-#include <wx/fs_mem.h>
-#include <wx/xrc/xmlres.h>
+
+#if !defined(__WXOSX__) && !defined(__WXMSW__)
+#include <wx/image.h>
+#endif
 
 #include "StatusItem.h"
-
-extern void InitXmlResource();
 
 App::App()
 {
@@ -22,12 +21,10 @@ bool App::OnInit()
   if (!wxApp::OnInit())
     return false;
 
-  wxFileSystem::AddHandler(new wxMemoryFSHandler);
-  wxInitAllImageHandlers();
-  wxXmlResource::Get()->InitAllHandlers();
-
-#ifndef __WXOSX__
-  InitXmlResource();
+#if !defined(__WXOSX__) && !defined(__WXMSW__)
+  // The embedded status icon is PNG, so avoid pulling every image decoder into
+  // the statically linked executable.
+  wxImage::AddHandler(new wxPNGHandler);
 #endif
 
   m_pStatusItem = std::make_unique<StatusItem>();

@@ -11,6 +11,10 @@
 #include "settings/Config.h"
 #include "wizard/SetupWizard.h"
 
+#if !defined(__WXOSX__) && !defined(__WXMSW__)
+#include "../images/StatusImage.h"
+#endif
+
 extern "C" void ShowDockIcon();
 extern "C" void HideDockIcon();
 
@@ -18,8 +22,10 @@ PreferencesWindow::PreferencesWindow(StatusItem* pStatusItem) :
     PreferencesWindowBase(nullptr),
     m_pStatusItem(pStatusItem)
 {
-#if !defined(__WXOSX__)
-    const auto statusBitmap = wxXmlResource::Get()->LoadBitmap("status32");
+#if defined(__WXMSW__)
+    SetIcon(wxICON(app_icon));
+#elif !defined(__WXOSX__)
+    const auto statusBitmap = LoadEmbeddedStatusBitmap();
     wxIcon icon;
     icon.CopyFromBitmap(statusBitmap);
     SetIcon(icon);
