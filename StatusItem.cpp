@@ -57,11 +57,11 @@ namespace
     }
 
 #ifdef __WXMSW__
-    wxBitmapBundle CreateReviewCountIcon(const wxString& text)
+    wxBitmapBundle CreateReviewCountIcon(const wxString& text, const bool hasAlert)
     {
         return wxBitmapBundle::FromBitmaps(
-            CustomIcon::CreateReviewCountBitmap(text, 16),
-            CustomIcon::CreateReviewCountBitmap(text, 32));
+            CustomIcon::CreateReviewCountBitmap(text, 16, hasAlert),
+            CustomIcon::CreateReviewCountBitmap(text, 32, hasAlert));
     }
 #endif
 }
@@ -383,8 +383,21 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int
 {
     const auto waitingCount = pullRequestsInfo.waitingForMyApprovalPullRequests.size() - hiddenPullRequestsCount;
 
+    const auto hasFailedBuilds = std::ranges::any_of(
+        pullRequestsInfo.myPullRequests,
+        [](const auto& it) { return it.HasBuildsWithStatus(StatusState::Failed); });
+
+    const auto hasSomeoneRequestedChanges = std::ranges::any_of(
+        pullRequestsInfo.myPullRequests,
+        [](const auto& it)
+        {
+            return std::ranges::any_of(it.pullRequest.participants, [](const auto& p) { return p.state == ParticipantState::ChangesRequested; });
+        });
+
+    const auto hasAlert = hasFailedBuilds || hasSomeoneRequestedChanges;
+
 #ifdef __WXMSW__
-    SetStatusItemTitle(std::format(wxS("{}"), waitingCount));
+    SetStatusItemTitle(std::format(wxS("{}"), waitingCount), hasAlert);
 #else
     const auto myCount = pullRequestsInfo.myPullRequests.size();
     if (waitingCount || myCount)
@@ -393,18 +406,7 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int
         {
             auto title = std::format(wxS("{}/{}"), waitingCount, myCount);
 
-            const auto hasFailedBuilds = std::ranges::any_of(
-                pullRequestsInfo.myPullRequests,
-                [](const auto& it) { return it.HasBuildsWithStatus(StatusState::Failed); });
-
-            const auto hasSomeoneRequestedChanges = std::ranges::any_of(
-                pullRequestsInfo.myPullRequests,
-                [](const auto& it)
-                {
-                    return std::ranges::any_of(it.pullRequest.participants, [](const auto& p) { return p.state == ParticipantState::ChangesRequested; });
-                });
-
-            if (hasFailedBuilds || hasSomeoneRequestedChanges)
+            if (hasAlert)
                 title += wxS(" (!)");
 
             SetStatusItemTitle(title);
@@ -430,12 +432,12 @@ wxMenu *StatusItem::GetPopupMenu()
     return m_pMenu.get();
 }
 
-void StatusItem::SetStatusItemTitle(const wxString& title)
+void StatusItem::SetStatusItemTitle(const wxString& title, [[maybe_unused]] const bool hasAlert)
 {
 #if defined(__WXOSX__)
     SetTitle(title);
 #elif defined(__WXMSW__)
-    m_bitmapBundle = CreateReviewCountIcon(title);
+    m_bitmapBundle = CreateReviewCountIcon(title, hasAlert);
     if (!m_bitmapBundle.IsOk())
         return;
 

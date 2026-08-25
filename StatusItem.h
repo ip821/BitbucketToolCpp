@@ -37,7 +37,7 @@ class StatusItem : public wxTaskBarIcon
 
     wxMenu *GetPopupMenu() override;
 
-    void SetStatusItemTitle(const wxString& title);
+    void SetStatusItemTitle(const wxString& title, bool hasAlert = false);
 
     void OnLeftButtonClick(wxTaskBarIconEvent&);
     void OnMenuItemClick(wxCommandEvent&);

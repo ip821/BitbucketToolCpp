@@ -38,7 +38,7 @@ void CustomIcon::MixImages(const int size, const wxImage& colourImage, const wxI
     }
 }
 
-wxBitmap CustomIcon::CreateReviewCountBitmap(const wxString& text, const int size)
+wxBitmap CustomIcon::CreateReviewCountBitmap(const wxString& text, const int size, const bool hasAlert)
 {
     constexpr auto renderScale = 4;
     const auto renderSize = size * renderScale;
@@ -50,9 +50,11 @@ wxBitmap CustomIcon::CreateReviewCountBitmap(const wxString& text, const int siz
         dc.SetBackground(*wxBLACK_BRUSH);
         dc.Clear();
 
-        const wxColour badgeColour = text == wxS("0")
-                                         ? wxColour(95, 95, 95)
-                                         : wxColour(0, 82, 204);
+        const wxColour badgeColour = hasAlert
+                                         ? wxColour(222, 53, 11)
+                                         : text == wxS("0")
+                                             ? wxColour(95, 95, 95)
+                                             : wxColour(0, 82, 204);
 
         DrawRoundedRectangle(dc, badgeColour, renderSize);
 
