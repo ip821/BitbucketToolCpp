@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(PRToolForBitbucket2 VERSION 1.33 LANGUAGES CXX)
+project(PRToolForBitbucket2 VERSION 1.34 LANGUAGES CXX)
 
 include(FetchContent)
 
