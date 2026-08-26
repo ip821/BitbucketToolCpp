@@ -1,25 +1,25 @@
 cmake_minimum_required(VERSION 4.0)
 project(bitbucket_api LANGUAGES C CXX)
-include(FetchContent)
+include("${CMAKE_CURRENT_LIST_DIR}/../cmake/Dependencies.cmake")
 
-FetchContent_Declare(
+add_dependency(
         json
+
         GIT_REPOSITORY https://github.com/nlohmann/json.git
         GIT_TAG v3.12.0
 )
-FetchContent_MakeAvailable(json)
 
-FetchContent_Declare(
+add_dependency(
         cpp-curl
+
         GIT_REPOSITORY https://github.com/ip821/cpp-curl.git
 )
-FetchContent_MakeAvailable(cpp-curl)
 
-FetchContent_Declare(
+add_dependency(
         cpp-utils
+
         GIT_REPOSITORY https://github.com/ip821/cpp-utils.git
 )
-FetchContent_MakeAvailable(cpp-utils)
 
 add_library(bitbucket_api
         include/bitbucket_api/BitbucketResponse.h

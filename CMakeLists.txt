@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 4.0)
 project(PRToolForBitbucket2 VERSION 1.35 LANGUAGES CXX)
 
-include(FetchContent)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(Dependencies)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -117,41 +118,30 @@ endif ()
 
 add_subdirectory(bitbucket_api)
 
-if (APPLE)
-    FetchContent_Declare(
-            wxWidgets
-            GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
-            GIT_TAG ${WX_WIDGETS_VERSION}
-            PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets-3_3_2.patch"
-    )
-elseif (MINGW)
-    FetchContent_Declare(
-            wxWidgets
-            GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
-            GIT_TAG ${WX_WIDGETS_VERSION}
-            PATCH_COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/windows/wxwidgets-3_3_3-mingw-winrt.patch"
-    )
-else ()
-    FetchContent_Declare(
-            wxWidgets
-            GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
-            GIT_TAG ${WX_WIDGETS_VERSION}
-    )
-endif ()
-FetchContent_MakeAvailable(wxWidgets)
+add_dependency(
+        wxWidgets
 
-FetchContent_Declare(
+        GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
+        GIT_TAG ${WX_WIDGETS_VERSION}
+        GIT_SHALLOW TRUE
+
+        PATCH_FILES
+            "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets-3_3_2.patch"
+            "${CMAKE_CURRENT_SOURCE_DIR}/windows/wxwidgets-3_3_3-mingw-winrt.patch"
+)
+
+add_dependency(
         cpp-utils
+
         GIT_REPOSITORY https://github.com/ip821/cpp-utils.git
 )
-FetchContent_MakeAvailable(cpp-utils)
 
-FetchContent_Declare(
+add_dependency(
         json
+
         GIT_REPOSITORY https://github.com/nlohmann/json.git
         GIT_TAG v3.12.0
 )
-FetchContent_MakeAvailable(json)
 
 add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         App.cpp
