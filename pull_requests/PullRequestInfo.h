@@ -8,6 +8,8 @@
 
 #include "../bitbucket_api/include/bitbucket_api/PullRequest.h"
 #include "../bitbucket_api/include/bitbucket_api/Status.h"
+#include "cpp_utils/views_any_of.h"
+#include "cpp_utils/views_count.h"
 
 struct PullRequestInfo
 {
@@ -46,7 +48,9 @@ struct PullRequestInfo
                             ? wxS("InProgress")
                             : std::format(
                                 wxS("Success ({})"),
-                                std::ranges::count_if(statuses, [](const auto& it) { return it.state == StatusState::Successful; })
+                                statuses
+                                    | std::views::filter([](const auto& it) { return it.state == StatusState::Successful; })
+                                    | ip::views::count
                             );
 
         return std::format(
@@ -60,7 +64,8 @@ struct PullRequestInfo
 
     bool HasBuildsWithStatus(StatusState state) const
     {
-        return std::ranges::any_of(statuses, [&state](const auto& it) { return it.state == state; });
+        return statuses
+            | ip::views::any_of([&state](const auto& it) { return it.state == state; });
     }
 
     wxString GetStatus() const

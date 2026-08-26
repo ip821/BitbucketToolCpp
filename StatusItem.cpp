@@ -216,9 +216,9 @@ void StatusItem::OnCreatePullRequestMenuItemClick(wxCommandEvent& event)
 
     const wxString bitbucketHostname = wxS("https://bitbucket.org");
     const auto url = bitbucketHostname +
-            wxS("/") + workspace +
-            wxS("/") + repo +
-            wxS("/pull-requests/new");
+        wxS("/") + workspace +
+        wxS("/") + repo +
+        wxS("/pull-requests/new");
 
     wxLaunchDefaultBrowser(url);
 }
@@ -353,8 +353,8 @@ void StatusItem::UpdateProgress(const PullRequestUpdateProgressArgs& progressArg
         [](const FetchingPullRequestDetails& args)
         {
             const auto percentage = args.totalPullRequests == 0
-                ? 0
-                : args.currentPullRequest * 100 / args.totalPullRequests;
+                                        ? 0
+                                        : args.currentPullRequest * 100 / args.totalPullRequests;
 
             return wxString(std::format(wxS("Fetching — {}%"), percentage));
         }
@@ -383,16 +383,13 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int
 {
     const auto waitingCount = pullRequestsInfo.waitingForMyApprovalPullRequests.size() - hiddenPullRequestsCount;
 
-    const auto hasFailedBuilds = std::ranges::any_of(
-        pullRequestsInfo.myPullRequests,
-        [](const auto& it) { return it.HasBuildsWithStatus(StatusState::Failed); });
+    const auto hasFailedBuilds = pullRequestsInfo.myPullRequests
+        | ip::views::any_of([](const auto& it) { return it.HasBuildsWithStatus(StatusState::Failed); });
 
-    const auto hasSomeoneRequestedChanges = std::ranges::any_of(
-        pullRequestsInfo.myPullRequests,
-        [](const auto& it)
-        {
-            return std::ranges::any_of(it.pullRequest.participants, [](const auto& p) { return p.state == ParticipantState::ChangesRequested; });
-        });
+    const auto hasSomeoneRequestedChanges = pullRequestsInfo.myPullRequests
+        | std::views::transform([](const auto& it) { return it.pullRequest.participants; })
+        | std::views::join
+        | ip::views::any_of([](const auto& p) { return p.state == ParticipantState::ChangesRequested; });
 
     const auto hasAlert = hasFailedBuilds || hasSomeoneRequestedChanges;
 
@@ -427,7 +424,7 @@ void StatusItem::ConfigChanged()
     RefreshMenu();
 }
 
-wxMenu *StatusItem::GetPopupMenu()
+wxMenu* StatusItem::GetPopupMenu()
 {
     return m_pMenu.get();
 }
