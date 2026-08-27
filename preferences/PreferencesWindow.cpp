@@ -1,7 +1,6 @@
 #include "../preferences/PreferencesWindow.h"
 
 #include <set>
-#include <cpp_utils/ranges.h>
 #include <cpp_utils/wx_string_join.h>
 #include <wx/wizard.h>
 #include <wx/wx.h>

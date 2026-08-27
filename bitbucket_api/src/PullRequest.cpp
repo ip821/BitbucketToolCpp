@@ -3,14 +3,15 @@
 #include <algorithm>
 #include <ranges>
 
-#include "cpp_utils/views_any_of.h"
-#include "cpp_utils/views_first_or_none.h"
+#include "cpp_utils/ranges_any_of.h"
+#include "cpp_utils/ranges_first_or_none.h"
 
 bool PullRequest::IsWaitingForUserApproval(const User& user) const
 {
     const auto userParticipant = participants
         | std::views::filter([&user](const auto& it) { return it.user.uuid == user.uuid; })
-        | ip::views::first_or_none;
+        | ip::ranges::first_or_none;
+
 
     return
         author.uuid != user.uuid

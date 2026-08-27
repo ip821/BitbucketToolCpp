@@ -298,12 +298,12 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int
     const auto waitingCount = pullRequestsInfo.waitingForMyApprovalPullRequests.size() - hiddenPullRequestsCount;
 
     const auto hasFailedBuilds = pullRequestsInfo.myPullRequests
-        | ip::views::any_of([](const auto& it) { return it.HasBuildsWithStatus(StatusState::Failed); });
+        | ip::ranges::any_of([](const auto& it) { return it.HasBuildsWithStatus(StatusState::Failed); });
 
     const auto hasSomeoneRequestedChanges = pullRequestsInfo.myPullRequests
         | std::views::transform([](const auto& it) { return it.pullRequest.participants; })
         | std::views::join
-        | ip::views::any_of([](const auto& p) { return p.state == ParticipantState::ChangesRequested; });
+        | ip::ranges::any_of([](const auto& p) { return p.state == ParticipantState::ChangesRequested; });
 
     const auto hasAlert = hasFailedBuilds || hasSomeoneRequestedChanges;
 
