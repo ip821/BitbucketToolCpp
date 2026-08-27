@@ -6,16 +6,12 @@
 #include <cpp_utils/match_variant.h>
 #include <cpp_utils/wx_string_format.h>
 #include <wx/clipbrd.h>
-#include <wx/control.h>
-#include <wx/dcmemory.h>
 #include <wx/notifmsg.h>
-#include <wx/settings.h>
 #include <wx/wx.h>
 
 #include "bitbucket_api/include/bitbucket_api/Requests.h"
 #include "preferences/PreferencesWindow.h"
 #include "preferences/settings/Config.h"
-#include "menu/PullRequestsMenuBuilder.h"
 #include "pull_requests/PullRequestService.h"
 #include "Stopwatch.h"
 
@@ -25,37 +21,11 @@
 #include "images/StatusImage.h"
 #endif
 
-enum
-{
-    MENU_ITEM_FIRST_STATIC_ID = 10000,
-
-    MENU_ITEM_STATISTICS,
-    MENU_ITEM_PREFERENCES_ID,
-    MENU_ITEM_SHOW_ALL,
-    MENU_ITEM_QUIT_ID,
-    MENU_ITEM_UPDATE_ID,
-    MENU_ITEM_LAST_SEPARATOR,
-
-    MENU_ITEM_CREATE_PULL_REQUEST_ID,
-    MENU_ITEM_LAST_PULL_REQUEST_ID = MENU_ITEM_CREATE_PULL_REQUEST_ID + 100,
-    MENU_ITEM_LAST_STATIC_ID,
-};
-
 constexpr auto tenSeconds = 10 * 1000;
 constexpr auto fiveMinutes = 5 * 60 * 1000;
 
 namespace
 {
-    constexpr auto maxMenuWidth = 500;
-
-    wxString FitMenuText(const wxString& text)
-    {
-        wxBitmap bitmap(1, 1);
-        wxMemoryDC dc(bitmap);
-        dc.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
-        return wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, maxMenuWidth);
-    }
-
 #ifdef __WXMSW__
     wxBitmapBundle CreateReviewCountIcon(const wxString& text, const bool hasAlert)
     {
@@ -67,7 +37,33 @@ namespace
 }
 
 StatusItem::StatusItem() :
-    wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM)
+    wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM),
+    m_menu({
+        .onUpdateRequested = [this](const bool fullReload)
+        {
+            UpdatePullRequests({.showNotification = true, .fullReload = fullReload});
+        },
+        .onPreferencesRequested = [this]
+        {
+            ShowPreferencesDialog();
+        },
+        .onQuitRequested = []
+        {
+            wxExit();
+        },
+        .onToggleHiddenRequested = [this]
+        {
+            RefreshMenu();
+        },
+        .onOpenPullRequestRequested = [](const wxString& href, const bool copyToClipboard)
+        {
+            OpenPullRequest(href, copyToClipboard);
+        },
+        .onCreatePullRequestRequested = [](const wxString& repository)
+        {
+            CreatePullRequest(repository);
+        },
+    })
 {
     m_pDialog = new PreferencesWindow(this);
 
@@ -100,20 +96,6 @@ StatusItem::StatusItem() :
     }
     SetIcon(m_bitmapBundle, "Tooltip");
 #endif
-    m_pCreatePullRequestsMenu = new wxMenu();
-    m_pCreatePullRequestsMenu->Bind(wxEVT_MENU, &StatusItem::OnCreatePullRequestMenuItemClick, this);
-
-    m_pMenu = std::make_unique<wxMenu>();
-    m_pMenu->AppendSeparator()->SetId(MENU_ITEM_LAST_SEPARATOR);
-    m_pMenu->AppendSubMenu(m_pCreatePullRequestsMenu, "&Create pull request");
-    m_pMenu->AppendSeparator();
-    m_pMenu->Append(MENU_ITEM_STATISTICS, "Statistics")->Enable(false);
-    m_pMenu->Append(MENU_ITEM_SHOW_ALL, "&Show hidden items");
-    m_pMenu->Append(MENU_ITEM_UPDATE_ID, "&Update");
-    m_pMenu->Append(MENU_ITEM_PREFERENCES_ID, "&Preferences...");
-    m_pMenu->Append(MENU_ITEM_QUIT_ID, "&Quit");
-    m_pMenu->Bind(wxEVT_MENU, &StatusItem::OnMenuItemClick, this);
-
 #ifdef __WXMSW__
     Bind(wxEVT_TASKBAR_LEFT_UP, &StatusItem::OnLeftButtonClick, this);
 #endif
@@ -158,88 +140,29 @@ void StatusItem::RefreshMenu()
     RebuildMenu({.pullRequests = m_pullRequestsInfo, .showAll = !m_showAllPullRequests});
 }
 
-void StatusItem::OnMenuItemClick(wxCommandEvent& e)
+void StatusItem::OpenPullRequest(const wxString& href, const bool copyToClipboard)
 {
-    const bool isAltPressed = wxGetKeyState(WXK_ALT);
-
-    switch (e.GetId())
+    if (copyToClipboard)
     {
-        case MENU_ITEM_UPDATE_ID:
-            UpdatePullRequests({.showNotification = true, .fullReload = isAltPressed});
-            return;
-
-        case MENU_ITEM_PREFERENCES_ID:
-            ShowPreferencesDialog();
-            return;
-
-        case MENU_ITEM_QUIT_ID:
-            wxExit();
-            return;
-
-        case MENU_ITEM_SHOW_ALL:
-            RefreshMenu();
-            return;
-
-        default:
-            break;
-    }
-
-    if (const auto it = m_menuItemIdToPullRequest.find(e.GetId());
-        it != m_menuItemIdToPullRequest.end())
-    {
-        const auto href = it->second.pullRequest.links.html.href;
-        if (isAltPressed)
+        if (wxTheClipboard->Open())
         {
-            if (wxTheClipboard->Open())
-            {
-                wxTheClipboard->SetData(new wxTextDataObject(href));
-                wxTheClipboard->Close();
-            }
-        } else
-        {
-            wxLaunchDefaultBrowser(href);
+            wxTheClipboard->SetData(new wxTextDataObject(href));
+            wxTheClipboard->Close();
         }
+        return;
     }
+
+    wxLaunchDefaultBrowser(href);
 }
 
-void StatusItem::OnCreatePullRequestMenuItemClick(wxCommandEvent& event)
+void StatusItem::CreatePullRequest(const wxString& repository)
 {
-    const auto menuItemId = event.GetId();
-    const auto repositoryIt = m_menuItemIdToRepository.find(menuItemId);
-    if (repositoryIt == m_menuItemIdToRepository.end())
-        return;
-
-    const auto& repository = repositoryIt->second;
-    const auto parts = wxSplit(repository, '/');
-    const auto workspace = parts[0];
-    const auto repo = parts[1];
-
     const wxString bitbucketHostname = wxS("https://bitbucket.org");
     const auto url = bitbucketHostname +
-        wxS("/") + workspace +
-        wxS("/") + repo +
+        wxS("/") + repository +
         wxS("/pull-requests/new");
 
     wxLaunchDefaultBrowser(url);
-}
-
-void StatusItem::UpdateCreatePullRequestsMenu(const std::vector<Repository>& repositories)
-{
-    for (const auto menuItems = m_pCreatePullRequestsMenu->GetMenuItems();
-         const auto& item: menuItems)
-    {
-        m_pCreatePullRequestsMenu->Delete(item);
-    }
-
-    m_menuItemIdToRepository.clear();
-
-    auto index = 0;
-    for (const auto& repository: repositories)
-    {
-        const auto menuItemId = MENU_ITEM_CREATE_PULL_REQUEST_ID + index++;
-        m_menuItemIdToRepository[menuItemId] = repository.full_name;
-        m_pCreatePullRequestsMenu->Append(menuItemId, FitMenuText(repository.full_name));
-    }
 }
 
 void StatusItem::ShowErrorNotification(const wxString& message) const
@@ -257,29 +180,25 @@ void StatusItem::RebuildMenu(const RebuildMenuArgs& args)
     const auto useSubmenusOnMenuOverflow = Config::GetUseSubmenusOnMenuOverflow();
     const auto displayRepositoryNameLowercase = Config::GetDisplayRepositoryNameLowercase();
 
-    const PullRequestsMenuBuilder menuBuilder(*m_pMenu);
-    auto [menuItemIdToPullRequest, hiddenPullRequestsCount] = menuBuilder.Rebuild(
-        MENU_ITEM_LAST_STATIC_ID + 1,
+    const auto hiddenPullRequestsCount = m_menu.RebuildPullRequests(
         pullRequestsInfo,
         hideChangesRequestedPullRequests,
         useSubmenusOnMenuOverflow,
         displayRepositoryNameLowercase
     );
 
-    m_menuItemIdToPullRequest = std::move(menuItemIdToPullRequest);
     UpdateTitle(pullRequestsInfo, hiddenPullRequestsCount);
 }
 
 void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 {
-    m_pMenu->Enable(MENU_ITEM_UPDATE_ID, false);
+    m_menu.SetUpdateEnabled(false);
 
     const auto repositories = Config::GetRepositories();
-    const auto statisticsLabel = m_pMenu->GetLabel(MENU_ITEM_STATISTICS);
 
-    UpdateCreatePullRequestsMenu(repositories);
+    m_menu.SetRepositories(repositories);
 
-    m_thread = std::jthread([this, args, repositories, statisticsLabel](const std::stop_token stopToken)
+    m_thread = std::jthread([this, args, repositories](const std::stop_token stopToken)
     {
         const Stopwatch fetchStopwatch;
 
@@ -305,21 +224,18 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
 
         const auto elapsedTime = fetchStopwatch.GetElapsed();
 
-        this->CallAfter([args, elapsedTime, this, pullRequestsResult, statisticsLabel, stopToken]
+        this->CallAfter([args, elapsedTime, this, pullRequestsResult, stopToken]
         {
             if (stopToken.stop_requested())
                 return;
 
             m_pTimer->StartOnce(fiveMinutes);
-            m_pMenu->Enable(MENU_ITEM_UPDATE_ID, true);
+            m_menu.SetUpdateEnabled(true);
 
             if (!pullRequestsResult)
             {
                 const auto message = pullRequestsResult.error().message;
-                m_pMenu->SetLabel(
-                    MENU_ITEM_STATISTICS,
-                    FitMenuText(std::format("Update failed: {}", message))
-                );
+                m_menu.SetStatisticsLabel(std::format("Update failed: {}", message));
                 ShowErrorNotification(message);
                 return;
             }
@@ -360,23 +276,21 @@ void StatusItem::UpdateProgress(const PullRequestUpdateProgressArgs& progressArg
         }
     );
 
-    m_pMenu->SetLabel(MENU_ITEM_STATISTICS, FitMenuText(label));
+    m_menu.SetStatisticsLabel(label);
 }
 
 void StatusItem::UpdateStatistics(size_t processedPullRequestsCount, size_t fetchedPullRequestsCount, std::chrono::seconds elapsedTime)
 {
     const auto elapsedSeconds = elapsedTime.count();
     const auto nextUpdate = wxDateTime::Now() + wxTimeSpan::Milliseconds(fiveMinutes);
-    m_pMenu->SetLabel(
-        MENU_ITEM_STATISTICS,
-        FitMenuText(
-            std::format(
-                wxS("PRs fetched: {}/{}. Update took: {:02}:{:02}. Next update at: {}"),
-                processedPullRequestsCount,
-                fetchedPullRequestsCount,
-                elapsedSeconds / 60,
-                elapsedSeconds % 60,
-                nextUpdate.Format(wxS("%d.%m.%Y %H:%M")))));
+    m_menu.SetStatisticsLabel(
+        std::format(
+            wxS("PRs fetched: {}/{}. Update took: {:02}:{:02}. Next update at: {}"),
+            processedPullRequestsCount,
+            fetchedPullRequestsCount,
+            elapsedSeconds / 60,
+            elapsedSeconds % 60,
+            nextUpdate.Format(wxS("%d.%m.%Y %H:%M"))));
 }
 
 void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int hiddenPullRequestsCount)
@@ -426,7 +340,7 @@ void StatusItem::ConfigChanged()
 
 wxMenu* StatusItem::GetPopupMenu()
 {
-    return m_pMenu.get();
+    return m_menu.GetMenu();
 }
 
 void StatusItem::SetStatusItemTitle(const wxString& title, [[maybe_unused]] const bool hasAlert)
@@ -449,5 +363,5 @@ void StatusItem::SetStatusItemTitle(const wxString& title, [[maybe_unused]] cons
 
 void StatusItem::OnLeftButtonClick(wxTaskBarIconEvent&)
 {
-    PopupMenu(m_pMenu.get());
+    PopupMenu(m_menu.GetMenu());
 }

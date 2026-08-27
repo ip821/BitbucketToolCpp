@@ -25,7 +25,7 @@ public:
     explicit PullRequestsMenuBuilder(wxMenu& menu);
 
     [[nodiscard]] PullRequestsMenuBuildResult Rebuild(
-        int firstDynamicMenuItemId,
+        const wxMenuItem& firstStaticMenuItem,
         const PullRequestsInfo& pullRequests,
         bool hideChangesRequestedPullRequests,
         bool useSubmenusOnMenuOverflow,
@@ -54,5 +54,5 @@ private:
         const MenuMetrics& menuMetrics,
         PullRequestsMenuBuildResult& result
     ) const;
-    void RemoveDynamicMenuItems(int firstDynamicMenuItemId) const;
+    void RemoveDynamicMenuItems(const wxMenuItem& firstStaticMenuItem) const;
 };

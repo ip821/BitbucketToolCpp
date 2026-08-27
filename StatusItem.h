@@ -6,8 +6,8 @@
 #include <wx/timer.h>
 #include <wx/wx.h>
 
+#include "menu/StatusMenu.h"
 #include "preferences/PreferencesWindow.h"
-#include "pull_requests/PullRequestInfo.h"
 #include "pull_requests/PullRequestService.h"
 #include "pull_requests/PullRequestsInfo.h"
 
@@ -26,26 +26,22 @@ struct RebuildMenuArgs
 class StatusItem : public wxTaskBarIcon
 {
     PreferencesWindow *m_pDialog{};
-    std::unique_ptr<wxMenu> m_pMenu;
-    wxMenu *m_pCreatePullRequestsMenu{};
+    StatusMenu m_menu;
     std::unique_ptr<wxTimer> m_pTimer;
 
     PullRequestsInfo m_pullRequestsInfo;
     bool m_showAllPullRequests{};
-    std::unordered_map<int, PullRequestInfo> m_menuItemIdToPullRequest;
-    std::unordered_map<int, wxString> m_menuItemIdToRepository;
 
     wxMenu *GetPopupMenu() override;
 
     void SetStatusItemTitle(const wxString& title, bool hasAlert = false);
 
     void OnLeftButtonClick(wxTaskBarIconEvent&);
-    void OnMenuItemClick(wxCommandEvent&);
-    void OnCreatePullRequestMenuItemClick(wxCommandEvent&);
 
     void ShowPreferencesDialog() const;
     void RefreshMenu();
-    void UpdateCreatePullRequestsMenu(const std::vector<Repository>& repositories);
+    static void OpenPullRequest(const wxString& href, bool copyToClipboard);
+    static void CreatePullRequest(const wxString& repository);
     void ShowErrorNotification(const wxString& message) const;
     void RebuildMenu(const RebuildMenuArgs& args);
     void UpdatePullRequests(const OnUpdatePullRequestsArgs& args);

@@ -147,7 +147,7 @@ int PullRequestsMenuBuilder::InsertEntriesWithOverflow(
         auto* overflowMenu = menuBuilder.InsertSubMenu(wxS("More..."));
         usedHeight += menuMetrics.itemHeight;
 
-        MenuBuilder overflowMenuBuilder(*overflowMenu, menuBuilder);
+        MenuBuilder overflowMenuBuilder(*overflowMenu);
         InsertEntriesWithOverflow(
             overflowMenuBuilder,
             entries.subspan(visibleCount),
@@ -160,14 +160,14 @@ int PullRequestsMenuBuilder::InsertEntriesWithOverflow(
 }
 
 PullRequestsMenuBuildResult PullRequestsMenuBuilder::Rebuild(
-    const int firstDynamicMenuItemId,
+    const wxMenuItem& firstStaticMenuItem,
     const PullRequestsInfo& pullRequests,
     const bool hideChangesRequestedPullRequests,
     const bool useSubmenusOnMenuOverflow,
     const bool displayRepositoryNameLowercase
 ) const
 {
-    RemoveDynamicMenuItems(firstDynamicMenuItemId);
+    RemoveDynamicMenuItems(firstStaticMenuItem);
 
     const PullRequestMenuEntryFactory menuEntryFactory(pullRequests);
 
@@ -190,7 +190,7 @@ PullRequestsMenuBuildResult PullRequestsMenuBuilder::Rebuild(
     SplitOversizedEntries(waitingForApprovalMenuEntries, menuMetrics);
     SplitOversizedEntries(myMenuEntries, menuMetrics);
 
-    MenuBuilder menuBuilder(m_menu, firstDynamicMenuItemId);
+    MenuBuilder menuBuilder(m_menu);
 
     const auto pFirstMenuItem = menuBuilder.InsertDisabledItem("Pull requests to review");
 
@@ -238,14 +238,14 @@ PullRequestsMenuBuildResult PullRequestsMenuBuilder::Rebuild(
     return result;
 }
 
-void PullRequestsMenuBuilder::RemoveDynamicMenuItems(const int firstDynamicMenuItemId) const
+void PullRequestsMenuBuilder::RemoveDynamicMenuItems(const wxMenuItem& firstStaticMenuItem) const
 {
     for (const auto menuItems = m_menu.GetMenuItems();
          const auto& item: menuItems)
     {
-        if (item->GetId() >= firstDynamicMenuItemId)
-        {
-            m_menu.Delete(item);
-        }
+        if (item == &firstStaticMenuItem)
+            break;
+
+        m_menu.Delete(item);
     }
 }

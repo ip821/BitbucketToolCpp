@@ -152,6 +152,8 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         menu/MenuBuilder.h
         menu/PullRequestsMenuBuilder.cpp
         menu/PullRequestsMenuBuilder.h
+        menu/StatusMenu.cpp
+        menu/StatusMenu.h
         preferences/PreferencesWindowBase.cpp
         preferences/PreferencesWindowBase.h
         preferences/PreferencesWindow.cpp

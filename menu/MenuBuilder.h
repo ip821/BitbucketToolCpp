@@ -9,8 +9,7 @@ class wxString;
 class MenuBuilder
 {
 public:
-    MenuBuilder(wxMenu& menu, int nextItemId);
-    MenuBuilder(wxMenu& menu, MenuBuilder& parent);
+    explicit MenuBuilder(wxMenu& menu);
 
     wxMenuItem* InsertItem(const wxString& label);
     wxMenuItem* InsertDisabledItem(const wxString& label);
@@ -19,9 +18,5 @@ public:
 
 private:
     wxMenu& m_menu;
-    int m_nextItemId{};
-    MenuBuilder* m_parent{};
     std::size_t m_insertIndex{};
-
-    int TakeNextItemId();
 };
