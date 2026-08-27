@@ -1,6 +1,7 @@
 #include "PullRequestService.h"
 
 #include <cpp_utils/macros_expected.h>
+#include <cpp_utils/ranges_distinct_by.h>
 
 #include "PullRequestsInfo.h"
 #include "../bitbucket_api/include/bitbucket_api/Requests.h"
@@ -72,7 +73,7 @@ GetPullRequestsResult PullRequestService::GetPullRequests(
 
         fetchedPullRequestsCount += pullRequests.values.size();
 
-        for (const auto uniquePullRequests = pullRequests.DistinctById();
+        for (const auto uniquePullRequests = pullRequests.values | ip::ranges::distinct_by(&PullRequest::id);
              const auto& pullRequest: uniquePullRequests)
         {
             const auto isWaitingForUserApproval = pullRequest.IsWaitingForUserApproval(currentUser);
