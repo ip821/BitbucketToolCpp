@@ -1,6 +1,8 @@
 #pragma once
 
 #include <expected>
+#include <vector>
+
 #include <cpp_curl/CurlConnection.h>
 #include <cpp_utils/match_expected.h>
 #include <nlohmann/json.hpp>
@@ -20,12 +22,16 @@ public:
 
     BitbucketResponse<TResult> Perform(const std::string& authToken) const
     {
-        const CurlConnection connection;
+        const cpp_curl::CurlConnection connection;
+        const std::vector<std::string> headers{
+            "Accept: application/json",
+            "Authorization: Basic " + authToken
+        };
 
         try
         {
             return ip::map_expected(
-                connection.HttpGet(m_requestUrl, authToken),
+                connection.HttpGet(m_requestUrl, headers),
                 [](const auto& success)
                 {
                     const auto body = success.responseBody;

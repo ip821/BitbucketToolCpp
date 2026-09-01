@@ -4,7 +4,7 @@
 
 class BitbucketApiGlobalInit::Impl
 {
-    CurlGlobalInit m_curlGlobalInit;
+    cpp_curl::CurlGlobalInit m_curlGlobalInit;
 };
 
 BitbucketApiGlobalInit::BitbucketApiGlobalInit()

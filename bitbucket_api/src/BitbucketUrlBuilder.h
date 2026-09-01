@@ -46,7 +46,7 @@ public:
             R"(state="open" AND ((reviewers.uuid="{0}" AND draft=false) OR author.uuid="{0}"))",
             userId);
 
-        CurlUrl url(GetPullRequestsUrl(repository));
+        cpp_curl::CurlUrl url(GetPullRequestsUrl(repository));
         url.AppendQueryParameter("pagelen", "50");
         url.AppendQueryParameter("q", query);
         url.AppendQueryParameter(
