@@ -8,6 +8,7 @@
 #pragma once
 
 #include <wx/artprov.h>
+#include <wx/xrc/xmlres.h>
 #include <wx/intl.h>
 #include <wx/string.h>
 #include <wx/stattext.h>
@@ -18,6 +19,10 @@
 #include <wx/textctrl.h>
 #include <wx/valtext.h>
 #include <wx/sizer.h>
+#include <wx/button.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/icon.h>
 #include <wx/activityindicator.h>
 #include <wx/panel.h>
 #include <wx/checklst.h>
@@ -36,8 +41,13 @@ class LoginViewBase : public wxPanel
 		wxTextCtrl* m_pLoginTextCtrl;
 		wxStaticText* m_staticText2;
 		wxTextCtrl* m_pPasswordTextCtrl;
+		wxButton* m_pManageApiTokensButton;
 		wxStaticText* m_pErrorStaticText;
 		wxActivityIndicator* m_pActivityIndicator;
+
+		// Virtual event handlers, override them in your derived class
+		virtual void OnManageApiTokensClicked( wxCommandEvent& event ) = 0;
+
 
 	public:
 		wxString m_email;
@@ -85,3 +95,4 @@ class RepositoryViewBase : public wxPanel
 		~RepositoryViewBase();
 
 };
+

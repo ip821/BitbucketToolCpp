@@ -1,11 +1,23 @@
 ﻿#include "LoginView.h"
 
+#include <wx/utils.h>
+
+namespace
+{
+constexpr auto ManageApiTokensUrl = "https://id.atlassian.com/manage-profile/security/api-tokens";
+}
+
 LoginView::LoginView(wxWindow *parent) :
     LoginViewBase(parent)
 {
 #ifdef __WXMSW__
     m_pActivityIndicator->SetDoubleBuffered(true);
 #endif
+}
+
+void LoginView::OnManageApiTokensClicked(wxCommandEvent& WXUNUSED(event))
+{
+    wxLaunchDefaultBrowser(ManageApiTokensUrl);
 }
 
 void LoginView::SetErrorMessage(const wxString& message) const

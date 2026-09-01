@@ -4,6 +4,9 @@
 
 class LoginView : public LoginViewBase
 {
+private:
+    void OnManageApiTokensClicked(wxCommandEvent& event) override;
+
 public:
     explicit LoginView(wxWindow *parent);
 

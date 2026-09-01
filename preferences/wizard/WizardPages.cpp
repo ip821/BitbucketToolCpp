@@ -14,8 +14,11 @@ LoginViewBase::LoginViewBase( wxWindow* parent, wxWindowID id, const wxPoint& po
 	wxBoxSizer* bSizer1;
 	bSizer1 = new wxBoxSizer( wxVERTICAL );
 
+	wxBoxSizer* bSizer4;
+	bSizer4 = new wxBoxSizer( wxVERTICAL );
+
 	wxFlexGridSizer* fgSizer1;
-	fgSizer1 = new wxFlexGridSizer( 0, 2, 0, 0 );
+	fgSizer1 = new wxFlexGridSizer( 2, 2, 0, 0 );
 	fgSizer1->AddGrowableCol( 1 );
 	fgSizer1->SetFlexibleDirection( wxBOTH );
 	fgSizer1->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
@@ -29,7 +32,7 @@ LoginViewBase::LoginViewBase( wxWindow* parent, wxWindowID id, const wxPoint& po
 
 	fgSizer1->Add( m_pLoginTextCtrl, 0, wxALL|wxEXPAND, 5 );
 
-	m_staticText2 = new wxStaticText( this, wxID_ANY, _("Password:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText2 = new wxStaticText( this, wxID_ANY, _("API token:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText2->Wrap( -1 );
 	fgSizer1->Add( m_staticText2, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -39,7 +42,19 @@ LoginViewBase::LoginViewBase( wxWindow* parent, wxWindowID id, const wxPoint& po
 	fgSizer1->Add( m_pPasswordTextCtrl, 0, wxALL|wxEXPAND, 5 );
 
 
-	bSizer1->Add( fgSizer1, 1, wxEXPAND, 5 );
+	bSizer4->Add( fgSizer1, 1, wxEXPAND, 5 );
+
+
+	bSizer1->Add( bSizer4, 0, wxEXPAND, 5 );
+
+	wxBoxSizer* bSizer5;
+	bSizer5 = new wxBoxSizer( wxVERTICAL );
+
+	m_pManageApiTokensButton = new wxButton( this, wxID_ANY, _("Manage API tokens"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer5->Add( m_pManageApiTokensButton, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+
+	bSizer1->Add( bSizer5, 1, wxEXPAND, 5 );
 
 	m_pErrorStaticText = new wxStaticText( this, wxID_ANY, _("Error text"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_pErrorStaticText->Wrap( -1 );
@@ -58,6 +73,9 @@ LoginViewBase::LoginViewBase( wxWindow* parent, wxWindowID id, const wxPoint& po
 	this->SetSizer( bSizer1 );
 	this->Layout();
 	bSizer1->Fit( this );
+
+	// Connect Events
+	m_pManageApiTokensButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( LoginViewBase::OnManageApiTokensClicked ), NULL, this );
 }
 
 LoginViewBase::~LoginViewBase()
