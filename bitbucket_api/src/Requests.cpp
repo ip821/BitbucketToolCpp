@@ -33,8 +33,7 @@ BitbucketResponse<Values<PullRequest> > PullRequestsRequest::GetPullRequests(con
     while (url != "")
     {
         const BitbucketRequest<Values<PullRequest> > request(url);
-        const auto response = request.Perform(authToken);
-        UNWRAP_OR_RETURN_ERROR(pullRequests, response);
+        UNWRAP_OR_RETURN_ERROR(pullRequests, request.Perform(authToken));
         allPullRequests.append_range(pullRequests.values);
 
         if (pullRequests.next.has_value())
@@ -43,7 +42,7 @@ BitbucketResponse<Values<PullRequest> > PullRequestsRequest::GetPullRequests(con
             url = "";
     }
 
-    return Values{.values = allPullRequests};
+    return Values{.values = std::move(allPullRequests)};
 }
 
 BitbucketResponse<Values<Repository> > RepositoriesRequest::GetRepositories(const std::string& authToken, const Workspace& workspace) const
@@ -61,10 +60,9 @@ BitbucketResponse<Values<Status> > StatusRequest::GetStatuses(const std::string&
 BitbucketResponse<std::vector<Workspace> > WorkspacesRequest::GetWorkspaces(const std::string& authToken) const
 {
     const BitbucketRequest<Values<WorkspaceAccess> > request(BitbucketUrlBuilder::GetWorkspacesUrl());
-    const auto result = request.Perform(authToken);
-    UNWRAP_OR_RETURN_ERROR(repositories, result);
+    UNWRAP_OR_RETURN_ERROR(repositories, request.Perform(authToken));
 
-    const auto workspaces = repositories.values
+    auto workspaces = repositories.values
         | std::views::transform([](const auto& it) { return it.workspace; })
         | std::views::filter([](const auto& it) { return !it.slug.empty(); })
         | std::ranges::to<std::vector>();

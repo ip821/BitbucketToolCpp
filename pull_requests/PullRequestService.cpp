@@ -10,68 +10,75 @@
 
 namespace
 {
-    struct PullRequestToProcess
-    {
-        Repository repository;
-        PullRequest pullRequest;
-        bool isWaitingForUserApproval{};
-    };
+    const auto cancellationError = [] { return std::unexpected(BitbucketError{.message = "Operation cancelled"}); };
 }
 
-GetPullRequestsResult PullRequestService::GetPullRequests(
-    const std::vector<Repository>& repositories,
-    const PullRequestUpdateProgressCallback& progressCallback,
-    const std::stop_token stopToken)
+bool PullRequestService::Cancelled() const
 {
-    const auto cancelled = [&stopToken]
-    {
-        return stopToken.stop_requested();
-    };
-    const auto cancellationError = []
-    {
-        return std::unexpected(BitbucketError{.message = "Operation cancelled"});
-    };
+    return m_stop_token.stop_requested();
+};
 
-    if (cancelled())
+GetPullRequestsResult PullRequestService::GetPullRequests(const std::vector<Repository>& repositories)
+{
+    if (Cancelled())
         return cancellationError();
 
     const auto credentials = Credentials::GetCredentialsBase64().ToStdString();
 
     constexpr CurrentUserRequest currentUserRequest;
-    const auto currentUserResult = currentUserRequest.GetCurrentUser(credentials);
-    UNWRAP_OR_RETURN_ERROR(currentUser, currentUserResult);
+    UNWRAP_OR_RETURN_ERROR(currentUser, currentUserRequest.GetCurrentUser(credentials));
 
-    if (cancelled())
+    if (Cancelled())
         return cancellationError();
 
-    PullRequestsInfo result{.currentUser = currentUser};
+    UNWRAP_OR_RETURN_ERROR(fetchResult, FetchPullRequests(credentials, repositories, currentUser));
+    const auto fetchedPullRequestsCount = fetchResult.fetchedPullRequestsCount;
+    const auto processedPullRequestsCount = fetchResult.pullRequestsToProcess.size();
+
+    UNWRAP_OR_RETURN_ERROR(
+        detailsResult,
+        GetPullRequestDetails(credentials, std::move(fetchResult.pullRequestsToProcess)));
+
+    auto result = PullRequestsInfo{
+        .fetchedPullRequestsCount = fetchedPullRequestsCount,
+        .processedPullRequestsCount = processedPullRequestsCount,
+        .currentUser = std::move(currentUser),
+        .waitingForMyApprovalPullRequests = std::move(detailsResult.waitingForMyApprovalPullRequests),
+        .myPullRequests = std::move(detailsResult.myPullRequests),
+    };
+
+    result.Sort();
+    return result;
+}
+
+PullRequestService::FetchPullRequestsResultExpected PullRequestService::FetchPullRequests(
+    const std::string& credentials,
+    const std::vector<Repository>& repositories,
+    const User& currentUser)
+{
+    size_t fetchedPullRequestsCount = 0;
+    std::vector<PullRequestToProcess> pullRequestsToProcess{};
 
     constexpr PullRequestsRequest pullRequestsRequest;
-    constexpr DiffStatRequest diffStatRequest;
-    constexpr StatusRequest statusRequest;
-
-    size_t fetchedPullRequestsCount = 0;
-    std::vector<PullRequestToProcess> pullRequestsToProcess;
 
     for (const auto& repository: repositories)
     {
-        if (cancelled())
+        if (Cancelled())
             return cancellationError();
 
-        if (progressCallback)
-        {
-            progressCallback(FetchingRepositoryPullRequests{
-                .repositoryName = repository.full_name,
-            });
-        }
+        m_progress_callback(FetchingRepositoryPullRequests{
+            .repositoryName = repository.full_name,
+        });
 
-        const auto pullRequestsResult = pullRequestsRequest.GetPullRequests(credentials, repository, currentUser.uuid);
-        UNWRAP_OR_RETURN_ERROR(pullRequests, pullRequestsResult);
+        UNWRAP_OR_RETURN_ERROR(
+            pullRequests,
+            pullRequestsRequest.GetPullRequests(credentials, repository, currentUser.uuid));
 
-        if (cancelled())
+        if (Cancelled())
             return cancellationError();
 
         fetchedPullRequestsCount += pullRequests.values.size();
+        pullRequestsToProcess.reserve(pullRequestsToProcess.size() + pullRequests.values.size());
 
         for (const auto uniquePullRequests = pullRequests.values | ip::ranges::distinct_by(&PullRequest::id);
              const auto& pullRequest: uniquePullRequests)
@@ -81,51 +88,72 @@ GetPullRequestsResult PullRequestService::GetPullRequests(
             if (!isWaitingForUserApproval && !isUserPullRequest)
                 continue;
 
-            pullRequestsToProcess.push_back({repository, pullRequest, isWaitingForUserApproval});
-        }
-    }
-
-    const auto totalPullRequests = pullRequestsToProcess.size();
-    for (size_t pullRequestIndex = 0; pullRequestIndex < totalPullRequests; ++pullRequestIndex)
-    {
-        if (cancelled())
-            return cancellationError();
-
-        const auto& [repository, pullRequest, isWaitingForUserApproval] = pullRequestsToProcess[pullRequestIndex];
-        if (progressCallback)
-        {
-            progressCallback(FetchingPullRequestDetails{
-                .repositoryName = repository.full_name,
-                .currentPullRequest = pullRequestIndex + 1,
-                .totalPullRequests = totalPullRequests,
+            pullRequestsToProcess.push_back({
+                .repository = std::cref(repository),
+                .pullRequest = std::move(pullRequest),
+                .isWaitingForUserApproval = isWaitingForUserApproval,
             });
         }
-
-        const auto diffStatResult = diffStatRequest.GetDiffStat(credentials, repository, pullRequest.id);
-        UNWRAP_OR_RETURN_ERROR(diffStat, diffStatResult);
-
-        if (cancelled())
-            return cancellationError();
-
-        PullRequestInfo pullRequestInfo{.pullRequest = pullRequest, .statuses = {}, .diffStat = diffStat};
-
-        const auto statusesResult = statusRequest.GetStatuses(credentials, repository, pullRequest.id);
-        UNWRAP_OR_RETURN_ERROR(statuses, statusesResult);
-
-        if (cancelled())
-            return cancellationError();
-
-        pullRequestInfo.statuses = statuses.values;
-
-        if (isWaitingForUserApproval)
-            result.waitingForMyApprovalPullRequests.push_back(pullRequestInfo);
-        else
-            result.myPullRequests.push_back(pullRequestInfo);
     }
 
-    result.fetchedPullRequestsCount = fetchedPullRequestsCount;
-    result.processedPullRequestsCount = totalPullRequests;
-    result.Sort();
+    return FetchPullRequestsResult{
+        .fetchedPullRequestsCount = fetchedPullRequestsCount,
+        .pullRequestsToProcess = std::move(pullRequestsToProcess)
+    };
+}
 
-    return result;
+PullRequestService::GetPullRequestDetailsResultExpected PullRequestService::GetPullRequestDetails(
+    const std::string& credentials,
+    std::vector<PullRequestToProcess>&& pullRequestsToProcess)
+{
+    constexpr DiffStatRequest diffStatRequest;
+    constexpr StatusRequest statusRequest;
+
+    std::vector<PullRequestInfo> waitingForMyApprovalPullRequests{};
+    std::vector<PullRequestInfo> myPullRequests{};
+
+    const auto pull_requests_to_process_count = pullRequestsToProcess.size();
+    for (size_t pullRequestIndex = 0; pullRequestIndex < pull_requests_to_process_count; ++pullRequestIndex)
+    {
+        if (Cancelled())
+            return cancellationError();
+
+        auto& [repositoryReference, pullRequest, isWaitingForUserApproval] = pullRequestsToProcess[pullRequestIndex];
+        const auto& repository = repositoryReference.get();
+        m_progress_callback(FetchingPullRequestDetails{
+            .repositoryName = repository.full_name,
+            .currentPullRequest = pullRequestIndex + 1,
+            .totalPullRequests = pull_requests_to_process_count,
+        });
+
+        UNWRAP_OR_RETURN_ERROR(
+            diffStat,
+            diffStatRequest.GetDiffStat(credentials, repository, pullRequest.id));
+
+        if (Cancelled())
+            return cancellationError();
+
+        UNWRAP_OR_RETURN_ERROR(
+            statuses,
+            statusRequest.GetStatuses(credentials, repository, pullRequest.id));
+
+        if (Cancelled())
+            return cancellationError();
+
+        PullRequestInfo pullRequestInfo{
+            .pullRequest = std::move(pullRequest),
+            .statuses = std::move(statuses.values),
+            .diffStat = diffStat
+        };
+
+        if (isWaitingForUserApproval)
+            waitingForMyApprovalPullRequests.push_back(std::move(pullRequestInfo));
+        else
+            myPullRequests.push_back(std::move(pullRequestInfo));
+    }
+
+    return GetPullRequestDetailsResult{
+        .waitingForMyApprovalPullRequests = std::move(waitingForMyApprovalPullRequests),
+        .myPullRequests = std::move(myPullRequests),
+    };
 }

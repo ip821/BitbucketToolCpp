@@ -202,7 +202,6 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
     {
         const Stopwatch fetchStopwatch;
 
-        PullRequestService pullRequestService;
         const auto progressCallback = [this, stopToken](const PullRequestUpdateProgressArgs& progressArgs)
         {
             if (stopToken.stop_requested())
@@ -217,7 +216,9 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
             wxTheApp->MSWProcessPendingEventsIfNeeded();
 #endif
         };
-        const auto pullRequestsResult = pullRequestService.GetPullRequests(repositories, progressCallback, stopToken);
+
+        PullRequestService pullRequestService(progressCallback, stopToken);
+        const auto pullRequestsResult = pullRequestService.GetPullRequests(repositories);
 
         if (stopToken.stop_requested())
             return;
