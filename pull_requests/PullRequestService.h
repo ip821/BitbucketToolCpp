@@ -4,6 +4,7 @@
 #include <functional>
 #include <stop_token>
 #include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -35,11 +36,11 @@ class PullRequestService
 {
 public:
     explicit PullRequestService(
-        const PullRequestUpdateProgressCallback& progress_callback,
-        const std::stop_token& stop_token
+        PullRequestUpdateProgressCallback progress_callback,
+        std::stop_token stop_token
     ) :
-        m_progress_callback(progress_callback),
-        m_stop_token(stop_token)
+        m_progress_callback(std::move(progress_callback)),
+        m_stop_token(std::move(stop_token))
     {
 
     }
@@ -47,8 +48,8 @@ public:
     GetPullRequestsResult GetPullRequests(const std::vector<Repository>& repositories);
 
 private:
-    const PullRequestUpdateProgressCallback& m_progress_callback;
-    const std::stop_token& m_stop_token;
+    PullRequestUpdateProgressCallback m_progress_callback;
+    std::stop_token m_stop_token;
 
     [[nodiscard]] bool Cancelled() const;
 
