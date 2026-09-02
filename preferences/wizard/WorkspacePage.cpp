@@ -2,6 +2,7 @@
 
 #include <format>
 #include <thread>
+#include <utility>
 #include <cpp_utils/match_expected.h>
 #include <wx/activityindicator.h>
 #include <wx/base64.h>
@@ -9,6 +10,7 @@
 #include <wx/wx.h>
 
 #include "WorkspaceView.h"
+#include "RepositoriesFetchedThreadEvent.h"
 #include "../Credentials.h"
 #include "bitbucket_api/Requests.h"
 #include "bitbucket_api/Structs.h"
@@ -55,6 +57,8 @@ WorkspacePage::WorkspacePage(SetupWizard *pWizard, SetupWizardContext& context) 
         if (!m_asyncOperationInProgress)
             StartAsyncOperation();
     });
+
+    Bind(RepositoriesFetchedThreadEvent::EventType, &WorkspacePage::OnAsyncOperationCompleted, this);
 }
 
 void WorkspacePage::StopAsyncOperation()
@@ -115,23 +119,27 @@ void WorkspacePage::StartAsyncOperation()
         if (stopToken.stop_requested())
             return;
 
-        this->CallAfter([this, repositories, stopToken]
-        {
-            if (stopToken.stop_requested())
-                return;
-
-            StopBusyAnimation();
-            m_asyncOperationInProgress = false;
-
-            m_context.m_repositories = repositories;
-
-            if (!m_context.m_repositories.empty())
-            {
-                m_asyncOperationCompletedSuccessfully = true;
-                m_wizard.ShowPage(GetNext());
-            }
-        });
+        const auto event = new RepositoriesFetchedThreadEvent(stopToken, std::move(repositories));
+        wxQueueEvent(this, event);
     });
+}
+
+void WorkspacePage::OnAsyncOperationCompleted(wxThreadEvent& event)
+{
+    const auto& repositoriesEvent = static_cast<RepositoriesFetchedThreadEvent&>(event);
+    if (repositoriesEvent.IsCancelled())
+        return;
+
+    StopBusyAnimation();
+    m_asyncOperationInProgress = false;
+
+    m_context.m_repositories = repositoriesEvent.GetRepositories();
+
+    if (!m_context.m_repositories.empty())
+    {
+        m_asyncOperationCompletedSuccessfully = true;
+        m_wizard.ShowPage(GetNext());
+    }
 }
 
 void WorkspacePage::StartBusyAnimation()

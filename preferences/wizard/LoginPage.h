@@ -27,6 +27,7 @@ class LoginPage : public wxWizardPageSimple
 
     void StartAsyncOperation();
     void StopAsyncOperation();
+    void OnAsyncOperationCompleted(wxThreadEvent& event);
 
     void HideErrorMessage();
     void ShowErrorMessage(const wxString& str);

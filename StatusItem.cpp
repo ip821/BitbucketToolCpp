@@ -1,8 +1,10 @@
 #include "StatusItem.h"
 
 #include <algorithm>
+#include <memory>
 #include <ranges>
 #include <thread>
+#include <utility>
 #include <cpp_utils/match_variant.h>
 #include <cpp_utils/wx_string_format.h>
 #include <wx/clipbrd.h>
@@ -12,6 +14,8 @@
 #include "bitbucket_api/include/bitbucket_api/Requests.h"
 #include "preferences/PreferencesWindow.h"
 #include "preferences/settings/Config.h"
+#include "pull_requests/PullRequestUpdateCompletedThreadEvent.h"
+#include "pull_requests/PullRequestUpdateProgressThreadEvent.h"
 #include "pull_requests/PullRequestService.h"
 #include "Stopwatch.h"
 
@@ -99,6 +103,8 @@ StatusItem::StatusItem() :
 #ifdef __WXMSW__
     Bind(wxEVT_TASKBAR_LEFT_UP, &StatusItem::OnLeftButtonClick, this);
 #endif
+    Bind(PullRequestUpdateProgressThreadEvent::EventType, &StatusItem::OnPullRequestUpdateProgress, this);
+    Bind(PullRequestUpdateCompletedThreadEvent::EventType, &StatusItem::OnPullRequestUpdateCompleted, this);
 
     m_pTimer = std::make_unique<wxTimer>(this);
     Bind(wxEVT_TIMER, [this](wxTimerEvent&)
@@ -207,56 +213,67 @@ void StatusItem::UpdatePullRequests(const OnUpdatePullRequestsArgs& args)
             if (stopToken.stop_requested())
                 return;
 
-            this->CallAfter([this, stopToken, progressArgs]
-            {
-                if (!stopToken.stop_requested())
-                    UpdateProgress(progressArgs);
-            });
-#ifdef __WXMSW__
-            wxTheApp->MSWProcessPendingEventsIfNeeded();
-#endif
+            const auto event = new PullRequestUpdateProgressThreadEvent(stopToken, progressArgs);
+            QueueEventToMessageLoop(event);
         };
 
         PullRequestService pullRequestService(progressCallback, stopToken);
-        const auto pullRequestsResult = pullRequestService.GetPullRequests(repositories);
+        auto pullRequestsResult = pullRequestService.GetPullRequests(repositories);
 
         if (stopToken.stop_requested())
             return;
 
         const auto elapsedTime = fetchStopwatch.GetElapsed();
 
-        this->CallAfter([args, elapsedTime, this, pullRequestsResult, stopToken]
-        {
-            if (stopToken.stop_requested())
-                return;
+        const auto event = new PullRequestUpdateCompletedThreadEvent(
+            stopToken,
+            args.showNotification,
+            elapsedTime,
+            std::move(pullRequestsResult));
 
-            m_pTimer->StartOnce(fiveMinutes);
-            m_menu.SetUpdateEnabled(true);
-
-            if (!pullRequestsResult)
-            {
-                const auto message = pullRequestsResult.error().message;
-                m_menu.SetStatisticsLabel(std::format("Update failed: {}", message));
-                ShowErrorNotification(message);
-                return;
-            }
-
-            const auto& pullRequestsInfo = pullRequestsResult.value();
-            m_pullRequestsInfo = pullRequestsInfo;
-
-            UpdateStatistics(pullRequestsInfo.processedPullRequestsCount, pullRequestsInfo.fetchedPullRequestsCount, elapsedTime);
-            RebuildMenu({.pullRequests = pullRequestsInfo, .showAll = false});
-
-            if (args.showNotification)
-            {
-                wxNotificationMessage notification("BitbucketTool", "Pull requests were updated");
-                notification.Show();
-            }
-        });
-#ifdef __WXMSW__
-        wxTheApp->MSWProcessPendingEventsIfNeeded();
-#endif
+        QueueEventToMessageLoop(event);
     });
+}
+
+void StatusItem::OnPullRequestUpdateProgress(wxThreadEvent& event)
+{
+    const auto& updateEvent = static_cast<PullRequestUpdateProgressThreadEvent&>(event);
+    if (!updateEvent.IsCancelled())
+        UpdateProgress(updateEvent.GetProgressArgs());
+}
+
+void StatusItem::OnPullRequestUpdateCompleted(wxThreadEvent& event)
+{
+    const auto& updateEvent = static_cast<PullRequestUpdateCompletedThreadEvent&>(event);
+    if (updateEvent.IsCancelled())
+        return;
+
+    m_pTimer->StartOnce(fiveMinutes);
+    m_menu.SetUpdateEnabled(true);
+
+    const auto& result = updateEvent.GetResult();
+    if (!result)
+    {
+        const auto message = result.error().message;
+        m_menu.SetStatisticsLabel(std::format("Update failed: {}", message));
+        ShowErrorNotification(message);
+        return;
+    }
+
+    const auto& pullRequestsInfo = result.value();
+    m_pullRequestsInfo = pullRequestsInfo;
+
+    UpdateStatistics(
+        pullRequestsInfo.processedPullRequestsCount,
+        pullRequestsInfo.fetchedPullRequestsCount,
+        updateEvent.GetElapsedTime());
+    RebuildMenu({.pullRequests = pullRequestsInfo, .showAll = false});
+
+    if (updateEvent.ShouldShowNotification())
+    {
+        wxNotificationMessage notification("BitbucketTool", "Pull requests were updated");
+        notification.Show();
+    }
 }
 
 void StatusItem::UpdateProgress(const PullRequestUpdateProgressArgs& progressArgs)
@@ -330,6 +347,14 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int
     {
         SetStatusItemTitle(wxS(""));
     }
+#endif
+}
+
+void StatusItem::QueueEventToMessageLoop(wxEvent* event)
+{
+    wxQueueEvent(this, event);
+#ifdef __WXMSW__
+    wxTheApp->MSWProcessPendingEventsIfNeeded();
 #endif
 }
 

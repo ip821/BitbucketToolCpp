@@ -1,10 +1,12 @@
 #include "LoginPage.h"
 
 #include <thread>
+#include <utility>
 #include <cpp_utils/match_expected.h>
 #include <wx/wx.h>
 
 #include "LoginView.h"
+#include "LoginCompletedThreadEvent.h"
 #include "SetupWizard.h"
 #include "SetupWizardContext.h"
 #include "../Credentials.h"
@@ -46,6 +48,8 @@ LoginPage::LoginPage(wxWizard *pWindow, SetupWizardContext& context) :
         if (!m_asyncOperationInProgress)
             StartAsyncOperation();
     });
+
+    Bind(LoginCompletedThreadEvent::EventType, &LoginPage::OnAsyncOperationCompleted, this);
 }
 
 void LoginPage::StartBusyAnimation()
@@ -106,35 +110,39 @@ void LoginPage::StartAsyncOperation()
         const auto credentials = Credentials::GetCredentialsBase64().ToStdString();
 
         const WorkspacesRequest workspacesRequest;
-        const auto response = workspacesRequest.GetWorkspaces(credentials);
+        auto response = workspacesRequest.GetWorkspaces(credentials);
 
         if (stopToken.stop_requested())
             return;
 
-        this->CallAfter([response, this, stopToken]
-        {
-            if (stopToken.stop_requested())
-                return;
-
-            StopBusyAnimation();
-            m_asyncOperationInProgress = false;
-
-            ip::match_expected(
-                response,
-                [this](const auto& workspaces)
-                {
-                    for (const auto& workspace: workspaces)
-                    {
-                        m_context.m_workspaces.push_back(workspace);
-                    }
-                    m_asyncOperationCompletedSuccessfully = true;
-                    m_wizard.ShowPage(GetNext());
-                },
-                [this](const auto& error)
-                {
-                    ShowErrorMessage(error.message);
-                }
-            );
-        });
+        const auto event = new LoginCompletedThreadEvent(stopToken, std::move(response));
+        wxQueueEvent(this, event);
     });
+}
+
+void LoginPage::OnAsyncOperationCompleted(wxThreadEvent& event)
+{
+    const auto& loginEvent = static_cast<LoginCompletedThreadEvent&>(event);
+    if (loginEvent.IsCancelled())
+        return;
+
+    StopBusyAnimation();
+    m_asyncOperationInProgress = false;
+
+    ip::match_expected(
+        loginEvent.GetResponse(),
+        [this](const auto& workspaces)
+        {
+            for (const auto& workspace: workspaces)
+            {
+                m_context.m_workspaces.push_back(workspace);
+            }
+            m_asyncOperationCompletedSuccessfully = true;
+            m_wizard.ShowPage(GetNext());
+        },
+        [this](const auto& error)
+        {
+            ShowErrorMessage(error.message);
+        }
+    );
 }

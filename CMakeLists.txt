@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(PRToolForBitbucket2 VERSION 1.36 LANGUAGES CXX)
+project(PRToolForBitbucket2 VERSION 1.37 LANGUAGES CXX)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
@@ -168,9 +168,13 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         preferences/wizard/SetupWizard.h
         preferences/wizard/LoginPage.cpp
         preferences/wizard/LoginPage.h
+        preferences/wizard/LoginCompletedThreadEvent.cpp
+        preferences/wizard/LoginCompletedThreadEvent.h
         preferences/wizard/WorkspacePage.cpp
         preferences/wizard/WorkspacePage.cpp
         preferences/wizard/WorkspacePage.h
+        preferences/wizard/RepositoriesFetchedThreadEvent.cpp
+        preferences/wizard/RepositoriesFetchedThreadEvent.h
         preferences/wizard/RepositoryPage.cpp
         preferences/wizard/RepositoryPage.h
         preferences/wizard/SetupWizardContext.h
@@ -186,6 +190,10 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         preferences/wizard/RepositoryView.h
         pull_requests/PullRequestService.cpp
         pull_requests/PullRequestService.h
+        pull_requests/PullRequestUpdateCompletedThreadEvent.cpp
+        pull_requests/PullRequestUpdateCompletedThreadEvent.h
+        pull_requests/PullRequestUpdateProgressThreadEvent.cpp
+        pull_requests/PullRequestUpdateProgressThreadEvent.h
         pull_requests/PullRequestInfo.h
         version.h
         main.cpp

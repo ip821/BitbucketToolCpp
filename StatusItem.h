@@ -45,9 +45,13 @@ class StatusItem : public wxTaskBarIcon
     void ShowErrorNotification(const wxString& message) const;
     void RebuildMenu(const RebuildMenuArgs& args);
     void UpdatePullRequests(const OnUpdatePullRequestsArgs& args);
+    void OnPullRequestUpdateProgress(wxThreadEvent& event);
+    void OnPullRequestUpdateCompleted(wxThreadEvent& event);
     void UpdateProgress(const PullRequestUpdateProgressArgs& progress);
     void UpdateStatistics(size_t processedPullRequestsCount, size_t fetchedPullRequestsCount, std::chrono::seconds elapsedTime);
     void UpdateTitle(const PullRequestsInfo& pullRequestsInfo, int hiddenPullRequestsCount);
+
+    void QueueEventToMessageLoop(wxEvent *event);
 
 #ifdef __WXOSX__
     wxBitmapBundle m_bitmapBundle = wxBitmapBundle::FromResources("status32@2x");

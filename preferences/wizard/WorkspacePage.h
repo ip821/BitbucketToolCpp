@@ -34,6 +34,7 @@ class WorkspacePage : public wxWizardPageSimple
 
     void StartAsyncOperation();
     void StopAsyncOperation();
+    void OnAsyncOperationCompleted(wxThreadEvent& event);
 public:
     explicit WorkspacePage(SetupWizard* pWizard, SetupWizardContext& context);
 };
