@@ -100,8 +100,12 @@ StatusItem::StatusItem() :
     }
     SetIcon(m_bitmapBundle, "Tooltip");
 #endif
-#ifdef __WXMSW__
+#if defined(__WXMSW__)
     Bind(wxEVT_TASKBAR_LEFT_UP, &StatusItem::OnLeftButtonClick, this);
+#elif defined(__WXGTK__)
+    // GTK reports tray icon activation as LEFT_DOWN (and doesn't emit
+    // LEFT_UP), so bind the event it actually provides.
+    Bind(wxEVT_TASKBAR_LEFT_DOWN, &StatusItem::OnLeftButtonClick, this);
 #endif
     Bind(PullRequestUpdateProgressThreadEvent::EventType, &StatusItem::OnPullRequestUpdateProgress, this);
     Bind(PullRequestUpdateCompletedThreadEvent::EventType, &StatusItem::OnPullRequestUpdateCompleted, this);

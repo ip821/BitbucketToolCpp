@@ -1,0 +1,52 @@
+diff --git a/src/gtk/taskbar.cpp b/src/gtk/taskbar.cpp
+index 40f2e6840a..89f149143d 100644
+--- a/src/gtk/taskbar.cpp
++++ b/src/gtk/taskbar.cpp
+@@ -353,10 +353,12 @@ bool wxTaskBarIcon::PopupMenu(wxMenu* menu)
+         m_priv->m_win = new wxTopLevelWindow(
+             nullptr, wxID_ANY, wxString(), wxDefaultPosition, wxDefaultSize, 0);
+         m_priv->m_win->PushEventHandler(this);
+     }
+-    wxPoint point(-1, -1);
+-#ifdef __WXUNIVERSAL__
+-    point = wxGetMousePosition();
+-#endif
+-    m_priv->m_win->PopupMenu(menu, point);
++    // Let wxWindowGTK use GTK's status-icon positioning callback. Converting
++    // screen coordinates through this hidden, unrealized window is invalid.
++    g_object_set_data(G_OBJECT(menu->m_menu),
++        "wx-taskbar-status-icon", m_priv->m_statusIcon);
++    m_priv->m_win->PopupMenu(menu);
++    g_object_set_data(G_OBJECT(menu->m_menu),
++        "wx-taskbar-status-icon", nullptr);
+ #endif // wxUSE_MENUS
+     return true;
+ }
+diff --git a/src/gtk/window.cpp b/src/gtk/window.cpp
+index 675129889e..95af900304 100644
+--- a/src/gtk/window.cpp
++++ b/src/gtk/window.cpp
+@@ -6500,8 +6500,19 @@ bool wxWindowGTK::DoPopupMenu( wxMenu *menu, int x, int y )
+     GtkMenuPositionFunc posfunc;
+     if ( x == -1 && y == -1 )
+     {
+-        // use GTK's default positioning algorithm
+-        userdata = nullptr;
+-        posfunc = nullptr;
++        if (auto* statusIcon = static_cast<GtkStatusIcon*>(g_object_get_data(
++                G_OBJECT(menu->m_menu), "wx-taskbar-status-icon")))
++        {
++            userdata = statusIcon;
++            wxGCC_WARNING_SUPPRESS(deprecated-declarations)
++            posfunc = gtk_status_icon_position_menu;
++            wxGCC_WARNING_RESTORE(deprecated-declarations)
++        }
++        else
++        {
++            // use GTK's default positioning algorithm
++            userdata = nullptr;
++            posfunc = nullptr;
++        }
+     }
+     else
+     {

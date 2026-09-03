@@ -101,7 +101,7 @@ set(CURL_ZSTD OFF CACHE STRING "" FORCE)
 set(USE_LIBIDN2 OFF CACHE BOOL "" FORCE)
 set(USE_NGHTTP2 OFF CACHE BOOL "" FORCE)
 
-if (UNIX)
+if (APPLE)
     set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
 endif ()
 
@@ -129,6 +129,7 @@ add_dependency(
 
         PATCH_FILES
             "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets-3_3_2.patch"
+            "${CMAKE_CURRENT_SOURCE_DIR}/linux/wxwidgets-3_3_3-taskbar-menu-position.patch"
             "${CMAKE_CURRENT_SOURCE_DIR}/windows/wxwidgets-3_3_3-mingw-winrt.patch"
 )
 
