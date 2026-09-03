@@ -19,10 +19,8 @@
 #include "pull_requests/PullRequestService.h"
 #include "Stopwatch.h"
 
-#ifdef __WXMSW__
+#if !defined(__WXOSX__)
 #include "windows/CustomIcon.h"
-#elif !defined(__WXOSX__)
-#include "images/StatusImage.h"
 #endif
 
 constexpr auto tenSeconds = 10 * 1000;
@@ -30,7 +28,7 @@ constexpr auto fiveMinutes = 5 * 60 * 1000;
 
 namespace
 {
-#ifdef __WXMSW__
+#if !defined(__WXOSX__)
     wxBitmapBundle CreateReviewCountIcon(const wxString& text, const bool hasAlert)
     {
         return wxBitmapBundle::FromBitmaps(
@@ -84,21 +82,11 @@ StatusItem::StatusItem() :
         wxS("PRToolForBitbucket"),
         wxS("ip.PRToolForBitbucket"));
 #else
-    m_statusBitmap = LoadEmbeddedStatusBitmap();
-    if (!m_statusBitmap.IsOk())
-    {
-        wxMessageBox("Bitmap was loaded incorrectly");
-    }
-    m_bitmapBundle = wxBitmapBundle::FromBitmap(m_statusBitmap);
-    if (!m_bitmapBundle.IsOk())
-    {
-        wxMessageBox("Could not load status image");
-    }
     if (!IsAvailable())
     {
         wxMessageBox("System icon is not available");
     }
-    SetIcon(m_bitmapBundle, "Tooltip");
+    SetStatusItemTitle(wxS("0"));
 #endif
 #if defined(__WXMSW__)
     Bind(wxEVT_TASKBAR_LEFT_UP, &StatusItem::OnLeftButtonClick, this);
@@ -329,7 +317,7 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int
 
     const auto hasAlert = hasFailedBuilds || hasSomeoneRequestedChanges;
 
-#ifdef __WXMSW__
+#if defined(__WXMSW__) || defined(__WXGTK__)
     SetStatusItemTitle(std::format(wxS("{}"), waitingCount), hasAlert);
 #else
     const auto myCount = pullRequestsInfo.myPullRequests.size();
@@ -386,6 +374,10 @@ void StatusItem::SetStatusItemTitle(const wxString& title, [[maybe_unused]] cons
         m_bitmapBundle,
         wxS("Pull requests to review: ") + title);
 #else
+    m_bitmapBundle = CreateReviewCountIcon(title, hasAlert);
+    if (!m_bitmapBundle.IsOk())
+        return;
+
     auto tooltipTitle = title.IsEmpty() ? wxS("none") : title;
     SetIcon(m_bitmapBundle, std::format(wxS("Pull requests: {}"), tooltipTitle));
 #endif

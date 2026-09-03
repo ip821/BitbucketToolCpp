@@ -203,6 +203,14 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         menu/PullRequestMenuEntry.h
         menu/PullRequestMenuEntry.cpp
 )
+
+if (NOT APPLE)
+    target_sources(PRToolForBitbucket2 PRIVATE
+            windows/CustomIcon.cpp
+            windows/CustomIcon.h
+    )
+endif ()
+
 configure_file(
         ${CMAKE_SOURCE_DIR}/version.h.in
         ${CMAKE_BINARY_DIR}/version.h
@@ -223,8 +231,6 @@ if (WIN32)
     target_sources(PRToolForBitbucket2 PRIVATE
             windows/app.rc
             windows/app.manifest
-            windows/CustomIcon.cpp
-            windows/CustomIcon.h
     )
     set_source_files_properties(windows/app.rc PROPERTIES LANGUAGE RC)
     set_property(SOURCE windows/app.rc APPEND PROPERTY OBJECT_DEPENDS
