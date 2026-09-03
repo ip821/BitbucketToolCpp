@@ -295,7 +295,7 @@ void StatusItem::UpdateStatistics(size_t processedPullRequestsCount, size_t fetc
     const auto nextUpdate = wxDateTime::Now() + wxTimeSpan::Milliseconds(fiveMinutes);
     m_menu.SetStatisticsLabel(
         std::format(
-            wxS("PRs fetched: {}/{}. Update took: {:02}:{:02}. Next update at: {}"),
+            wxS("PRs fetched: {}/{}. Took: {:02}:{:02}. Next: {}"),
             processedPullRequestsCount,
             fetchedPullRequestsCount,
             elapsedSeconds / 60,
