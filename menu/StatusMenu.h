@@ -7,6 +7,7 @@
 
 #include <wx/string.h>
 
+#include "PullRequestsMenuBuilder.h"
 #include "../bitbucket_api/include/bitbucket_api/Structs.h"
 #include "../pull_requests/PullRequestInfo.h"
 #include "../pull_requests/PullRequestsInfo.h"
@@ -40,10 +41,7 @@ public:
 
     void SetRepositories(const std::vector<Repository>& repositories);
     [[nodiscard]] int RebuildPullRequests(
-        const PullRequestsInfo& pullRequests,
-        bool hideChangesRequestedPullRequests,
-        bool useSubmenusOnMenuOverflow,
-        bool displayRepositoryNameLowercase
+        const PullRequestsInfo& pullRequests, const RebuildOptions& options
     );
 
     void SetUpdateEnabled(bool enabled);

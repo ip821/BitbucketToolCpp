@@ -20,6 +20,7 @@ struct PullRequestMenuEntryResult
 struct GetWaitingMyApprovalMenuEntriesArgs
 {
     const bool hideChangesRequestedPullRequests{};
+    const bool hideFeaturePullRequests{};
     const bool displayRepositoryNameLowercase{};
 };
 

@@ -14,7 +14,9 @@ PullRequestMenuEntryResult PullRequestMenuEntryFactory::GetWaitingMyApprovalMenu
     {
         const auto participantsRequestedChangesWithoutCurrentUser = pullRequest.GetParticipantsRequestedChangesWithout(currentUser);
 
-        if (args.hideChangesRequestedPullRequests && !participantsRequestedChangesWithoutCurrentUser.empty())
+        const auto hideChangesRequestedPullRequests = args.hideChangesRequestedPullRequests && !participantsRequestedChangesWithoutCurrentUser.empty();
+        const auto hideFeaturePullRequests = args.hideFeaturePullRequests && pullRequest.pullRequest.title.contains("_ FEATURE _");
+        if (hideChangesRequestedPullRequests || hideFeaturePullRequests)
         {
             ++hiddenPullRequestsCount;
             continue;

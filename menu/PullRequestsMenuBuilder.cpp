@@ -162,9 +162,7 @@ int PullRequestsMenuBuilder::InsertEntriesWithOverflow(
 PullRequestsMenuBuildResult PullRequestsMenuBuilder::Rebuild(
     const wxMenuItem& firstStaticMenuItem,
     const PullRequestsInfo& pullRequests,
-    const bool hideChangesRequestedPullRequests,
-    const bool useSubmenusOnMenuOverflow,
-    const bool displayRepositoryNameLowercase
+    const RebuildOptions& options
 ) const
 {
     RemoveDynamicMenuItems(firstStaticMenuItem);
@@ -174,15 +172,14 @@ PullRequestsMenuBuildResult PullRequestsMenuBuilder::Rebuild(
     PullRequestsMenuBuildResult result;
 
     auto waitingForApprovalEntriesResult = menuEntryFactory.GetWaitingMyApprovalMenuEntries({
-        .hideChangesRequestedPullRequests = hideChangesRequestedPullRequests,
-        .displayRepositoryNameLowercase = displayRepositoryNameLowercase,
+        .hideChangesRequestedPullRequests = options.hideChangesRequestedPullRequests,
+        .hideFeaturePullRequests = options.hideFeaturePullRequests,
+        .displayRepositoryNameLowercase = options.displayRepositoryNameLowercase,
     });
     result.hiddenPullRequestsCount += waitingForApprovalEntriesResult.hiddenPullRequestsCount;
     auto& waitingForApprovalMenuEntries = waitingForApprovalEntriesResult.entries;
 
-    auto myMenuEntriesResult = menuEntryFactory.GetMyMenuEntries(
-        displayRepositoryNameLowercase
-    );
+    auto myMenuEntriesResult = menuEntryFactory.GetMyMenuEntries(options.displayRepositoryNameLowercase);
     result.hiddenPullRequestsCount += myMenuEntriesResult.hiddenPullRequestsCount;
     auto& myMenuEntries = myMenuEntriesResult.entries;
 
@@ -194,7 +191,7 @@ PullRequestsMenuBuildResult PullRequestsMenuBuilder::Rebuild(
 
     const auto pFirstMenuItem = menuBuilder.InsertDisabledItem("Pull requests to review");
 
-    if (useSubmenusOnMenuOverflow)
+    if (options.useSubmenusOnMenuOverflow)
     {
         const auto staticPartMenuHeight = menuMetrics.MeasureMenuHeight(m_menu);
 

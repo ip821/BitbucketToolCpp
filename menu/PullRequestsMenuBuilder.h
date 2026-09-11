@@ -19,6 +19,14 @@ struct PullRequestsMenuBuildResult
     int hiddenPullRequestsCount{};
 };
 
+struct RebuildOptions
+{
+    bool hideChangesRequestedPullRequests{};
+    bool hideFeaturePullRequests{};
+    bool useSubmenusOnMenuOverflow{};
+    bool displayRepositoryNameLowercase{};
+};
+
 class PullRequestsMenuBuilder
 {
 public:
@@ -27,9 +35,7 @@ public:
     [[nodiscard]] PullRequestsMenuBuildResult Rebuild(
         const wxMenuItem& firstStaticMenuItem,
         const PullRequestsInfo& pullRequests,
-        bool hideChangesRequestedPullRequests,
-        bool useSubmenusOnMenuOverflow,
-        bool displayRepositoryNameLowercase
+        const RebuildOptions& options
     ) const;
 
 private:

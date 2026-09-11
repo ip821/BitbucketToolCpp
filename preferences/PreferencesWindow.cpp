@@ -35,6 +35,7 @@ PreferencesWindow::PreferencesWindow(StatusItem* pStatusItem) :
     m_pVersionText->SetLabelText(std::format("Version: {}", APP_VERSION));
 
     m_pCheckBoxHideChangesRequested->SetValue(Config::GetHideChangesRequestedPullRequests());
+    m_pCheckBoxHideFeature->SetValue(Config::GetHideFeaturePullRequests());
     m_pCheckBoxUseSubmenusOnMenuOverflow->SetValue(Config::GetUseSubmenusOnMenuOverflow());
     m_pCheckBoxDisplayRepositoryNameLowercase->SetValue(Config::GetDisplayRepositoryNameLowercase());
 
@@ -57,6 +58,12 @@ void PreferencesWindow::OnSetupClicked(wxCommandEvent& WXUNUSED(event))
 void PreferencesWindow::OnHideChangesRequestedChanged(wxCommandEvent& event)
 {
     Config::SetHideChangesRequestedPullRequests(event.IsChecked());
+    m_pStatusItem->ConfigChanged();
+}
+
+void PreferencesWindow::OnHideFeatureChanged(wxCommandEvent& event)
+{
+    Config::SetHideFeaturePullRequests(event.IsChecked());
     m_pStatusItem->ConfigChanged();
 }
 

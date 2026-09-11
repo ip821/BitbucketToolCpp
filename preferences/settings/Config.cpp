@@ -7,6 +7,7 @@
 
 const wxString keyRepositories = "repositories5";
 const wxString keyHideChangesRequestedPullRequests = "hideChangesRequestedPullRequests";
+const wxString keyHideFeaturePullRequests = "hideFeaturePullRequests";
 const wxString keyUseSubmenusOnMenuOverflow = "useSubmenusOnMenuOverflow";
 const wxString keyDisplayRepositoryNameLowercase = "displayRepositoryNameLowercase";
 
@@ -48,6 +49,18 @@ void Config::SetHideChangesRequestedPullRequests(const bool hide)
 {
     wxConfig config;
     config.Write(keyHideChangesRequestedPullRequests, hide);
+}
+
+bool Config::GetHideFeaturePullRequests()
+{
+    const wxConfig config;
+    return config.ReadBool(keyHideFeaturePullRequests, true);
+}
+
+void Config::SetHideFeaturePullRequests(const bool hide)
+{
+    wxConfig config;
+    config.Write(keyHideFeaturePullRequests, hide);
 }
 
 bool Config::GetUseSubmenusOnMenuOverflow()

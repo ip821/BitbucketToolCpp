@@ -11,6 +11,8 @@ public:
     static void SetRepositories(const std::vector<Repository>& repositories);
     static bool GetHideChangesRequestedPullRequests();
     static void SetHideChangesRequestedPullRequests(bool hide);
+    static bool GetHideFeaturePullRequests();
+    static void SetHideFeaturePullRequests(bool hide);
     static bool GetUseSubmenusOnMenuOverflow();
     static void SetUseSubmenusOnMenuOverflow(bool value);
     static bool GetDisplayRepositoryNameLowercase();

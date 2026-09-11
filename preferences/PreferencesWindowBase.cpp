@@ -72,6 +72,9 @@ PreferencesWindowBase::PreferencesWindowBase( wxWindow* parent, wxWindowID id, c
 	m_pCheckBoxHideChangesRequested = new wxCheckBox( sbSizer2->GetStaticBox(), wxID_ANY, _("Hide PR with \"Changes requested\""), wxDefaultPosition, wxDefaultSize, 0 );
 	sbSizer2->Add( m_pCheckBoxHideChangesRequested, 0, wxALL, 5 );
 
+	m_pCheckBoxHideFeature = new wxCheckBox( sbSizer2->GetStaticBox(), wxID_ANY, _("Hide PR with \"_ FEATURE _\""), wxDefaultPosition, wxDefaultSize, 0 );
+	sbSizer2->Add( m_pCheckBoxHideFeature, 0, wxALL, 5 );
+
 	m_pCheckBoxUseSubmenusOnMenuOverflow = new wxCheckBox( sbSizer2->GetStaticBox(), wxID_ANY, _("Use submenus on menu overflow"), wxDefaultPosition, wxDefaultSize, 0 );
 	sbSizer2->Add( m_pCheckBoxUseSubmenusOnMenuOverflow, 0, wxALL, 5 );
 
@@ -105,6 +108,7 @@ PreferencesWindowBase::PreferencesWindowBase( wxWindow* parent, wxWindowID id, c
 	this->Connect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( PreferencesWindowBase::OnInitDialog ) );
 	m_pButtonSetup->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( PreferencesWindowBase::OnSetupClicked ), NULL, this );
 	m_pCheckBoxHideChangesRequested->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PreferencesWindowBase::OnHideChangesRequestedChanged ), NULL, this );
+	m_pCheckBoxHideFeature->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PreferencesWindowBase::OnHideFeatureChanged ), NULL, this );
 	m_pCheckBoxUseSubmenusOnMenuOverflow->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PreferencesWindowBase::OnUseSubmenusOnMenuOverflowChanged ), NULL, this );
 	m_pCheckBoxDisplayRepositoryNameLowercase->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( PreferencesWindowBase::OnDisplayRepositoryNameLowercaseChanged ), NULL, this );
 }

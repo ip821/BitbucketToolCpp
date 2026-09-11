@@ -19,6 +19,7 @@ protected:
     void OnClose(wxCloseEvent& event);
     void OnSetupClicked(wxCommandEvent& event) override;
     void OnHideChangesRequestedChanged(wxCommandEvent& event) override;
+    void OnHideFeatureChanged(wxCommandEvent& event) override;
     void OnUseSubmenusOnMenuOverflowChanged(wxCommandEvent& event) override;
     void OnDisplayRepositoryNameLowercaseChanged(wxCommandEvent& event) override;
     void UpdateTextBoxes();

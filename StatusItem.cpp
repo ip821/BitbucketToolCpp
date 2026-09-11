@@ -175,15 +175,18 @@ void StatusItem::RebuildMenu(const RebuildMenuArgs& args)
     m_showAllPullRequests = showAll;
 
     const auto hideChangesRequestedPullRequests = !showAll && Config::GetHideChangesRequestedPullRequests();
+    const auto hideFeaturePullRequests = !showAll && Config::GetHideFeaturePullRequests();
     const auto useSubmenusOnMenuOverflow = Config::GetUseSubmenusOnMenuOverflow();
     const auto displayRepositoryNameLowercase = Config::GetDisplayRepositoryNameLowercase();
 
     const auto hiddenPullRequestsCount = m_menu.RebuildPullRequests(
         pullRequestsInfo,
-        hideChangesRequestedPullRequests,
-        useSubmenusOnMenuOverflow,
-        displayRepositoryNameLowercase
-    );
+        RebuildOptions{
+            .hideChangesRequestedPullRequests = hideChangesRequestedPullRequests,
+            .hideFeaturePullRequests = hideFeaturePullRequests,
+            .useSubmenusOnMenuOverflow = useSubmenusOnMenuOverflow,
+            .displayRepositoryNameLowercase = displayRepositoryNameLowercase,
+        });
 
     UpdateTitle(pullRequestsInfo, hiddenPullRequestsCount);
 }
@@ -352,7 +355,7 @@ void StatusItem::QueueEventToMessageLoop(wxEvent* event)
 
 void StatusItem::ConfigChanged()
 {
-    m_showAllPullRequests = Config::GetHideChangesRequestedPullRequests();
+    m_showAllPullRequests = Config::GetHideChangesRequestedPullRequests() || Config::GetHideFeaturePullRequests();
     RefreshMenu();
 }
 

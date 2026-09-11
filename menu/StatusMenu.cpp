@@ -35,7 +35,7 @@ StatusMenu::StatusMenu(StatusMenuCallbacks callbacks) :
 
     m_statisticsMenuItem = m_menu->Append(wxID_ANY, "Statistics");
     m_statisticsMenuItem->Enable(false);
-    m_showAllMenuItem = m_menu->Append(wxID_ANY, "&Show hidden items");
+    m_showAllMenuItem = m_menu->Append(wxID_ANY, "&Show/hide items");
     m_updateMenuItem = m_menu->Append(wxID_ANY, "&Update");
     m_preferencesMenuItem = m_menu->Append(wxID_ANY, "&Preferences...");
     m_quitMenuItem = m_menu->Append(wxID_ANY, "&Quit");
@@ -73,18 +73,14 @@ void StatusMenu::SetRepositories(const std::vector<Repository>& repositories)
 
 int StatusMenu::RebuildPullRequests(
     const PullRequestsInfo& pullRequests,
-    const bool hideChangesRequestedPullRequests,
-    const bool useSubmenusOnMenuOverflow,
-    const bool displayRepositoryNameLowercase
+    const RebuildOptions& options
 )
 {
     const PullRequestsMenuBuilder menuBuilder(*m_menu);
     auto [menuItemIdToPullRequest, hiddenPullRequestsCount] = menuBuilder.Rebuild(
         *m_firstStaticMenuItem,
         pullRequests,
-        hideChangesRequestedPullRequests,
-        useSubmenusOnMenuOverflow,
-        displayRepositoryNameLowercase
+        options
     );
 
     m_menuItemIdToPullRequest = std::move(menuItemIdToPullRequest);
