@@ -23,10 +23,14 @@ namespace
 
     wxString FitMenuText(const wxString& text)
     {
-        wxBitmap bitmap(1, 1);
+        const wxDisplay display;
+        const auto displayScaleFactor = display.IsOk() ? display.GetScaleFactor() : 1.0;
+
+        wxBitmap bitmap;
+        bitmap.CreateWithLogicalSize(wxSize(1, 1), displayScaleFactor);
         wxMemoryDC dc(bitmap);
         dc.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
-        return wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, maxMenuWidth);
+        return wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, dc.FromDIP(maxMenuWidth));
     }
 
     void SplitOversizedEntries(std::vector<PullRequestMenuEntry>& entries, const MenuMetrics& metrics)

@@ -9,6 +9,7 @@ extern "C" int GetSystemMenuBarHeight();
 
 class MenuMetrics
 {
+    static constexpr auto MenuItemVerticalPadding = 8;
     static constexpr auto MenuVerticalBorderAllowance = 8;
 
 public:
@@ -18,28 +19,33 @@ public:
 
     static MenuMetrics Measure()
     {
-        wxBitmap bitmap(1, 1);
+        const wxDisplay display;
+        const auto displayScaleFactor = display.IsOk() ? display.GetScaleFactor() : 1.0;
+
+        wxBitmap bitmap;
+        bitmap.CreateWithLogicalSize(wxSize(1, 1), displayScaleFactor);
         wxMemoryDC dc(bitmap);
         dc.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 
         const auto textHeight = dc.GetTextExtent(wxS("Ag")).GetHeight();
+        const auto itemVerticalPadding = dc.FromDIP(MenuItemVerticalPadding);
 #if defined __WXOSX__
         const int systemMenuHeight = GetSystemMenuBarHeight() * 1.15;
 #else
         const auto systemMenuHeight = wxSystemSettings::GetMetric(wxSYS_MENU_Y);
 #endif
-        const auto itemHeight = std::max({1, textHeight + 8, systemMenuHeight});
+        const auto itemHeight = std::max({1, textHeight + itemVerticalPadding, systemMenuHeight});
         const auto separatorHeight = std::max(1, itemHeight / 2);
 
-        const wxDisplay display;
         const auto displayHeight = display.IsOk()
             ? display.GetClientArea().GetHeight()
             : wxSystemSettings::GetMetric(wxSYS_SCREEN_Y);
+        const auto menuVerticalBorderAllowance = dc.FromDIP(MenuVerticalBorderAllowance);
 
         return {
             .itemHeight = itemHeight,
             .separatorHeight = separatorHeight,
-            .maximumHeight = std::max(itemHeight, displayHeight - MenuVerticalBorderAllowance),
+            .maximumHeight = std::max(itemHeight, displayHeight - menuVerticalBorderAllowance),
         };
     }
 
