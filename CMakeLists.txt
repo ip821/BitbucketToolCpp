@@ -103,6 +103,32 @@ set(USE_NGHTTP2 OFF CACHE BOOL "" FORCE)
 
 if (APPLE)
     set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
+
+    # Homebrew removes old Cellar versions during upgrades. Prefer its stable
+    # opt symlink and discard FindOpenSSL paths cached before an upgrade.
+    find_program(HOMEBREW_EXECUTABLE brew)
+    if (HOMEBREW_EXECUTABLE AND NOT OPENSSL_ROOT_DIR)
+        execute_process(
+                COMMAND "${HOMEBREW_EXECUTABLE}" --prefix openssl@3
+                OUTPUT_VARIABLE homebrew_openssl_prefix
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                RESULT_VARIABLE homebrew_openssl_result
+        )
+        if (homebrew_openssl_result EQUAL 0
+                AND EXISTS "${homebrew_openssl_prefix}/lib/libssl.a")
+            set(OPENSSL_ROOT_DIR "${homebrew_openssl_prefix}")
+        endif ()
+    endif ()
+
+    foreach(openssl_cache_var IN ITEMS
+            OPENSSL_SSL_LIBRARY OPENSSL_CRYPTO_LIBRARY OPENSSL_INCLUDE_DIR)
+        if (DEFINED ${openssl_cache_var})
+            if (NOT EXISTS "${${openssl_cache_var}}"
+                    OR "${${openssl_cache_var}}" MATCHES "/Cellar/openssl@3/")
+                unset(${openssl_cache_var} CACHE)
+            endif ()
+        endif ()
+    endforeach()
 endif ()
 
 # Put each function and datum in its own section so the final executable can
