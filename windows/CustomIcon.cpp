@@ -62,9 +62,11 @@ wxBitmap CustomIcon::CreateReviewCountBitmap(const wxString& text, const int siz
         wxCoord textHeight{};
         wxCoord textDescent{};
         constexpr auto minimumFontPixelSize = 4 * renderScale;
+        constexpr auto pointsPerInch = 72.0;
         for (auto fontPixelSize = renderSize; fontPixelSize >= minimumFontPixelSize; --fontPixelSize)
         {
-            const wxFont font(wxFontInfo(wxSize(0, fontPixelSize))
+            const auto fontPointSize = fontPixelSize * pointsPerInch / dc.GetPPI().y;
+            const wxFont font(wxFontInfo(fontPointSize)
                                   .Family(wxFONTFAMILY_DEFAULT) //wxFONTFAMILY_SWISS
                                   .Bold());
             dc.SetFont(font);
