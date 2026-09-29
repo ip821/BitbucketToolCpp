@@ -1,12 +1,13 @@
 #pragma once
 
+#include <memory>
 #include <thread>
-#include <wx/bmpbndl.h>
 #include <wx/taskbar.h>
 #include <wx/timer.h>
 #include <wx/wx.h>
 
 #include "menu/StatusMenu.h"
+#include "platforms/StatusItemPlatform.h"
 #include "preferences/PreferencesWindow.h"
 #include "pull_requests/PullRequestService.h"
 #include "pull_requests/PullRequestsInfo.h"
@@ -25,6 +26,7 @@ struct RebuildMenuArgs
 
 class StatusItem : public wxTaskBarIcon
 {
+    StatusItemPlatform m_platform;
     PreferencesWindow *m_pDialog{};
     StatusMenu m_menu;
     std::unique_ptr<wxTimer> m_pTimer;
@@ -33,10 +35,6 @@ class StatusItem : public wxTaskBarIcon
     bool m_showAllPullRequests{};
 
     wxMenu *GetPopupMenu() override;
-
-    void SetStatusItemTitle(const wxString& title, bool hasAlert = false);
-
-    void OnLeftButtonClick(wxTaskBarIconEvent&);
 
     void ShowPreferencesDialog() const;
     void RefreshMenu();
@@ -53,14 +51,6 @@ class StatusItem : public wxTaskBarIcon
     void UpdateTitle(const PullRequestsInfo& pullRequestsInfo, int hiddenPullRequestsCount);
 
     void QueueEventToMessageLoop(wxEvent *event);
-
-#ifdef __WXOSX__
-    wxBitmapBundle m_bitmapBundle = wxBitmapBundle::FromResources("status32@2x");
-#endif
-
-#ifndef __WXOSX__
-    wxBitmapBundle m_bitmapBundle{};
-#endif
 
     std::jthread m_thread;
 

@@ -185,6 +185,7 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         preferences/PreferencesWindowBase.h
         preferences/PreferencesWindow.cpp
         preferences/PreferencesWindow.h
+        platforms/StatusItemPlatform.h
         StatusItem.cpp
         StatusItem.h
         Stopwatch.cpp
@@ -230,10 +231,21 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         menu/PullRequestMenuEntry.cpp
 )
 
-if (NOT APPLE)
+if (WIN32)
     target_sources(PRToolForBitbucket2 PRIVATE
-            platforms/windows/CustomIcon.cpp
-            platforms/windows/CustomIcon.h
+            platforms/CustomIcon.cpp
+            platforms/CustomIcon.h
+            platforms/windows/StatusItemPlatform.cpp
+    )
+elseif (APPLE)
+    target_sources(PRToolForBitbucket2 PRIVATE
+            platforms/macos/StatusItemPlatform.cpp
+    )
+else ()
+    target_sources(PRToolForBitbucket2 PRIVATE
+            platforms/CustomIcon.cpp
+            platforms/CustomIcon.h
+            platforms/linux/StatusItemPlatform.cpp
     )
 endif ()
 

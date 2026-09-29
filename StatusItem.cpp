@@ -19,25 +19,9 @@
 #include "pull_requests/PullRequestService.h"
 #include "Stopwatch.h"
 
-#if !defined(__WXOSX__)
-#include "platforms/windows/CustomIcon.h"
-#endif
-
 constexpr auto tenSeconds = 10 * 1000;
 constexpr auto fiveMinutes = 5 * 60 * 1000;
 constexpr auto immediateUpdateDelay = 1;
-
-namespace
-{
-#if !defined(__WXOSX__)
-    wxBitmapBundle CreateReviewCountIcon(const wxString& text, const bool hasAlert)
-    {
-        return wxBitmapBundle::FromBitmaps(
-            CustomIcon::CreateReviewCountBitmap(text, 16, hasAlert),
-            CustomIcon::CreateReviewCountBitmap(text, 32, hasAlert));
-    }
-#endif
-}
 
 StatusItem::StatusItem() :
     wxTaskBarIcon(wxTBI_CUSTOM_STATUSITEM),
@@ -70,32 +54,10 @@ StatusItem::StatusItem() :
 {
     m_pDialog = new PreferencesWindow(this);
 
-#if defined(__WXOSX__)
-    SetIcon("status32@2x");
-#elif defined(__WXMSW__)
-    if (!IsAvailable())
+    m_platform.Initialize(*this, [this]
     {
-        wxMessageBox("System icon is not available");
-    }
-    SetStatusItemTitle(wxS("0"));
-    wxNotificationMessage::UseTaskBarIcon(this);
-    wxNotificationMessage::MSWUseToasts(
-        wxS("PRToolForBitbucket"),
-        wxS("ip.PRToolForBitbucket"));
-#else
-    if (!IsAvailable())
-    {
-        wxMessageBox("System icon is not available");
-    }
-    SetStatusItemTitle(wxS("0"));
-#endif
-#if defined(__WXMSW__)
-    Bind(wxEVT_TASKBAR_LEFT_UP, &StatusItem::OnLeftButtonClick, this);
-#elif defined(__WXGTK__)
-    // GTK reports tray icon activation as LEFT_DOWN (and doesn't emit
-    // LEFT_UP), so bind the event it actually provides.
-    Bind(wxEVT_TASKBAR_LEFT_DOWN, &StatusItem::OnLeftButtonClick, this);
-#endif
+        PopupMenu(m_menu.GetMenu());
+    });
     Bind(PullRequestUpdateProgressThreadEvent::EventType, &StatusItem::OnPullRequestUpdateProgress, this);
     Bind(PullRequestUpdateCompletedThreadEvent::EventType, &StatusItem::OnPullRequestUpdateCompleted, this);
 
@@ -120,10 +82,6 @@ StatusItem::~StatusItem()
     m_thread.request_stop();
     if (m_thread.joinable())
         m_thread.join();
-
-#ifdef __WXMSW__
-    wxNotificationMessage::UseTaskBarIcon(nullptr);
-#endif
 }
 
 void StatusItem::ShowPreferencesDialog() const
@@ -327,37 +285,14 @@ void StatusItem::UpdateTitle(const PullRequestsInfo& pullRequestsInfo, const int
 
     const auto hasAlert = hasFailedBuilds || hasSomeoneRequestedChanges;
 
-#if defined(__WXMSW__) || defined(__WXGTK__)
-    SetStatusItemTitle(std::format(wxS("{}"), waitingCount), hasAlert);
-#else
     const auto myCount = pullRequestsInfo.myPullRequests.size();
-    if (waitingCount || myCount)
-    {
-        if (myCount)
-        {
-            auto title = std::format(wxS("{}/{}"), waitingCount, myCount);
-
-            if (hasAlert)
-                title += wxS(" (!)");
-
-            SetStatusItemTitle(title);
-        } else
-        {
-            SetStatusItemTitle(std::format(wxS("{}"), waitingCount));
-        }
-    } else
-    {
-        SetStatusItemTitle(wxS(""));
-    }
-#endif
+    m_platform.UpdateTitle(*this, waitingCount, myCount, hasAlert);
 }
 
 void StatusItem::QueueEventToMessageLoop(wxEvent* event)
 {
     wxQueueEvent(this, event);
-#ifdef __WXMSW__
-    wxTheApp->MSWProcessPendingEventsIfNeeded();
-#endif
+    m_platform.OnEventQueued();
 }
 
 void StatusItem::ConfigChanged()
@@ -369,31 +304,4 @@ void StatusItem::ConfigChanged()
 wxMenu* StatusItem::GetPopupMenu()
 {
     return m_menu.GetMenu();
-}
-
-void StatusItem::SetStatusItemTitle(const wxString& title, [[maybe_unused]] const bool hasAlert)
-{
-#if defined(__WXOSX__)
-    SetTitle(title);
-#elif defined(__WXMSW__)
-    m_bitmapBundle = CreateReviewCountIcon(title, hasAlert);
-    if (!m_bitmapBundle.IsOk())
-        return;
-
-    SetIcon(
-        m_bitmapBundle,
-        wxS("Pull requests to review: ") + title);
-#else
-    m_bitmapBundle = CreateReviewCountIcon(title, hasAlert);
-    if (!m_bitmapBundle.IsOk())
-        return;
-
-    auto tooltipTitle = title.IsEmpty() ? wxS("none") : title;
-    SetIcon(m_bitmapBundle, std::format(wxS("Pull requests: {}"), tooltipTitle));
-#endif
-}
-
-void StatusItem::OnLeftButtonClick(wxTaskBarIconEvent&)
-{
-    PopupMenu(m_menu.GetMenu());
 }
