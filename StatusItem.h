@@ -40,6 +40,7 @@ class StatusItem : public wxTaskBarIcon
 
     void ShowPreferencesDialog() const;
     void RefreshMenu();
+    void ApplyConfig();
     static void OpenPullRequest(const wxString& href, bool copyToClipboard);
     static void CreatePullRequest(const wxString& repository);
     void ShowErrorNotification(const wxString& message) const;

@@ -25,6 +25,7 @@
 
 constexpr auto tenSeconds = 10 * 1000;
 constexpr auto fiveMinutes = 5 * 60 * 1000;
+constexpr auto immediateUpdateDelay = 1;
 
 namespace
 {
@@ -104,7 +105,7 @@ StatusItem::StatusItem() :
         UpdatePullRequests({.showNotification = false});
     });
 
-    ConfigChanged();
+    ApplyConfig();
 
 #if defined(WXDEBUG)
     wxUnusedVar(tenSeconds);
@@ -136,6 +137,12 @@ void StatusItem::ShowPreferencesDialog() const
 void StatusItem::RefreshMenu()
 {
     RebuildMenu({.pullRequests = m_pullRequestsInfo, .showAll = !m_showAllPullRequests});
+}
+
+void StatusItem::ApplyConfig()
+{
+    m_showAllPullRequests = Config::GetHideChangesRequestedPullRequests() || Config::GetHideFeaturePullRequests();
+    RefreshMenu();
 }
 
 void StatusItem::OpenPullRequest(const wxString& href, const bool copyToClipboard)
@@ -355,8 +362,8 @@ void StatusItem::QueueEventToMessageLoop(wxEvent* event)
 
 void StatusItem::ConfigChanged()
 {
-    m_showAllPullRequests = Config::GetHideChangesRequestedPullRequests() || Config::GetHideFeaturePullRequests();
-    RefreshMenu();
+    ApplyConfig();
+    m_pTimer->StartOnce(immediateUpdateDelay);
 }
 
 wxMenu* StatusItem::GetPopupMenu()

@@ -13,7 +13,7 @@ class SetupWizard : public wxWizard
 public:
     explicit SetupWizard(wxWindow* pWindow);
     ~SetupWizard() override;
-    void Run();
+    bool Run();
 
 private:
     LoginPage* m_pLoginPage;

@@ -51,8 +51,11 @@ void PreferencesWindow::OnInitDialog(wxInitDialogEvent&)
 void PreferencesWindow::OnSetupClicked(wxCommandEvent& WXUNUSED(event))
 {
     SetupWizard setupWizard(this);
-    setupWizard.Run();
-    UpdateTextBoxes();
+    if (setupWizard.Run())
+    {
+        UpdateTextBoxes();
+        m_pStatusItem->ConfigChanged();
+    }
 }
 
 void PreferencesWindow::OnHideChangesRequestedChanged(wxCommandEvent& event)

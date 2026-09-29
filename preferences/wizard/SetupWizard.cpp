@@ -33,7 +33,7 @@ SetupWizard::~SetupWizard()
     m_pWorkspacePage->StopAsyncOperation();
 }
 
-void SetupWizard::Run()
+bool SetupWizard::Run()
 {
-    RunWizard(m_pLoginPage);
+    return RunWizard(m_pLoginPage);
 }
