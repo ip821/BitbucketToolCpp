@@ -154,9 +154,9 @@ add_dependency(
         GIT_SHALLOW TRUE
 
         PATCH_FILES
-            "${CMAKE_CURRENT_SOURCE_DIR}/macos/wxwidgets-3_3_2.patch"
-            "${CMAKE_CURRENT_SOURCE_DIR}/linux/wxwidgets-3_3_3-taskbar-menu-position.patch"
-            "${CMAKE_CURRENT_SOURCE_DIR}/windows/wxwidgets-3_3_3-mingw-winrt.patch"
+            "${CMAKE_CURRENT_SOURCE_DIR}/platforms/macos/wxwidgets-3_3_2.patch"
+            "${CMAKE_CURRENT_SOURCE_DIR}/platforms/linux/wxwidgets-3_3_3-taskbar-menu-position.patch"
+            "${CMAKE_CURRENT_SOURCE_DIR}/platforms/windows/wxwidgets-3_3_3-mingw-winrt.patch"
 )
 
 add_dependency(
@@ -232,8 +232,8 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
 
 if (NOT APPLE)
     target_sources(PRToolForBitbucket2 PRIVATE
-            windows/CustomIcon.cpp
-            windows/CustomIcon.h
+            platforms/windows/CustomIcon.cpp
+            platforms/windows/CustomIcon.h
     )
 endif ()
 
@@ -255,12 +255,12 @@ target_link_libraries(PRToolForBitbucket2 PRIVATE
 
 if (WIN32)
     target_sources(PRToolForBitbucket2 PRIVATE
-            windows/app.rc
-            windows/app.manifest
+            platforms/windows/app.rc
+            platforms/windows/app.manifest
     )
-    set_source_files_properties(windows/app.rc PROPERTIES LANGUAGE RC)
-    set_property(SOURCE windows/app.rc APPEND PROPERTY OBJECT_DEPENDS
-            "${CMAKE_CURRENT_SOURCE_DIR}/windows/app.ico"
+    set_source_files_properties(platforms/windows/app.rc PROPERTIES LANGUAGE RC)
+    set_property(SOURCE platforms/windows/app.rc APPEND PROPERTY OBJECT_DEPENDS
+            "${CMAKE_CURRENT_SOURCE_DIR}/platforms/windows/app.ico"
     )
     target_link_options(PRToolForBitbucket2 PRIVATE
             -static
@@ -310,7 +310,7 @@ if (CMAKE_STRIP)
 endif ()
 
 set(STATUS_IMAGE_32_2x
-        macos/status32@2x.png
+        platforms/macos/status32@2x.png
 )
 set(STATUS_IMAGE_32
         images/status32.png
@@ -321,7 +321,7 @@ set(STATUS_IMAGE_16
 
 if (APPLE)
     project(PRToolForBitbucket2 LANGUAGES CXX OBJCXX)
-    set(APP_ICON "${CMAKE_SOURCE_DIR}/macos/AppIcon.icns")
+    set(APP_ICON "${CMAKE_SOURCE_DIR}/platforms/macos/AppIcon.icns")
     set_source_files_properties(${APP_ICON}
             PROPERTIES
             MACOSX_PACKAGE_LOCATION "Resources"
@@ -339,7 +339,7 @@ if (APPLE)
             MACOSX_PACKAGE_LOCATION "Resources"
     )
     set_target_properties(PRToolForBitbucket2 PROPERTIES
-            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/macos/info.plist"
+            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/platforms/macos/info.plist"
             MACOSX_BUNDLE_BUNDLE_NAME "PRToolForBitbucket2"
             MACOSX_BUNDLE_GUI_IDENTIFIER "ip.PRToolForBitbucket2"
             MACOSX_BUNDLE_ICON_FILE "AppIcon.icns"
@@ -349,8 +349,8 @@ if (APPLE)
             ${STATUS_IMAGE_32_2x}
             ${STATUS_IMAGE_32}
             ${STATUS_IMAGE_16}
-            macos/macos_activation.mm
-            macos/menubar.mm
+            platforms/macos/macos_activation.mm
+            platforms/macos/menubar.mm
     )
     target_compile_options(PRToolForBitbucket2 PRIVATE
             -fno-builtin-std-forward_like

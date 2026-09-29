@@ -20,7 +20,7 @@
 #include "Stopwatch.h"
 
 #if !defined(__WXOSX__)
-#include "windows/CustomIcon.h"
+#include "platforms/windows/CustomIcon.h"
 #endif
 
 constexpr auto tenSeconds = 10 * 1000;
