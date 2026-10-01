@@ -38,7 +38,7 @@ void CustomIcon::MixImages(const int size, const wxImage& colourImage, const wxI
     }
 }
 
-wxBitmap CustomIcon::CreateReviewCountBitmap(const wxString& text, const int size, const bool hasAlert)
+wxBitmap CustomIcon::CreateReviewCountBitmap(const wxString& text, const int size, const bool hasAlert, const bool enlargeText)
 {
     constexpr auto renderScale = 4;
     const auto renderSize = size * renderScale;
@@ -58,29 +58,104 @@ wxBitmap CustomIcon::CreateReviewCountBitmap(const wxString& text, const int siz
 
         DrawRoundedRectangle(dc, badgeColour, renderSize);
 
-        wxCoord textWidth{};
-        wxCoord textHeight{};
-        wxCoord textDescent{};
-        constexpr auto minimumFontPixelSize = 4 * renderScale;
-        constexpr auto pointsPerInch = 72.0;
-        for (auto fontPixelSize = renderSize; fontPixelSize >= minimumFontPixelSize; --fontPixelSize)
-        {
-            const auto fontPointSize = fontPixelSize * pointsPerInch / dc.GetPPI().y;
-            const wxFont font(wxFontInfo(fontPointSize)
-                                  .Family(wxFONTFAMILY_DEFAULT) //wxFONTFAMILY_SWISS
-                                  .Bold());
-            dc.SetFont(font);
-            dc.GetTextExtent(text, &textWidth, &textHeight, &textDescent);
-            if (textWidth <= renderSize - 2 * renderScale && textHeight <= renderSize - 2 * renderScale)
-                break;
-        }
-
         dc.SetTextForeground(*wxWHITE);
         dc.SetBackgroundMode(wxBRUSHSTYLE_TRANSPARENT);
-        dc.DrawText(
-            text,
-            (renderSize - textWidth) / 2,
-            (renderSize - textHeight) / 2);
+
+        constexpr auto minimumFontPixelSize = 4 * renderScale;
+        constexpr auto pointsPerInch = 72.0;
+        const auto makeFont = [&](const int pixelSize)
+        {
+            const auto pointSize = pixelSize * pointsPerInch / std::max(1, dc.GetPPI().y);
+            return wxFont(wxFontInfo(pointSize).Family(wxFONTFAMILY_DEFAULT).Bold());
+        };
+
+        if (enlargeText && !text.IsEmpty())
+        {
+            // wxDC::GetTextExtent includes font leading. Fit the visible ink instead,
+            // since AppIndicator scales this bitmap down to the panel icon size.
+            // Keep the count no taller than the GNOME panel text beside it.
+            const auto maximumInkHeight = renderSize * 5 / 8;
+            const auto measureInk = [&](const wxFont& font)
+            {
+                dc.SetFont(font);
+                wxCoord width{}, height{};
+                dc.GetTextExtent(text, &width, &height);
+                constexpr auto padding = 2 * renderScale;
+                const auto bitmapWidth = std::max(1, static_cast<int>(width) + 2 * padding);
+                const auto bitmapHeight = std::max(1, static_cast<int>(height) + 2 * padding);
+                wxBitmap bitmap(bitmapWidth, bitmapHeight, 24);
+                {
+                    wxMemoryDC textDC(bitmap);
+                    textDC.SetBackground(*wxBLACK_BRUSH);
+                    textDC.Clear();
+                    textDC.SetFont(font);
+                    textDC.SetTextForeground(*wxWHITE);
+                    textDC.SetBackgroundMode(wxBRUSHSTYLE_TRANSPARENT);
+                    textDC.DrawText(text, padding, padding);
+                }
+
+                const auto image = bitmap.ConvertToImage();
+                const auto* pixels = image.GetData();
+                auto minX = bitmapWidth;
+                auto minY = bitmapHeight;
+                auto maxX = -1;
+                auto maxY = -1;
+                for (auto y = 0; y < bitmapHeight; ++y)
+                {
+                    for (auto x = 0; x < bitmapWidth; ++x)
+                    {
+                        if (pixels[(y * bitmapWidth + x) * 3] <= 16)
+                            continue;
+                        minX = std::min(minX, x);
+                        minY = std::min(minY, y);
+                        maxX = std::max(maxX, x);
+                        maxY = std::max(maxY, y);
+                    }
+                }
+                return maxX < 0
+                    ? wxRect()
+                    : wxRect(minX - padding, minY - padding, maxX - minX + 1, maxY - minY + 1);
+            };
+
+            auto smallest = minimumFontPixelSize;
+            auto largest = renderSize * 2;
+            auto bestSize = minimumFontPixelSize;
+            wxRect ink;
+            while (smallest <= largest)
+            {
+                const auto candidate = smallest + (largest - smallest) / 2;
+                const auto candidateInk = measureInk(makeFont(candidate));
+                if (candidateInk.width <= renderSize - 4 * renderScale &&
+                    candidateInk.height <= maximumInkHeight)
+                {
+                    bestSize = candidate;
+                    ink = candidateInk;
+                    smallest = candidate + 1;
+                }
+                else
+                {
+                    largest = candidate - 1;
+                }
+            }
+            if (ink.IsEmpty())
+                ink = measureInk(makeFont(bestSize));
+
+            dc.SetFont(makeFont(bestSize));
+            dc.DrawText(text, (renderSize - ink.width) / 2 - ink.x,
+                        (renderSize - ink.height) / 2 - ink.y);
+        }
+        else
+        {
+            wxCoord textWidth{}, textHeight{};
+            for (auto fontPixelSize = renderSize; fontPixelSize >= minimumFontPixelSize; --fontPixelSize)
+            {
+                dc.SetFont(makeFont(fontPixelSize));
+                dc.GetTextExtent(text, &textWidth, &textHeight);
+                if (textWidth <= renderSize - 2 * renderScale && textHeight <= renderSize - 2 * renderScale)
+                    break;
+            }
+            dc.DrawText(text, (renderSize - textWidth) / 2, (renderSize - textHeight) / 2);
+        }
     }
 
     {

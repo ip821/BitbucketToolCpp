@@ -54,7 +54,7 @@ StatusItem::StatusItem() :
 {
     m_pDialog = new PreferencesWindow(this);
 
-    m_platform.Initialize(*this, [this]
+    m_platform.Initialize(*this, *m_menu.GetMenu(), [this]
     {
         PopupMenu(m_menu.GetMenu());
     });

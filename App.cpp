@@ -8,13 +8,7 @@
 
 #include "StatusItem.h"
 
-App::App()
-{
-  // Enable legacy systray icons support
-#ifdef __WXGTK__
-  wxSetEnv("GDK_BACKEND", "x11");
-#endif
-}
+App::App() = default;
 
 bool App::OnInit()
 {

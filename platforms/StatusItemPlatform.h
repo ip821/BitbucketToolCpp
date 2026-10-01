@@ -5,6 +5,7 @@
 #include <memory>
 
 class wxTaskBarIcon;
+class wxMenu;
 
 class StatusItemPlatform
 {
@@ -20,7 +21,7 @@ public:
     StatusItemPlatform(const StatusItemPlatform&) = delete;
     StatusItemPlatform& operator=(const StatusItemPlatform&) = delete;
 
-    void Initialize(wxTaskBarIcon& statusItem, ActivationHandler onActivate);
+    void Initialize(wxTaskBarIcon& statusItem, wxMenu& menu, ActivationHandler onActivate);
     void UpdateTitle(
         wxTaskBarIcon& statusItem,
         size_t waitingCount,

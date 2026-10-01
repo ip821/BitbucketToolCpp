@@ -34,7 +34,10 @@ StatusItemPlatform::~StatusItemPlatform()
     wxNotificationMessage::UseTaskBarIcon(nullptr);
 }
 
-void StatusItemPlatform::Initialize(wxTaskBarIcon& statusItem, ActivationHandler onActivate)
+void StatusItemPlatform::Initialize(
+    wxTaskBarIcon& statusItem,
+    [[maybe_unused]] wxMenu& menu,
+    ActivationHandler onActivate)
 {
     if (!statusItem.IsAvailable())
         wxMessageBox("System icon is not available");

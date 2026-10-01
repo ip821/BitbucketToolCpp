@@ -36,7 +36,12 @@ PreferencesWindow::PreferencesWindow(StatusItem* pStatusItem) :
 
     m_pCheckBoxHideChangesRequested->SetValue(Config::GetHideChangesRequestedPullRequests());
     m_pCheckBoxHideFeature->SetValue(Config::GetHideFeaturePullRequests());
+#ifdef __WXGTK__
+    m_pCheckBoxUseSubmenusOnMenuOverflow->Hide();
+    Layout();
+#else
     m_pCheckBoxUseSubmenusOnMenuOverflow->SetValue(Config::GetUseSubmenusOnMenuOverflow());
+#endif
     m_pCheckBoxDisplayRepositoryNameLowercase->SetValue(Config::GetDisplayRepositoryNameLowercase());
 
     Bind(wxEVT_SHOW, &PreferencesWindow::OnShow, this);

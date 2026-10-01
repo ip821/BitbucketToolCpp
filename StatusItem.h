@@ -26,9 +26,9 @@ struct RebuildMenuArgs
 
 class StatusItem : public wxTaskBarIcon
 {
-    StatusItemPlatform m_platform;
     PreferencesWindow *m_pDialog{};
     StatusMenu m_menu;
+    StatusItemPlatform m_platform;
     std::unique_ptr<wxTimer> m_pTimer;
 
     PullRequestsInfo m_pullRequestsInfo;

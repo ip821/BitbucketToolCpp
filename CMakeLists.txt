@@ -179,6 +179,8 @@ add_executable(PRToolForBitbucket2 WIN32 MACOSX_BUNDLE
         menu/MenuBuilder.h
         menu/PullRequestsMenuBuilder.cpp
         menu/PullRequestsMenuBuilder.h
+        menu/PullRequestsMenuLayout.cpp
+        menu/PullRequestsMenuLayout.h
         menu/StatusMenu.cpp
         menu/StatusMenu.h
         preferences/PreferencesWindowBase.cpp
@@ -235,18 +237,27 @@ if (WIN32)
     target_sources(PRToolForBitbucket2 PRIVATE
             platforms/CustomIcon.cpp
             platforms/CustomIcon.h
+            platforms/PullRequestsMenuLayout.cpp
             platforms/windows/StatusItemPlatform.cpp
     )
 elseif (APPLE)
     target_sources(PRToolForBitbucket2 PRIVATE
+            platforms/PullRequestsMenuLayout.cpp
             platforms/macos/StatusItemPlatform.cpp
     )
 else ()
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(APPINDICATOR REQUIRED IMPORTED_TARGET appindicator3-0.1)
+
     target_sources(PRToolForBitbucket2 PRIVATE
             platforms/CustomIcon.cpp
             platforms/CustomIcon.h
+            platforms/linux/PullRequestsMenuLayout.cpp
             platforms/linux/StatusItemPlatform.cpp
+            platforms/linux/AppIndicatorStatusIndicator.cpp
+            platforms/linux/AppIndicatorStatusIndicator.h
     )
+    target_link_libraries(PRToolForBitbucket2 PRIVATE PkgConfig::APPINDICATOR)
 endif ()
 
 configure_file(

@@ -9,7 +9,7 @@ class wxDC;
 class CustomIcon
 {
 public:
-    static wxBitmap CreateReviewCountBitmap(const wxString& text, int size, bool hasAlert);
+    static wxBitmap CreateReviewCountBitmap(const wxString& text, int size, bool hasAlert, bool enlargeText = false);
 
 private:
     static void DrawRoundedRectangle(wxDC& dc, const wxColour& colour, int size);

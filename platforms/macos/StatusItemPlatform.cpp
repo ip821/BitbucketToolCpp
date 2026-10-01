@@ -17,6 +17,7 @@ StatusItemPlatform::~StatusItemPlatform() = default;
 
 void StatusItemPlatform::Initialize(
     wxTaskBarIcon& statusItem,
+    [[maybe_unused]] wxMenu& menu,
     [[maybe_unused]] ActivationHandler onActivate)
 {
     statusItem.SetIcon("status32@2x");
