@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(PRToolForBitbucket2 VERSION 1.39 LANGUAGES CXX)
+project(PRToolForBitbucket2 VERSION 1.40 LANGUAGES CXX)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
@@ -155,7 +155,6 @@ add_dependency(
 
         PATCH_FILES
             "${CMAKE_CURRENT_SOURCE_DIR}/platforms/macos/wxwidgets-3_3_2.patch"
-            "${CMAKE_CURRENT_SOURCE_DIR}/platforms/linux/wxwidgets-3_3_3-taskbar-menu-position.patch"
             "${CMAKE_CURRENT_SOURCE_DIR}/platforms/windows/wxwidgets-3_3_3-mingw-winrt.patch"
 )
 
